@@ -79,7 +79,7 @@ export function HowItWorks() {
       <TornEdge className="text-forest" />
       <Container>
         <SectionHead title="Three steps, and you never leave home." center dark>
-          Book in a minute, watch every pile weighed, and get paid before the partner leaves your door.
+          Book in a minute, watch every pile weighed, and get paid before the partner leaves. Then it goes to be recycled.
         </SectionHead>
         <ol className="grid gap-0 md:grid-cols-3 md:gap-10">
           {STEPS.map(({ icon: Icon, title, body }, i) => {
@@ -219,7 +219,7 @@ export function Closing() {
     <section className="bg-navy py-20 text-white md:py-24">
       <Container className="flex flex-wrap items-center justify-between gap-8">
         <h2 className="max-w-[18ch] font-serif text-[clamp(34px,4.4vw,54px)] leading-[1.08]">
-          Clear the store room <i className="font-light text-gold">this week.</i>
+          Clear the store room, <i className="font-light text-gold">not the riverbank.</i>
         </h2>
         <a href="#book" className={cn(btn.base, btn.gold)}>
           Book a free pickup <ArrowRight className="size-4" aria-hidden />
@@ -237,13 +237,13 @@ export function Footer() {
         <div className="grid content-start gap-4">
           <a href="#top" className="justify-self-start"><Brand light /></a>
           <p className="max-w-[36ch] text-sm font-light leading-relaxed text-white/60">
-            Doorstep scrap pickup across Assam. Weighed in front of you, paid on the spot.
+            Doorstep recycling across Assam. Weighed in front of you, paid on the spot, and never dumped.
           </p>
         </div>
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Explore</p>
           <nav className="grid gap-3 text-sm font-light text-white/70">
-            {[["#rates", "Today's rates"], ["#how", "How it works"], ["#estates", "Tea estates and business"], ["#faq", "Questions"]].map(([href, label]) => (
+            {[["#rates", "Today's rates"], ["#how", "How it works"], ["#impact", "Where it goes"], ["#estates", "Tea estates and business"], ["#faq", "Questions"]].map(([href, label]) => (
               <a key={href} href={href} className="transition-all hover:translate-x-1 hover:text-white">{label}</a>
             ))}
           </nav>

@@ -7,7 +7,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], style: ["normal", "itali
 const geistMono = Geist_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
-  title: "Abondhu | Scrap pickup across Assam",
+  title: "Abondhu | Doorstep scrap recycling across Assam",
   description:
     "Doorstep scrap pickup in Guwahati and across Assam. Weighed on a digital scale in front of you, paid on the spot.",
   icons: { icon: "/abondhu-mark.png" },

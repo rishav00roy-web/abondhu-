@@ -3,6 +3,7 @@ import { BookingBar } from "@/components/BookingBar";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
 import { RateBoard } from "@/components/RateBoard";
+import { SecondLife } from "@/components/SecondLife";
 import { Closing, Estates, Faq, Footer, HowItWorks, TrustStrip } from "@/components/Sections";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
         <BookingBar />
         <RateBoard />
         <HowItWorks />
+        <SecondLife />
         <Estates />
         <Faq />
         <Closing />

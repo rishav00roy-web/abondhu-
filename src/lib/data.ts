@@ -56,6 +56,10 @@ export const RECEIPT = [
 
 export const FAQS = [
   {
+    q: "Where does my scrap actually go?",
+    a: "Paper goes to a paper mill, metal to a foundry, plastic to a pelletising unit and appliances to an authorised e-waste recycler. Every partner is licensed, and nothing is burnt, buried or dumped.",
+  },
+  {
     q: "Which parts of Assam do you cover?",
     a: "Guwahati every day, including Dispur, Beltola, Six Mile and North Guwahati. Dibrugarh, Jorhat, Tezpur, Silchar and Nagaon on set days each week. We don't pick up outside Assam.",
   },

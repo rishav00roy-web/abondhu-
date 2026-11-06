@@ -1,6 +1,7 @@
 "use client";
 
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { Leaf } from "lucide-react";
 import { useEffect } from "react";
 import { CATEGORIES, RECEIPT } from "@/lib/data";
 import { EASE_OUT } from "@/lib/utils";
@@ -94,6 +95,10 @@ export function WeighingReceipt() {
             <b className="font-mono text-xl font-medium tabular">{money(totalRs)}</b>
           </span>
         </motion.div>
+        <motion.p {...enter(TOTAL_AT + 0.5)} className="mt-4 flex items-center gap-2 text-xs font-medium text-forest">
+          <Leaf className="size-3.5" aria-hidden />
+          {totalKg.toFixed(1)} kg sent to licensed recyclers, not a dump
+        </motion.p>
       </div>
     </figure>
   );

@@ -5,7 +5,8 @@ import { Brand, Container } from "./ui";
 const LINKS = [
   ["#rates", "Rates"],
   ["#how", "How it works"],
-  ["#estates", "Tea estates and business"],
+  ["#impact", "Where it goes"],
+  ["#estates", "For business"],
   ["#faq", "Questions"],
 ] as const;
 
