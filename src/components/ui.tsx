@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Reveal } from "./motion";
 
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
   return (
@@ -17,8 +18,8 @@ export function Container({ className, children }: { className?: string; childre
 
 /** Buttons follow the Willchris site: square corners, small uppercase tracked labels. */
 export const btn = {
-  base: "inline-flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-sm px-9 text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-200 active:scale-[0.98] disabled:opacity-50",
-  primary: "bg-navy text-white shadow-xl shadow-navy/10 hover:bg-forest",
+  base: "inline-flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-sm px-9 text-xs font-bold uppercase tracking-[0.15em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] disabled:opacity-50 [&_svg]:transition-transform [&_svg]:duration-200 hover:[&_svg]:translate-x-0.5",
+  primary: "bg-navy text-white shadow-xl shadow-navy/10 hover:bg-forest hover:shadow-forest/20",
   quiet: "border border-navy/20 text-navy hover:border-navy hover:bg-navy/5",
   light: "border border-white text-white hover:bg-white hover:text-midnight",
   gold: "bg-gold text-midnight hover:bg-white",
@@ -27,8 +28,8 @@ export const btn = {
 /** Short gold rule with a small uppercase line beside it. */
 export function Eyebrow({ children, tone = "forest", className }: { children: ReactNode; tone?: "forest" | "gold"; className?: string }) {
   return (
-    <p className={cn("flex items-center gap-4 text-xs font-bold uppercase tracking-[0.2em]", tone === "gold" ? "text-gold" : "text-forest", className)}>
-      <span className="h-px w-8 bg-gold" aria-hidden />
+    <p className={cn("flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.16em] sm:gap-4 sm:text-xs sm:tracking-[0.2em]", tone === "gold" ? "text-gold" : "text-forest", className)}>
+      <span className="h-px w-6 shrink-0 bg-gold sm:w-8" aria-hidden />
       {children}
     </p>
   );
@@ -51,14 +52,14 @@ export function SectionHead({
   children?: ReactNode;
 }) {
   return (
-    <div className={cn("mb-14 grid max-w-2xl gap-5", center && "mx-auto justify-items-center text-center")}>
+    <Reveal className={cn("mb-12 grid max-w-2xl gap-5 md:mb-14", center && "mx-auto justify-items-center text-center")}>
       {eyebrow && !center && <Eyebrow tone={dark ? "gold" : "forest"}>{eyebrow}</Eyebrow>}
       <h2 className={cn(serifTitle, dark && "text-white")}>{title}</h2>
       {center && <span className="h-px w-16 bg-gold" aria-hidden />}
       {children && (
         <p className={cn("text-[17px] font-light leading-relaxed", dark ? "text-white/80" : "text-muted")}>{children}</p>
       )}
-    </div>
+    </Reveal>
   );
 }
 

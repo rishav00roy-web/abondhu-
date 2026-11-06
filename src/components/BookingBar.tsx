@@ -5,10 +5,11 @@ import { ArrowRight, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { AREAS } from "@/lib/data";
 import { cn, EASE_OUT } from "@/lib/utils";
+import { Reveal } from "./motion";
 import { btn, Container, Eyebrow, serifTitle } from "./ui";
 
 const field =
-  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-[15px] text-ink transition-colors placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
+  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 const DAY_CODES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -63,17 +64,17 @@ export function BookingBar() {
       };
 
   return (
-    <section id="book" className="scroll-mt-24 bg-white py-20 md:py-28">
+    <section id="book" className="scroll-mt-20 bg-white py-16 md:py-28">
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="grid content-start gap-5">
+        <Reveal className="grid content-start gap-5">
           <Eyebrow>Takes a minute</Eyebrow>
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
             Guwahati gets a van every day. Other towns have set days, and the dates below follow them.
           </p>
-        </div>
+        </Reveal>
 
-        <form noValidate onSubmit={submit} className="min-w-0">
+        <Reveal delay={0.08} className="min-w-0"><form noValidate onSubmit={submit}>
           <AnimatePresence mode="wait" initial={false}>
             {!booked ? (
               <motion.div key="form" {...swap} className="grid gap-5">
@@ -136,7 +137,7 @@ export function BookingBar() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                  <button type="submit" className={cn(btn.base, btn.primary)}>
+                  <button type="submit" className={cn(btn.base, btn.primary, "w-full sm:w-auto")}>
                     Book pickup <ArrowRight className="size-4" aria-hidden />
                   </button>
                   <p id="book-msg" aria-live="polite" className={cn("text-sm", error ? "text-danger" : "text-muted")}>
@@ -162,7 +163,7 @@ export function BookingBar() {
               </motion.div>
             )}
           </AnimatePresence>
-        </form>
+        </form></Reveal>
       </Container>
     </section>
   );

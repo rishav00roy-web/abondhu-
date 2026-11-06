@@ -46,7 +46,7 @@ export function WeighingReceipt() {
         };
 
   return (
-    <figure className="mx-auto w-full max-w-[380px]" aria-label="Example pickup receipt from Guwahati">
+    <figure className="mx-auto w-full max-w-[380px] px-1 sm:px-0" aria-label="Example pickup receipt from Guwahati">
       <div className="receipt-edge rounded-t-sm bg-surface px-6 pb-8 pt-6 shadow-2xl">
         <div className="flex items-baseline justify-between">
           <span className="text-[13px] text-muted">On the scale</span>
@@ -72,7 +72,7 @@ export function WeighingReceipt() {
               <span className="size-2 translate-y-[-1px] rounded-full" style={{ background: CATEGORIES[row.category].color }} />
               <span>
                 {row.name}
-                <span className="ml-2 font-mono text-xs text-faint">
+                <span className="block font-mono text-xs text-faint min-[420px]:ml-2 min-[420px]:inline">
                   {row.kg} kg × ₹{row.rate}
                 </span>
               </span>
