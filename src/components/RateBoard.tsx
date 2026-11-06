@@ -5,6 +5,7 @@ import { Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { CATEGORIES, type CategoryKey, RATES, SAMPLE_ESTIMATE } from "@/lib/data";
 import { cn, EASE_OUT, inr } from "@/lib/utils";
+import { TornEdge } from "./TornEdge";
 import { btn, Container, SectionHead } from "./ui";
 
 function Payout({ value }: { value: number }) {
@@ -20,7 +21,7 @@ function Payout({ value }: { value: number }) {
 }
 
 const stepBtn =
-  "grid size-8 place-items-center rounded-[8px] text-muted transition-colors hover:bg-sunk hover:text-ink active:scale-90";
+  "grid size-8 place-items-center rounded-sm text-muted transition-colors hover:bg-white hover:text-navy active:scale-90";
 
 export function RateBoard() {
   const [qty, setQty] = useState<Record<string, number>>(SAMPLE_ESTIMATE);
@@ -32,16 +33,17 @@ export function RateBoard() {
   const pcs = chosen.filter((r) => r.unit === "pc").reduce((s, r) => s + qty[r.id], 0);
 
   return (
-    <section id="rates" className="scroll-mt-24 py-[clamp(64px,9vw,112px)]">
+    <section id="rates" className="relative scroll-mt-24 bg-sunk py-24 md:py-32">
+      <TornEdge className="text-sunk" />
       <Container>
-        <SectionHead title="Today's rates">
+        <SectionHead title="Today's rates" eyebrow="Fair, published prices">
           Per kilogram unless marked per piece. Add rough amounts to see what a pickup would pay. The scale sets the final figure.
         </SectionHead>
 
         <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
           {(Object.keys(CATEGORIES) as CategoryKey[]).map((key) => (
             <div key={key}>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-muted">
+              <h3 className="mb-4 flex items-center gap-3 border-b border-navy/10 pb-3 font-serif text-2xl text-navy">
                 <span className="size-2 rounded-full" style={{ background: CATEGORIES[key].color }} />
                 {CATEGORIES[key].name}
               </h3>
@@ -70,7 +72,7 @@ export function RateBoard() {
                             setQty((s) => ({ ...s, [r.id]: Number.isNaN(v) ? 0 : Math.max(0, v) }));
                           }}
                           className={cn(
-                            "h-8 w-10 rounded-[8px] bg-transparent text-center font-mono text-sm tabular focus:bg-sunk focus:outline-none",
+                            "h-8 w-10 rounded-[8px] bg-transparent text-center font-mono text-sm tabular focus:bg-white focus:outline-none",
                             q ? "text-ink" : "text-faint",
                           )}
                         />
@@ -88,18 +90,18 @@ export function RateBoard() {
 
         <div
           aria-live="polite"
-          className="sticky bottom-[max(16px,env(safe-area-inset-bottom))] z-10 mt-12 flex flex-wrap items-center justify-between gap-4 rounded-[14px] border border-line bg-surface/95 px-5 py-4 shadow-soft backdrop-blur-sm"
+          className="sticky bottom-[max(16px,env(safe-area-inset-bottom))] z-10 mt-14 flex flex-wrap items-center justify-between gap-4 rounded-sm bg-navy px-6 py-4 text-white shadow-2xl"
         >
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span className="text-sm text-muted">Estimated payout</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/70">Estimated payout</span>
             <Payout value={total} />
-            <span className="text-sm text-faint">
+            <span className="text-sm font-light text-white/60">
               {chosen.length === 0
                 ? "Add an item to start"
                 : `${kg} kg${pcs ? ` and ${pcs} piece${pcs > 1 ? "s" : ""}` : ""}, sample rates`}
             </span>
           </div>
-          <a href="#book" className={cn(btn.base, btn.primary)}>Book pickup</a>
+          <a href="#book" className={cn(btn.base, btn.gold)}>Book pickup</a>
         </div>
       </Container>
     </section>

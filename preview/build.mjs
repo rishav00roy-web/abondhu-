@@ -6,7 +6,7 @@ const html = `<title>Abondhu Assam</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600family=Gabarito:wght@500;600;700;800&family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,300;1,400&family=Geist+Mono:wght@400;500&display=swap">
 <style>${css}</style>
 <div id="root"></div>
 <script>${js}</script>

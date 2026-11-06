@@ -1,24 +1,30 @@
 @import "tailwindcss";
 
 /*
- * Abondhu, Assam. "Clean Slate": white paper, cool grey panels, slate ink.
- *   #FFFFFF page   #F5F7FA panels   #A0AEC0 rules, icons, dashes   #2D3748 ink and action
- * #A0AEC0 is too light for text on white, so body copy uses a darker step of the same slate.
- * The logo keeps its own colours; the same hues mark the four scrap categories, small.
- * Mono is used only for measurements and money. Radius: inputs and buttons 10px, panels 14px.
+ * Abondhu, Assam. Resort palette shared with Rishav's Willchris site:
+ *   navy #0A2540 (headings, primary action)   midnight #061727 (nav, footer)
+ *   champagne gold #D4AF37 (rules, stars, icons on dark; never small text on white)
+ *   forest #0E4D42 (feature bands, italic accent words)   sand #E6E2D6   stone #F5F7FA
+ *   charcoal #1A202C body text, slate #4A5568 secondary text.
+ * Playfair Display for headings, Montserrat for text, Geist Mono only for weights and money.
  */
 :root {
   --bg: #ffffff;
   --surface: #ffffff;
   --sunk: #f5f7fa;
-  --ink: #2d3748;
-  --muted: #5a6577;
+  --ink: #1a202c;
+  --muted: #4a5568;
   --faint: #718096;
   --slate: #a0aec0;
   --line: #e2e8f0;
-  --accent: #2d3748;
+  --navy: #0a2540;
+  --midnight: #061727;
+  --gold: #d4af37;
+  --forest: #0e4d42;
+  --sand: #e6e2d6;
+  --accent: #0a2540;
   --accent-ink: #ffffff;
-  --accent-soft: #edf1f6;
+  --accent-soft: #e6e2d6;
   --danger: #b83232;
   --logo-blue: #1e7bf2;
   --logo-red: #e0261b;
@@ -27,33 +33,7 @@
   --cat-metal: #1e6fd9;
   --cat-plastic: #d1453a;
   --cat-ewaste: #2b8a57;
-  --shadow: 0 1px 2px rgb(45 55 72 / 0.05), 0 12px 32px -18px rgb(45 55 72 / 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1a202c;
-    --surface: #222a38;
-    --sunk: #202837;
-    --ink: #f5f7fa;
-    --muted: #b6c0ce;
-    --faint: #a0aec0;
-    --slate: #718096;
-    --line: #333d4f;
-    --accent: #f5f7fa;
-    --accent-ink: #1a202c;
-    --accent-soft: #2d3748;
-    --danger: #ff8a7e;
-    --logo-blue: #5c9dff;
-    --logo-red: #ff6a5c;
-    --logo-yellow: #ffc836;
-    --cat-paper: #f2c14e;
-    --cat-metal: #6aa6ff;
-    --cat-plastic: #ff7a6b;
-    --cat-ewaste: #64c98f;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 36px -18px rgb(0 0 0 / 0.6);
-    color-scheme: dark;
-  }
+  --shadow: 0 1px 2px rgb(10 37 64 / 0.05), 0 24px 48px -24px rgb(10 37 64 / 0.35);
 }
 
 @theme inline {
@@ -64,12 +44,18 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-slate: var(--slate);
+  --color-navy: var(--navy);
+  --color-midnight: var(--midnight);
+  --color-gold: var(--gold);
+  --color-forest: var(--forest);
+  --color-sand: var(--sand);
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-montserrat), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
   --shadow-soft: var(--shadow);
 }
@@ -89,7 +75,6 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   caret-color: var(--accent);
 }
@@ -103,6 +88,16 @@ h1,
 h2,
 h3 {
   text-wrap: balance;
+}
+
+/* hero panel: tea-garden rows, drawn rather than photographed */
+@layer components {
+  .tea-rows {
+    background-color: var(--forest);
+    background-image:
+      radial-gradient(120% 80% at 80% 10%, rgb(212 175 55 / 0.16), transparent 60%),
+      repeating-linear-gradient(-28deg, rgb(255 255 255 / 0.05) 0 2px, transparent 2px 26px);
+  }
 }
 
 a {

@@ -5,11 +5,11 @@ import { ArrowRight, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { AREAS } from "@/lib/data";
 import { cn, EASE_OUT } from "@/lib/utils";
-import { btn, Container } from "./ui";
+import { btn, Container, Eyebrow, serifTitle } from "./ui";
 
 const field =
-  "h-12 w-full rounded-[10px] border border-line bg-surface px-3.5 text-[15px] text-ink transition-colors placeholder:text-faint hover:border-faint focus:border-accent focus:outline-none aria-[invalid=true]:border-danger";
-const label = "text-sm font-medium";
+  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-[15px] text-ink transition-colors placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
+const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 const DAY_CODES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Next five pickup days for a town, following its van schedule. */
@@ -63,11 +63,12 @@ export function BookingBar() {
       };
 
   return (
-    <section id="book" className="scroll-mt-24 border-y border-line bg-surface py-[clamp(56px,7vw,88px)]">
+    <section id="book" className="scroll-mt-24 bg-white py-20 md:py-28">
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="grid content-start gap-3">
-          <h2 className="text-[clamp(28px,3.4vw,40px)] font-semibold leading-[1.1] tracking-[-0.03em]">Book a pickup</h2>
-          <p className="max-w-[40ch] text-[17px] leading-relaxed text-muted">
+        <div className="grid content-start gap-5">
+          <Eyebrow>Takes a minute</Eyebrow>
+          <h2 className={serifTitle}>Book a pickup</h2>
+          <p className="max-w-[40ch] font-light leading-relaxed text-muted">
             Guwahati gets a van every day. Other towns have set days, and the dates below follow them.
           </p>
         </div>
@@ -135,7 +136,7 @@ export function BookingBar() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                  <button type="submit" className={cn(btn.base, btn.primary, "h-12 px-6")}>
+                  <button type="submit" className={cn(btn.base, btn.primary)}>
                     Book pickup <ArrowRight className="size-4" aria-hidden />
                   </button>
                   <p id="book-msg" aria-live="polite" className={cn("text-sm", error ? "text-danger" : "text-muted")}>
@@ -145,10 +146,10 @@ export function BookingBar() {
               </motion.div>
             ) : (
               <motion.div key="done" {...swap} className="grid gap-4">
-                <span className="grid size-10 place-items-center rounded-full bg-accent-soft text-accent">
+                <span className="grid size-12 place-items-center rounded-full border border-gold text-forest">
                   <Check className="size-5" strokeWidth={2.2} aria-hidden />
                 </span>
-                <h3 className="text-2xl font-semibold tracking-[-0.02em]">Pickup booked</h3>
+                <h3 className="font-serif text-3xl text-navy">Pickup booked</h3>
                 <p className="max-w-[52ch] leading-relaxed text-muted">
                   We&apos;ll come to {pin}, {city} on{" "}
                   {new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long" }).format(days[day].date)}.

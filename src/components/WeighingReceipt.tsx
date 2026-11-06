@@ -46,13 +46,13 @@ export function WeighingReceipt() {
 
   return (
     <figure className="mx-auto w-full max-w-[380px]" aria-label="Example pickup receipt from Guwahati">
-      <div className="receipt-edge rounded-t-[14px] border border-b-0 border-line bg-surface px-6 pb-8 pt-6 shadow-soft">
+      <div className="receipt-edge rounded-t-sm bg-surface px-6 pb-8 pt-6 shadow-2xl">
         <div className="flex items-baseline justify-between">
           <span className="text-[13px] text-muted">On the scale</span>
           <span className="text-[13px] text-faint">±10 g</span>
         </div>
         <div className="mt-1 flex items-baseline gap-2 border-b border-line pb-5">
-          <motion.span className="font-mono text-[56px] font-medium leading-none tracking-[-0.04em] tabular">{reading}</motion.span>
+          <motion.span className="font-mono text-[56px] font-medium leading-none tracking-[-0.04em] text-navy tabular">{reading}</motion.span>
           <span className="font-mono text-sm text-muted">kg</span>
         </div>
 
@@ -87,7 +87,7 @@ export function WeighingReceipt() {
               initial={reduce ? false : { opacity: 0, scale: 1.25 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35, ease: EASE_OUT, delay: reduce ? 0 : TOTAL_AT + 0.3 }}
-              className="rounded-[6px] border border-accent px-1.5 py-0.5 text-[11px] font-semibold tracking-[0.12em] text-accent"
+              className="rounded-sm border border-forest px-1.5 py-0.5 text-[11px] font-bold tracking-[0.14em] text-forest"
             >
               PAID
             </motion.span>
