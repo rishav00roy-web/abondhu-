@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/*
+ * Abondhu, Assam. Minimal and professional: near-white paper, near-black ink,
+ * one accent (tea-garden green) used only for action and the receipt's PAID mark.
+ * The logo keeps its own colours; the same hues mark the four scrap categories, small.
+ * Mono is used only for measurements and money. Radius: inputs and buttons 10px, panels 14px.
+ */
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --sunk: #f2f3f0;
+  --ink: #121614;
+  --muted: #5b625e;
+  --faint: #8a908c;
+  --line: #e3e5e1;
+  --accent: #1e5b43;
+  --accent-ink: #ffffff;
+  --accent-soft: #e6efea;
+  --danger: #a8322a;
+  --logo-blue: #1e7bf2;
+  --logo-red: #e0261b;
+  --logo-yellow: #f7b500;
+  --cat-paper: #d99a00;
+  --cat-metal: #1e6fd9;
+  --cat-plastic: #d1453a;
+  --cat-ewaste: #2b8a57;
+  --shadow: 0 1px 2px rgb(18 22 20 / 0.04), 0 12px 32px -18px rgb(18 22 20 / 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1110;
+    --surface: #151917;
+    --sunk: #1a1f1c;
+    --ink: #eceeed;
+    --muted: #a3aaa6;
+    --faint: #7b827e;
+    --line: #262c29;
+    --accent: #7fc4a2;
+    --accent-ink: #0c1f17;
+    --accent-soft: #1b2c24;
+    --danger: #ff8a7e;
+    --logo-blue: #5c9dff;
+    --logo-red: #ff6a5c;
+    --logo-yellow: #ffc836;
+    --cat-paper: #f2c14e;
+    --cat-metal: #6aa6ff;
+    --cat-plastic: #ff7a6b;
+    --cat-ewaste: #64c98f;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 36px -18px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+  --shadow-soft: var(--shadow);
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: var(--line) transparent;
+  -webkit-text-size-adjust: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  caret-color: var(--accent);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-edge {
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 5.5px, #000 6px) 0 0 / 16px 100% repeat-x;
+  mask: radial-gradient(circle 6px at 50% 100%, transparent 5.5px, #000 6px) 0 0 / 16px 100% repeat-x;
+}
