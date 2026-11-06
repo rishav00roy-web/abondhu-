@@ -1,23 +1,25 @@
 @import "tailwindcss";
 
 /*
- * Abondhu, Assam. Minimal and professional: near-white paper, near-black ink,
- * one accent (tea-garden green) used only for action and the receipt's PAID mark.
+ * Abondhu, Assam. "Clean Slate": white paper, cool grey panels, slate ink.
+ *   #FFFFFF page   #F5F7FA panels   #A0AEC0 rules, icons, dashes   #2D3748 ink and action
+ * #A0AEC0 is too light for text on white, so body copy uses a darker step of the same slate.
  * The logo keeps its own colours; the same hues mark the four scrap categories, small.
  * Mono is used only for measurements and money. Radius: inputs and buttons 10px, panels 14px.
  */
 :root {
-  --bg: #fafaf8;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --sunk: #f2f3f0;
-  --ink: #121614;
-  --muted: #5b625e;
-  --faint: #8a908c;
-  --line: #e3e5e1;
-  --accent: #1e5b43;
+  --sunk: #f5f7fa;
+  --ink: #2d3748;
+  --muted: #5a6577;
+  --faint: #718096;
+  --slate: #a0aec0;
+  --line: #e2e8f0;
+  --accent: #2d3748;
   --accent-ink: #ffffff;
-  --accent-soft: #e6efea;
-  --danger: #a8322a;
+  --accent-soft: #edf1f6;
+  --danger: #b83232;
   --logo-blue: #1e7bf2;
   --logo-red: #e0261b;
   --logo-yellow: #f7b500;
@@ -25,21 +27,22 @@
   --cat-metal: #1e6fd9;
   --cat-plastic: #d1453a;
   --cat-ewaste: #2b8a57;
-  --shadow: 0 1px 2px rgb(18 22 20 / 0.04), 0 12px 32px -18px rgb(18 22 20 / 0.22);
+  --shadow: 0 1px 2px rgb(45 55 72 / 0.05), 0 12px 32px -18px rgb(45 55 72 / 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1110;
-    --surface: #151917;
-    --sunk: #1a1f1c;
-    --ink: #eceeed;
-    --muted: #a3aaa6;
-    --faint: #7b827e;
-    --line: #262c29;
-    --accent: #7fc4a2;
-    --accent-ink: #0c1f17;
-    --accent-soft: #1b2c24;
+    --bg: #1a202c;
+    --surface: #222a38;
+    --sunk: #202837;
+    --ink: #f5f7fa;
+    --muted: #b6c0ce;
+    --faint: #a0aec0;
+    --slate: #718096;
+    --line: #333d4f;
+    --accent: #f5f7fa;
+    --accent-ink: #1a202c;
+    --accent-soft: #2d3748;
     --danger: #ff8a7e;
     --logo-blue: #5c9dff;
     --logo-red: #ff6a5c;
@@ -60,6 +63,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
+  --color-slate: var(--slate);
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
