@@ -95,7 +95,7 @@ export function SecondLife() {
           ))}
         </Stagger>
         <p className="mt-10 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-faint">
-          Sample figures for this demo. <a href="#book" className="inline-flex items-center gap-1 font-medium text-forest hover:underline">Add your store room to them <ArrowRight className="size-3.5" aria-hidden /></a>
+          Sample figures for this demo. <a href="#book" className="inline-flex items-center gap-1 font-medium text-forest underline decoration-forest/40 underline-offset-4 transition-[text-decoration-color] hover:decoration-forest [&_svg]:transition-transform hover:[&_svg]:translate-x-0.5">Add your store room to them <ArrowRight className="size-3.5" aria-hidden /></a>
         </p>
       </Container>
     </section>

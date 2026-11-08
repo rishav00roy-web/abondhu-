@@ -6,7 +6,7 @@ import { type FormEvent, useMemo, useState } from "react";
 import { AREAS } from "@/lib/data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { Reveal } from "./motion";
-import { btn, Container, Eyebrow, serifTitle } from "./ui";
+import { btn, Container, serifTitle } from "./ui";
 
 const field =
   "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
@@ -67,7 +67,6 @@ export function BookingBar() {
     <section id="book" className="scroll-mt-20 bg-white py-16 md:py-28">
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal className="grid content-start gap-5">
-          <Eyebrow>Takes a minute</Eyebrow>
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
             Guwahati gets a van every day. Other towns have set days, and the dates below follow them.

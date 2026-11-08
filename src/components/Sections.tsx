@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, CalendarCheck, HandCoins, Plus, Recycle, Scale, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
@@ -167,7 +168,6 @@ export function Faq() {
       <TornEdge className="text-white" />
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal className="grid content-start gap-3">
-          <Eyebrow>Good to know</Eyebrow>
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
             Anything else? WhatsApp us on <span className="font-mono text-ink">+91 90000 00000</span>, 8am to 8pm.
@@ -237,16 +237,16 @@ export function Footer() {
       <TornEdge className="text-midnight" />
       <Container className="grid gap-10 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
         <div className="grid content-start gap-4">
-          <a href="#top" className="justify-self-start"><Brand light /></a>
+          <Link href="/" aria-label="Abondhu home" className="justify-self-start"><Brand light /></Link>
           <p className="max-w-[36ch] text-sm font-light leading-relaxed text-white/60">
-            Doorstep recycling across Assam. Weighed in front of you, paid on the spot, and never dumped.
+            Wealth from waste, across Assam. Weighed in front of you, paid on the spot, and never dumped.
           </p>
         </div>
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["#rates", "Today's rates"], ["#how", "How it works"], ["#impact", "Where it goes"], ["#estates", "Tea estates and business"], ["#faq", "Questions"]].map(([href, label]) => (
-              <a key={href} href={href} className="py-1.5 transition-[color,transform] duration-200 hover:translate-x-1 hover:text-white">{label}</a>
+            {[["/#rates", "Today's rates"], ["/#how", "How it works"], ["/#impact", "Where it goes"], ["/#estates", "Tea estates and business"], ["/vendor", "Become a vendor"], ["/#faq", "Questions"]].map(([href, label]) => (
+              <Link key={href} href={href} className="py-1.5 transition-[color,transform] duration-200 hover:translate-x-1 hover:text-white">{label}</Link>
             ))}
           </nav>
         </div>

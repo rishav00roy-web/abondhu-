@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -7,17 +8,17 @@ import { SPRING_FAST } from "./motion";
 import { Brand, Container } from "./ui";
 
 const LINKS = [
-  ["#rates", "Rates"],
-  ["#how", "How it works"],
-  ["#impact", "Where it goes"],
-  ["#estates", "For business"],
-  ["#faq", "Questions"],
+  ["/#rates", "Rates"],
+  ["/#how", "How it works"],
+  ["/#impact", "Where it goes"],
+  ["/#estates", "For business"],
+  ["/#faq", "Questions"],
 ] as const;
 
 const bookBtn =
   "h-10 items-center whitespace-nowrap rounded-lg border-2 border-white px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white hover:text-midnight active:scale-[0.97] sm:px-5";
 
-export function Nav() {
+export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
 
@@ -47,19 +48,22 @@ export function Nav() {
   return (
     <header className="sticky top-0 z-50 bg-midnight pt-[env(safe-area-inset-top)] shadow-md">
       <Container className="relative flex h-16 items-center gap-3 lg:gap-8">
-        <a href="#top" aria-label="Abondhu home" className="mr-auto">
+        <Link href="/" aria-label="Abondhu home" className="mr-auto">
           <Brand light />
-        </a>
+        </Link>
         <nav aria-label="Main" className="hidden gap-7 text-sm font-medium lg:flex">
           {LINKS.map(([href, label]) => (
-            <a key={href} href={href} className="text-white/80 transition-colors duration-200 hover:text-white">
+            <Link key={href} href={href} className="draw pb-1 text-white/80 hover:text-white">
               {label}
-            </a>
+            </Link>
           ))}
+          <Link href="/vendor" aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-gold ${vendorPage ? "bg-[length:100%_1px]" : ""}`}>
+            Become a vendor
+          </Link>
         </nav>
-        <a href="#book" className={`${bookBtn} hidden sm:inline-flex`}>
+        <Link href="/#book" className={`${bookBtn} hidden sm:inline-flex`}>
           Book pickup
-        </a>
+        </Link>
         <button
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -87,22 +91,29 @@ export function Nav() {
               className="absolute right-4 top-[calc(100%+8px)] w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl lg:hidden"
             >
               {LINKS.map(([href, label]) => (
-                <a
+                <Link
                   key={href}
                   href={href}
                   onClick={() => setOpen(false)}
                   className="flex min-h-12 items-center border-b border-navy/5 px-5 text-sm font-semibold text-ink transition-colors active:bg-sunk"
                 >
                   {label}
-                </a>
+                </Link>
               ))}
-              <a
-                href="#book"
+              <Link
+                href="/vendor"
+                onClick={() => setOpen(false)}
+                className="flex min-h-12 items-center justify-between border-b border-navy/5 px-5 text-sm font-semibold text-forest active:bg-sunk"
+              >
+                Become a vendor <span aria-hidden className="text-gold">●</span>
+              </Link>
+              <Link
+                href="/#book"
                 onClick={() => setOpen(false)}
                 className="m-3 flex h-12 items-center justify-center rounded-sm bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
               >
                 Book a free pickup
-              </a>
+              </Link>
             </motion.nav>
           )}
         </AnimatePresence>
