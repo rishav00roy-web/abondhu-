@@ -60,6 +60,19 @@
   --shadow-soft: var(--shadow);
 }
 
+/* Tailwind v4 leaves buttons on the default arrow; every clickable control gets the hand */
+@layer base {
+  button:not(:disabled),
+  [role="button"],
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
 html {
   scroll-behavior: smooth;
   scrollbar-color: var(--line) transparent;

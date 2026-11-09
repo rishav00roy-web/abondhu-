@@ -35,6 +35,10 @@ export default function VendorPage() {
                 Households across Guwahati book pickups with Abondhu every day. We pass them to verified local vendors who
                 know the lanes. You keep your trade and gain steady work, fair tools and daily pay.
               </p>
+              <p className="max-w-[46ch] text-[15px] leading-relaxed text-ink/75">
+                <span className="font-semibold text-navy">Who can join:</span> anyone 18 or older who already buys or collects scrap
+                in an Abondhu town, on foot, by cart, auto or truck, with an Aadhaar card and a phone with UPI.
+              </p>
               <ul className="grid gap-3 text-[15px] text-navy">
                 {["No fee to join", "Paid every evening by UPI", "Choose the days and areas you work"].map((t) => (
                   <li key={t} className="flex items-center gap-3">
@@ -44,8 +48,20 @@ export default function VendorPage() {
                 ))}
               </ul>
             </Reveal>
-            <Reveal delay={0.1}>
+            <Reveal delay={0.1} className="grid gap-4">
               <VendorForm />
+              <p className="text-center text-sm text-muted">
+                Prefer to talk?{" "}
+                <a
+                  href="https://wa.me/919000000000?text=Hi%20Abondhu%2C%20I%20want%20to%20become%20a%20vendor"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-forest underline decoration-forest/40 underline-offset-4 hover:decoration-forest"
+                >
+                  WhatsApp our vendor team
+                </a>{" "}
+                on +91 90000 00000.
+              </p>
             </Reveal>
           </Container>
         </section>

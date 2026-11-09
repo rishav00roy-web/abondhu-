@@ -39,12 +39,23 @@ export function BookingBar() {
   const days = useMemo(() => pickupDays(city), [city]);
   const digits = phone.replace(/\s/g, "");
 
+  const pinOk = (v: string) => /^78\d{4}$/.test(v.trim());
+  const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
+
+  /** On submit, point at the first field that needs fixing and put the cursor in it. */
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (!/^78\d{4}$/.test(pin.trim())) return setError("pin");
-    if (!/^[6-9]\d{9}$/.test(digits)) return setError("phone");
-    setError(null);
+    const bad = !pinOk(pin) ? "pin" : !phoneOk(phone) ? "phone" : null;
+    setError(bad);
+    if (bad) return document.getElementById(bad)?.focus();
     setBooked(true);
+  }
+
+  /** On leaving a field: flag it only if something was typed, and clear the flag once fixed. */
+  function check(field: "pin" | "phone", value: string) {
+    const ok = field === "pin" ? pinOk(value) : phoneOk(value);
+    if (!ok && value.trim()) setError(field);
+    else if (error === field) setError(null);
   }
 
   const message =
@@ -113,7 +124,11 @@ export function BookingBar() {
                       placeholder="781028"
                       autoComplete="postal-code"
                       value={pin}
-                      onChange={(e) => setPin(e.target.value)}
+                      onChange={(e) => {
+                        setPin(e.target.value);
+                        if (error === "pin" && pinOk(e.target.value)) setError(null);
+                      }}
+                      onBlur={(e) => check("pin", e.target.value)}
                       aria-invalid={error === "pin"}
                       aria-describedby="book-msg"
                       className={field}
@@ -123,12 +138,17 @@ export function BookingBar() {
                     <label htmlFor="phone" className={label}>Mobile number</label>
                     <input
                       id="phone"
+                      type="tel"
                       inputMode="tel"
                       maxLength={11}
                       placeholder="98640 12345"
                       autoComplete="tel-national"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        if (error === "phone" && phoneOk(e.target.value)) setError(null);
+                      }}
+                      onBlur={(e) => check("phone", e.target.value)}
                       aria-invalid={error === "phone"}
                       aria-describedby="book-msg"
                       className={field}

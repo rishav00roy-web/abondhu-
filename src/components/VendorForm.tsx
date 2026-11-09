@@ -23,12 +23,21 @@ export function VendorForm() {
   const [sent, setSent] = useState(false);
   const digits = phone.replace(/\s/g, "");
 
+  const nameOk = (v: string) => v.trim().length >= 2;
+  const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
+
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (name.trim().length < 2) return setError("name");
-    if (!/^[6-9]\d{9}$/.test(digits)) return setError("phone");
-    setError(null);
+    const bad = !nameOk(name) ? "name" : !phoneOk(phone) ? "phone" : null;
+    setError(bad);
+    if (bad) return document.getElementById(`v-${bad}`)?.focus();
     setSent(true);
+  }
+
+  function check(field: "name" | "phone", value: string) {
+    const ok = field === "name" ? nameOk(value) : phoneOk(value);
+    if (!ok && value.trim()) setError(field);
+    else if (error === field) setError(null);
   }
 
   const swap = reduce
@@ -48,11 +57,11 @@ export function VendorForm() {
             <h2 className="font-serif text-3xl text-navy">Register your interest</h2>
             <div className="grid gap-2">
               <label htmlFor="v-name" className={label}>Your name</label>
-              <input id="v-name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={error === "name"} aria-describedby="v-msg" className={field} placeholder="Bikash Das" />
+              <input id="v-name" autoComplete="name" value={name} onChange={(e) => { setName(e.target.value); if (error === "name" && nameOk(e.target.value)) setError(null); }} onBlur={(e) => check("name", e.target.value)} aria-invalid={error === "name"} aria-describedby="v-msg" className={field} placeholder="Bikash Das" />
             </div>
             <div className="grid gap-2">
               <label htmlFor="v-phone" className={label}>Mobile number</label>
-              <input id="v-phone" inputMode="tel" maxLength={11} autoComplete="tel-national" value={phone} onChange={(e) => setPhone(e.target.value)} aria-invalid={error === "phone"} aria-describedby="v-msg" className={field} placeholder="98640 12345" />
+              <input id="v-phone" type="tel" inputMode="tel" maxLength={11} autoComplete="tel-national" value={phone} onChange={(e) => { setPhone(e.target.value); if (error === "phone" && phoneOk(e.target.value)) setError(null); }} onBlur={(e) => check("phone", e.target.value)} aria-invalid={error === "phone"} aria-describedby="v-msg" className={field} placeholder="98640 12345" />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="grid gap-2">
