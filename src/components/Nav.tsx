@@ -12,6 +12,7 @@ const LINKS = [
   ["#impact", "Where it goes"],
   ["#estates", "For business"],
   ["#faq", "Questions"],
+  ["/partner", "Become a partner"],
 ] as const;
 
 const bookBtn =

@@ -16,7 +16,7 @@ create type public.vendor_type      as enum ('individual_collector', 'scrap_shop
 create type public.vendor_status    as enum ('draft', 'submitted', 'approved', 'rejected', 'suspended');
 create type public.kyc_method       as enum ('digilocker', 'manual_upload');
 create type public.kyc_status       as enum ('pending', 'verified', 'failed', 'needs_review');
-create type public.document_type    as enum ('shop_photo', 'selfie', 'masked_aadhaar', 'trade_licence', 'other');
+create type public.document_type    as enum ('shop_photo', 'selfie', 'aadhaar_photo', 'masked_aadhaar', 'trade_licence', 'other');
 create type public.document_status  as enum ('uploaded', 'accepted', 'rejected');
 create type public.payout_method    as enum ('upi', 'bank');
 create type public.material_unit    as enum ('kg', 'pc');
