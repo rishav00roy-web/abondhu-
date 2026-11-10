@@ -91,7 +91,8 @@ create table public.addresses (
 create index addresses_profile_idx on public.addresses(profile_id);
 
 -- ---------------------------------------------------------------------------
--- Scrap and prices
+-- Scrap types (a fixed list; prices come from the vendors' printed rate charts
+-- and are entered per item at the pickup)
 -- ---------------------------------------------------------------------------
 create table public.material_categories (
   id    smallint generated always as identity primary key,
@@ -108,20 +109,6 @@ create table public.materials (
   is_active    boolean not null default true,
   sort_order   smallint not null default 0
 );
-
--- Rate history per town: the current rate is the row with effective_to null.
-create table public.material_rates (
-  id              bigint generated always as identity primary key,
-  town_id         smallint not null references public.towns(id),
-  material_id     smallint not null references public.materials(id),
-  price_per_unit  numeric(10,2) not null check (price_per_unit >= 0),
-  effective_from  timestamptz not null default now(),
-  effective_to    timestamptz,
-  set_by          uuid references public.profiles(id),
-  check (effective_to is null or effective_to > effective_from)
-);
-create unique index material_rates_current_uidx
-  on public.material_rates(town_id, material_id) where effective_to is null;
 
 -- ---------------------------------------------------------------------------
 -- Vendors
@@ -153,12 +140,6 @@ create table public.vendor_service_areas (
   primary key (vendor_id, pincode)
 );
 create index vendor_service_areas_pincode_idx on public.vendor_service_areas(pincode);
-
-create table public.vendor_materials (
-  vendor_id    uuid not null references public.vendors(id) on delete cascade,
-  material_id  smallint not null references public.materials(id),
-  primary key (vendor_id, material_id)
-);
 
 -- KYC: no column can hold a full Aadhaar number.
 create table public.vendor_kyc (
@@ -398,7 +379,6 @@ end $$;
 
 create trigger audit_vendors      after insert or update or delete on public.vendors            for each row execute function public.audit_row();
 create trigger audit_vendor_kyc   after insert or update or delete on public.vendor_kyc         for each row execute function public.audit_row();
-create trigger audit_rates        after insert or update or delete on public.material_rates     for each row execute function public.audit_row();
 create trigger audit_payouts      after insert or update or delete on public.vendor_payouts     for each row execute function public.audit_row();
 create trigger audit_cust_pay     after insert or update or delete on public.customer_payments  for each row execute function public.audit_row();
 create trigger audit_profiles     after update of role, is_blocked on public.profiles           for each row execute function public.audit_row();

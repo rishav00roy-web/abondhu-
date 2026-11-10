@@ -51,16 +51,3 @@ from (values
 ) as v(slug, name, cat, unit, ord)
 join public.material_categories c on c.slug = v.cat
 on conflict (slug) do nothing;
-
--- Starting Jorhat rates (same sample numbers as the website; update before launch).
-insert into public.material_rates (town_id, material_id, price_per_unit)
-select t.id, m.id, v.price
-from (values
-  ('newspaper', 14), ('cardboard', 10), ('books', 12), ('iron', 28), ('steel', 40),
-  ('aluminium', 105), ('brass', 300), ('copper', 410), ('pet', 15), ('hard-plastic', 12),
-  ('ac', 3800), ('fridge', 1200), ('washer', 900), ('laptop', 250)
-) as v(slug, price)
-join public.materials m on m.slug = v.slug
-cross join public.towns t
-where t.name = 'Jorhat'
-  and not exists (select 1 from public.material_rates r where r.town_id = t.id and r.material_id = m.id and r.effective_to is null);

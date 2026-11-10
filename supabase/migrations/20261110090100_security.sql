@@ -34,8 +34,8 @@ do $$
 declare t text;
 begin
   foreach t in array array[
-    'towns','pincodes','profiles','addresses','material_categories','materials','material_rates',
-    'vendors','vendor_service_areas','vendor_materials','vendor_kyc','vendor_documents','vendor_payout_accounts',
+    'towns','pincodes','profiles','addresses','material_categories','materials',
+    'vendors','vendor_service_areas','vendor_kyc','vendor_documents','vendor_payout_accounts',
     'pickup_slots','pickups','pickup_items','pickup_photos','pickup_status_history',
     'customer_payments','vendor_payouts','ratings','complaints','notifications','audit_log'
   ] loop
@@ -50,14 +50,12 @@ create policy towns_read      on public.towns               for select to anon, 
 create policy pincodes_read   on public.pincodes            for select to anon, authenticated using (true);
 create policy cats_read       on public.material_categories for select to anon, authenticated using (true);
 create policy materials_read  on public.materials           for select to anon, authenticated using (true);
-create policy rates_read      on public.material_rates      for select to anon, authenticated using (true);
 create policy slots_read      on public.pickup_slots        for select to anon, authenticated using (true);
 
 create policy towns_admin     on public.towns               for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy pincodes_admin  on public.pincodes            for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy cats_admin      on public.material_categories for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy materials_admin on public.materials           for all to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy rates_admin     on public.material_rates      for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy slots_admin     on public.pickup_slots        for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- ---------------------------------------------------------------------------
@@ -126,10 +124,8 @@ end $$;
 create trigger vendors_set_role after insert on public.vendors
   for each row execute function public.vendor_set_role();
 
--- Service areas and materials: the vendor manages their own lists
+-- Service areas: the vendor manages their own list
 create policy vsa_own on public.vendor_service_areas for all to authenticated
-  using (vendor_id = auth.uid() or public.is_admin()) with check (vendor_id = auth.uid() or public.is_admin());
-create policy vm_own  on public.vendor_materials for all to authenticated
   using (vendor_id = auth.uid() or public.is_admin()) with check (vendor_id = auth.uid() or public.is_admin());
 
 -- KYC: vendors can read their own result; only the server (service role) writes it

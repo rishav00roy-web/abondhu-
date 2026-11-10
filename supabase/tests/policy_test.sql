@@ -39,7 +39,6 @@ select pg_temp.expect_error($$update public.profiles set role = 'admin' where id
 
 insert into public.vendors (id, business_name, vendor_type) values (auth.uid(), 'Jorhat Kabadi', 'scrap_shop');
 insert into public.vendor_service_areas values (auth.uid(), '785001');
-insert into public.vendor_materials select auth.uid(), id from public.materials where slug in ('newspaper', 'iron');
 insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'selfie', auth.uid() || '/selfie.jpg');
 insert into public.vendor_payout_accounts (vendor_id, method, upi_id) values (auth.uid(), 'upi', 'vendor1@okaxis');
 
