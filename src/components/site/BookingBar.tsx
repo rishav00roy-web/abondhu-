@@ -1,37 +1,25 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
+import { dayLabel, pickupDays, saveDraft } from "@/lib/booking";
 import { LOCALITIES, PIN_RE } from "@/lib/site-data";
-import { cn, EASE_OUT } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, serifTitle } from "./ui";
 
 const field =
   "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
-/** Next five pickup days. Jorhat has a van every day. */
-function pickupDays() {
-  const fmt = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short" });
-  const today = new Date();
-  return Array.from({ length: 5 }, (_, d) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + d);
-    return { date, label: (d === 0 ? "Today, " : d === 1 ? "Tomorrow, " : "") + fmt.format(date) };
-  });
-}
-
 export function BookingBar() {
-  const reduce = useReducedMotion();
+  const router = useRouter();
   const [area, setArea] = useState(LOCALITIES[0]);
   const [pin, setPin] = useState("");
   const [phone, setPhone] = useState("");
   const [day, setDay] = useState(0);
   const [error, setError] = useState<"pin" | "phone" | null>(null);
-  const [booked, setBooked] = useState(false);
   const days = useMemo(() => pickupDays(), []);
-  const digits = phone.replace(/\s/g, "");
 
   const pinOk = (v: string) => PIN_RE.test(v.trim());
   const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
@@ -42,7 +30,9 @@ export function BookingBar() {
     const bad = !pinOk(pin) ? "pin" : !phoneOk(phone) ? "phone" : null;
     setError(bad);
     if (bad) return document.getElementById(bad)?.focus();
-    setBooked(true);
+    // Carry what they typed over the login step; the booking form picks it up.
+    saveDraft({ area, pin: pin.trim(), phone: phone.replace(/\s/g, ""), day: days[day] });
+    router.push("/account");
   }
 
   /** On leaving a field: flag it only if something was typed, and clear the flag once fixed. */
@@ -57,16 +47,7 @@ export function BookingBar() {
       ? "We only pick up in Jorhat for now. Enter a 6-digit pincode starting with 785."
       : error === "phone"
         ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."
-        : "No charge for pickup. We text you a two-hour slot the evening before.";
-
-  const swap = reduce
-    ? {}
-    : {
-        initial: { opacity: 0, y: 6, filter: "blur(3px)" },
-        animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-        exit: { opacity: 0, transition: { duration: 0.12 } },
-        transition: { duration: 0.35, ease: EASE_OUT },
-      };
+        : "No charge for pickup. Next, log in with Google or your phone to confirm.";
 
   return (
     <section id="book" className="scroll-mt-20 bg-white py-16 md:py-28">
@@ -74,14 +55,12 @@ export function BookingBar() {
         <Reveal className="grid content-start gap-5">
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
-            Anywhere in Jorhat town, every day of the week. Pick your area and a day, and we text you a two-hour slot.
+            Anywhere in Jorhat town, every day of the week. Pick your area and a day, and we call you to confirm a time.
           </p>
         </Reveal>
 
         <Reveal delay={0.08} className="min-w-0"><form noValidate onSubmit={submit}>
-          <AnimatePresence mode="wait" initial={false}>
-            {!booked ? (
-              <motion.div key="form" {...swap} className="grid gap-5">
+              <div className="grid gap-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <label htmlFor="area" className={label}>Area in Jorhat</label>
@@ -96,7 +75,7 @@ export function BookingBar() {
                     <label htmlFor="day" className={label}>Pickup day</label>
                     <select id="day" className={field} value={day} onChange={(e) => setDay(Number(e.target.value))}>
                       {days.map((d, i) => (
-                        <option key={d.label} value={i}>{d.label}</option>
+                        <option key={d} value={i}>{dayLabel(d)}</option>
                       ))}
                     </select>
                   </div>
@@ -148,25 +127,7 @@ export function BookingBar() {
                     {message}
                   </p>
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div key="done" {...swap} className="grid gap-4">
-                <span className="grid size-12 place-items-center rounded-full border border-gold text-forest">
-                  <Check className="size-5" strokeWidth={2.2} aria-hidden />
-                </span>
-                <h3 className="font-serif text-3xl text-navy">Pickup booked</h3>
-                <p className="max-w-[52ch] leading-relaxed text-muted">
-                  We&apos;ll come to {area}, Jorhat {pin} on{" "}
-                  {new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long" }).format(days[day].date)}.
-                  Your two-hour slot goes to {digits.slice(0, 5)} {digits.slice(5)} the evening before.
-                </p>
-                <p className="text-sm text-faint">Demo page: nothing was sent.</p>
-                <button type="button" onClick={() => setBooked(false)} className={cn(btn.base, btn.quiet, "justify-self-start")}>
-                  Change details
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
         </form></Reveal>
       </Container>
     </section>
