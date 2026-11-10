@@ -1,20 +1,21 @@
 "use client";
 
-import { Check, Eye, Loader2, LogOut, X } from "lucide-react";
+import { MotionConfig } from "framer-motion";
+import { Check, ExternalLink, Eye, Loader2, LogOut, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
-import { cn } from "@/lib/utils";
 import { isValid, type VendorStatus } from "@/lib/vendor";
+import { ActivityPanel, AreaPanel, EmptyList, ReviewNudge, StatCards, useOverview, type Tab } from "./AdminHome";
 
-type Tab = Exclude<VendorStatus, "suspended">;
-const TABS: { status: Tab; label: string }[] = [
-  { status: "submitted", label: "To review" },
-  { status: "approved", label: "Approved" },
-  { status: "rejected", label: "Rejected" },
-  { status: "draft", label: "Not finished" },
-];
+const TAB_TITLES: Record<Tab, string> = {
+  submitted: "Applications to review",
+  approved: "Approved vendors",
+  rejected: "Rejected applications",
+  draft: "Unfinished sign-ups",
+};
+const isTab = (s: string | null): s is Tab => !!s && s in TAB_TITLES;
 
 interface VendorRow {
   id: string;
@@ -39,7 +40,7 @@ const SELECT = `id, application_code, business_name, vendor_type, vehicle_type, 
   docs:vendor_documents(doc_type, storage_path),
   payout:vendor_payout_accounts(method, upi_id, account_number, ifsc, account_holder)`;
 
-/** Admin: log in with phone OTP, see applications, approve or reject. */
+/** Admin: log in, see the home overview and applications, approve or reject. */
 export function AdminPanel() {
   const sb = getSupabase();
   const [state, setState] = useState<"loading" | "login" | "otp" | "denied" | "ready">("loading");
@@ -50,8 +51,25 @@ export function AdminPanel() {
   const [otp, setOtp] = useState("");
   const { busy, err, run: act } = useAction();
   const [loadErr, setLoadErr] = useState("");
-  const [tab, setTab] = useState<Tab>("submitted");
-  const [rows, setRows] = useState<VendorRow[]>([]);
+  // The selected list lives in the URL (?tab=approved) so a refresh or a shared link keeps it.
+  const [tab, setTabState] = useState<Tab>(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return isTab(t) ? t : "submitted";
+  });
+  const [rows, setRows] = useState<VendorRow[] | null>(null);
+  const [version, setVersion] = useState(0);
+  const overview = useOverview(state === "ready", version);
+
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", t);
+    window.history.replaceState(null, "", url);
+  };
+  const showList = (t: Tab) => {
+    setTab(t);
+    document.getElementById("vendor-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const check = useCallback(async () => {
     if (!sb) return;
@@ -69,10 +87,17 @@ export function AdminPanel() {
 
   const load = useCallback(async () => {
     if (!sb) return;
+    setRows(null);
     const { data, error } = await sb.from("vendors").select(SELECT).eq("status", tab).order("submitted_at", { ascending: false, nullsFirst: false });
     setLoadErr(error?.message ?? "");
     setRows((data as unknown as VendorRow[]) ?? []);
   }, [sb, tab]);
+
+  // After an approval or rejection, reload the list and the overview numbers.
+  const reloadAll = useCallback(async () => {
+    await load();
+    setVersion((n) => n + 1);
+  }, [load]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -136,29 +161,72 @@ export function AdminPanel() {
     );
   }
 
+  const summary = overview.data?.summary ?? null;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
   return (
-    <div className="min-h-dvh bg-sunk">
-      <header className="flex items-center gap-4 bg-navy px-6 py-4 text-white">
-        <span className="font-serif text-xl">Abondhu admin</span>
-        <button className="ml-auto flex items-center gap-2 text-sm" onClick={async () => { await sb.auth.signOut(); setState("login"); }}>
-          <LogOut className="size-4" /> Log out
-        </button>
-      </header>
-      <main className="mx-auto max-w-5xl p-6">
-        <div className="mb-6 flex gap-2">
-          {TABS.map(({ status, label }) => (
-            <button key={status} onClick={() => setTab(status)} className={cn("rounded-full px-4 py-2 text-sm font-semibold", tab === status ? "bg-navy text-white" : "bg-white text-navy")}>
-              {label}
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-dvh bg-sunk">
+        <header className="bg-midnight text-white">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 sm:px-6">
+            <span className="font-serif text-xl">Abondhu <span className="text-gold">admin</span></span>
+            <nav className="ml-auto flex items-center gap-1 text-sm">
+              <a href="/" target="_blank" rel="noreferrer" className={headLink}>Site <ExternalLink className="size-3.5" aria-hidden /></a>
+              <a href="/partner" target="_blank" rel="noreferrer" className={headLink}>Vendor sign-up <ExternalLink className="size-3.5" aria-hidden /></a>
+              <button className={headLink} onClick={async () => { await sb.auth.signOut(); setState("login"); }}>
+                <LogOut className="size-4" aria-hidden /> Log out
+              </button>
+            </nav>
+          </div>
+        </header>
+        <main className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:px-6">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <h1 className="font-serif text-3xl text-navy">{greeting}</h1>
+              <p className="mt-1 text-sm text-muted">
+                {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · Jorhat
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={reloadAll}
+              className="ml-auto flex min-h-11 items-center gap-2 rounded-lg border border-line bg-white px-3 text-sm font-semibold text-navy transition-colors hover:border-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+            >
+              <RefreshCw className="size-4" aria-hidden /> Refresh
+              {overview.data && <span className="font-normal text-muted">· {overview.data.loadedAt.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}</span>}
             </button>
-          ))}
-        </div>
-        {(err || loadErr) && <p className="mb-4 rounded bg-red-50 p-3 text-danger">{err || loadErr}</p>}
-        {rows.length === 0 && <p className="text-muted">Nothing here.</p>}
-        <div className="grid gap-4">
-          {rows.map((v) => <VendorCard key={v.id} v={v} busy={busy} act={act} reload={load} />)}
-        </div>
-      </main>
-    </div>
+          </div>
+
+          {(err || loadErr || overview.error) && <p role="alert" className="rounded-lg bg-red-50 p-3 text-danger">{err || loadErr || overview.error}</p>}
+
+          <ReviewNudge count={summary?.byStatus.submitted ?? 0} onReview={() => showList("submitted")} />
+          <StatCards summary={summary} tab={tab} onTab={setTab} />
+
+          <div className="grid items-start gap-6 lg:grid-cols-3">
+            <section id="vendor-list" className="grid scroll-mt-6 gap-4 lg:col-span-2" aria-busy={rows === null}>
+              <h2 className="font-serif text-2xl text-navy">
+                {TAB_TITLES[tab]}
+                {rows && rows.length > 0 && <span className="ml-2 font-sans text-base text-muted">{rows.length}</span>}
+              </h2>
+              {rows === null ? (
+                <div className="grid gap-4">
+                  {[0, 1].map((i) => <div key={i} className="h-40 animate-pulse rounded-xl bg-white motion-reduce:animate-none" />)}
+                </div>
+              ) : rows.length === 0 ? (
+                <EmptyList tab={tab} />
+              ) : (
+                rows.map((v) => <VendorCard key={v.id} v={v} busy={busy} act={act} reload={reloadAll} />)
+              )}
+            </section>
+            <aside className="grid gap-6">
+              <AreaPanel areas={overview.data?.areas ?? null} />
+              <ActivityPanel activity={overview.data?.activity ?? null} />
+            </aside>
+          </div>
+        </main>
+      </div>
+    </MotionConfig>
   );
 }
 
@@ -206,7 +274,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <Item k="Phone" v={v.profile?.phone} />
         {v.profile?.email && <Item k="Email" v={v.profile.email} />}
-        <Item k="Type / vehicle" v={[v.vendor_type, v.vehicle_type].filter(Boolean).join(" · ")} />
+        <Item k="Type / vehicle" v={[v.vendor_type?.replaceAll("_", " "), v.vehicle_type].filter(Boolean).join(" · ")} />
         <Item k="Shop" v={v.business_name} />
         <Item k="Address" v={v.address ? `${v.address.line1}, ${v.address.pincode}` : null} />
         <Item k="Aadhaar" v={aadhaar ?? (v.kyc[0]?.aadhaar_last4 ? `XXXX XXXX ${v.kyc[0].aadhaar_last4}` : null)} />
@@ -244,6 +312,7 @@ const Item = ({ k, v }: { k: string; v?: string | null }) => (
   </div>
 );
 
+const headLink = "flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-white/85 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-gold";
 const input = "h-12 w-full rounded-lg border-2 border-line bg-white px-3 text-lg outline-none focus:border-forest";
 const btn = "h-12 rounded-lg bg-navy px-5 font-semibold text-white disabled:opacity-50";
 const Page = ({ children }: { children: React.ReactNode }) => (
