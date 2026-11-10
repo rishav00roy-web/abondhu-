@@ -13,7 +13,7 @@ Pages:
 
 ## 2. Load the database
 
-Follow `supabase/README.md` ("Putting it into Supabase"): run the 4 migration
+Follow `supabase/README.md` ("Putting it into Supabase"): run the 5 migration
 files in order in the SQL Editor, then `seed.sql`. You should see 23 tables.
 
 **Check the Jorhat pincodes** in `seed.sql` (785001, 785004–785008, 785010, 785014).
