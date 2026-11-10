@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SPRING_FAST } from "./motion";
 import { Brand, Container } from "./ui";
+import { VendorLink } from "./VendorLink";
 
 const LINKS = [
   ["/#how", "How it works"],
@@ -55,9 +56,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
               {label}
             </Link>
           ))}
-          <Link href="/vendor" aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-gold ${vendorPage ? "bg-[length:100%_1px]" : ""}`}>
-            Become a vendor
-          </Link>
+          <VendorLink aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-gold ${vendorPage ? "bg-[length:100%_1px]" : ""}`} />
         </nav>
         <Link href="/#book" className={`${bookBtn} hidden sm:inline-flex`}>
           Book pickup
@@ -98,13 +97,12 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
                   {label}
                 </Link>
               ))}
-              <Link
-                href="/vendor"
+              <VendorLink
                 onClick={() => setOpen(false)}
                 className="flex min-h-12 items-center justify-between border-b border-navy/5 px-5 text-sm font-semibold text-forest active:bg-sunk"
               >
-                Become a vendor <span aria-hidden className="text-gold">●</span>
-              </Link>
+                <span aria-hidden className="text-gold">●</span>
+              </VendorLink>
               <Link
                 href="/#book"
                 onClick={() => setOpen(false)}
