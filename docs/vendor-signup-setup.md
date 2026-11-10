@@ -60,11 +60,17 @@ Then redeploy (Deployments > ... > Redeploy).
 
 ## 5. Make yourself admin
 
-1. Open `/partner`, fill step 1 and enter the code (this creates your login).
-2. In the SQL Editor run:
-   `update profiles set role = 'admin' where phone = '+919812345678';`
-   or, if you logged in by email, `... where email = 'you@example.com';`
-3. Open `/admin` and log in the same way (same number or same email).
+`/admin` logs in with **email and password** (or a mobile code as a backup).
+There is no sign-up on `/admin`: the account must already exist.
+
+1. Create your login once: open `/partner`, fill step 1 and enter the code,
+   or add the user in Supabase > Authentication > Users.
+2. In the SQL Editor make it admin:
+   `update profiles set role = 'admin' where email = 'you@example.com';`
+3. Set its password in the SQL Editor (choose your own; never share it):
+   `update auth.users set encrypted_password = crypt('YOUR-PASSWORD', gen_salt('bf')) where email = 'you@example.com';`
+   (or use "Send password recovery" in Authentication > Users once email sending works).
+4. Open `/admin` and log in with that email and password.
 
 ## 6. Try the whole flow
 

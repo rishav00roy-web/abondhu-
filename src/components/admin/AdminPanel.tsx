@@ -45,7 +45,8 @@ export function AdminPanel() {
   const [state, setState] = useState<"loading" | "login" | "otp" | "denied" | "ready">("loading");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [byEmail, setByEmail] = useState(false);
+  const [password, setPassword] = useState("");
+  const [withPhone, setWithPhone] = useState(false);
   const [otp, setOtp] = useState("");
   const { busy, err, run: act } = useAction();
   const [loadErr, setLoadErr] = useState("");
@@ -85,32 +86,37 @@ export function AdminPanel() {
     return (
       <Page>
         <h1 className="text-2xl font-bold text-navy">Admin login</h1>
-        {state === "login" ? (
+        {state === "login" && !withPhone && (
+          <form className="contents" onSubmit={(e) => { e.preventDefault(); act(async () => {
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            await check();
+          }); }}>
+            <input className={input} type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
+            <input className={input} type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="submit" className={btn} disabled={busy || !isValid.email(email) || !password}>Log in</button>
+          </form>
+        )}
+        {state === "login" && withPhone && (
           <>
-            {byEmail ? (
-              <input className={input} type="email" autoComplete="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
-            ) : (
-              <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(digitsOnly(e.target.value).slice(0, 10))} />
-            )}
-            <button className={btn} disabled={busy || (byEmail ? !isValid.email(email) : !isValid.mobile(phone))} onClick={() => act(async () => {
-              const options = { shouldCreateUser: false };
-              const { error } = byEmail
-                ? await sb.auth.signInWithOtp({ email, options })
-                : await sb.auth.signInWithOtp({ phone: "+91" + phone, options });
+            <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(digitsOnly(e.target.value).slice(0, 10))} />
+            <button className={btn} disabled={busy || !isValid.mobile(phone)} onClick={() => act(async () => {
+              const { error } = await sb.auth.signInWithOtp({ phone: "+91" + phone, options: { shouldCreateUser: false } });
               if (error) throw error;
               setState("otp");
             })}>Send code</button>
-            <button className="text-sm font-semibold text-forest underline" onClick={() => setByEmail(!byEmail)}>
-              {byEmail ? "Use mobile instead" : "Use email instead"}
-            </button>
           </>
-        ) : (
+        )}
+        {state === "login" && (
+          <button className="text-sm font-semibold text-forest underline" onClick={() => setWithPhone(!withPhone)}>
+            {withPhone ? "Use email and password instead" : "Use mobile code instead"}
+          </button>
+        )}
+        {state === "otp" && (
           <>
             <input className={input} inputMode="numeric" placeholder="6-digit code" value={otp} onChange={(e) => setOtp(digitsOnly(e.target.value).slice(0, 6))} />
             <button className={btn} disabled={busy || otp.length !== 6} onClick={() => act(async () => {
-              const { error } = byEmail
-                ? await sb.auth.verifyOtp({ email, token: otp, type: "email" })
-                : await sb.auth.verifyOtp({ phone: "+91" + phone, token: otp, type: "sms" });
+              const { error } = await sb.auth.verifyOtp({ phone: "+91" + phone, token: otp, type: "sms" });
               if (error) throw error;
               await check();
             })}>Log in</button>
