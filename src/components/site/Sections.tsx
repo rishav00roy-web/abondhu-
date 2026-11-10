@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { VendorLink } from "./VendorLink";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
@@ -165,14 +166,16 @@ export function Closing() {
           Clear the store room, <i className="font-light text-gold">not the riverbank.</i>
         </Reveal>
         <Reveal delay={0.1} className="w-full sm:w-auto">
-          <a href="#book" className={cn(btn.base, btn.gold, "w-full sm:w-auto")}>
+          <Link href="/account" className={cn(btn.base, btn.gold, "w-full sm:w-auto")}>
             Book a free pickup <ArrowRight className="size-4" aria-hidden />
-          </a>
+          </Link>
         </Reveal>
       </Container>
     </section>
   );
 }
+
+const footLink = "py-1.5 transition-[color,transform] duration-200 hover:translate-x-1 hover:text-white";
 
 export function Footer() {
   return (
@@ -188,9 +191,13 @@ export function Footer() {
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["/#how", "How it works"], ["/#rates", "Today's rates"], ["/#book", "Book a pickup"], ["/vendor", "Become a vendor"], ["/#faq", "Questions"]].map(([href, label]) => (
-              <Link key={href} href={href} className="py-1.5 transition-[color,transform] duration-200 hover:translate-x-1 hover:text-white">{label}</Link>
-            ))}
+            {[["/#how", "How it works"], ["/#rates", "Today's rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"]].map(([href, label]) =>
+              href === "/vendor" ? (
+                <VendorLink key={href} className={footLink} />
+              ) : (
+                <Link key={href} href={href} className={footLink}>{label}</Link>
+              ),
+            )}
           </nav>
         </div>
         <div>

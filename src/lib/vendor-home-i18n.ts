@@ -1,0 +1,83 @@
+// Vendor home screen words: English first, Assamese on one tap. Keep every line short.
+// The Assamese was written by Claude and needs a check by a native speaker.
+import type { Lang } from "./vendor-i18n";
+import type { PickupStatus } from "./vendor-home";
+
+const en = {
+  hello: (name: string) => `Hello, ${name}`,
+  approved: "Approved",
+  vendorNo: "Vendor no.",
+  doneMonth: "Done this month",
+  kgMonth: "Kg this month",
+  paid: "Paid to you",
+  pickups: "Your pickups",
+  noPickups: "No pickups yet",
+  noPickupsHint: "We will call you when a pickup comes.",
+  directions: "Directions",
+  today: "Today",
+  tomorrow: "Tomorrow",
+  history: "Done",
+  noHistory: "Finished pickups will show here.",
+  area: "Your area",
+  noArea: "No area yet. Call us to add one.",
+  details: "Your details",
+  phone: "Mobile",
+  vehicle: "Vehicle",
+  shop: "Shop",
+  payTo: "Money goes to",
+  help: "Need help?",
+  whatsapp: "WhatsApp",
+  call: "Call us",
+  loadErr: "Could not load. Check the internet and try again.",
+  retry: "Try again",
+  status: {
+    requested: "New",
+    assigned: "Given to you",
+    accepted: "Accepted",
+    on_the_way: "On the way",
+    weighed: "Weighed",
+    completed: "Done",
+    cancelled: "Cancelled",
+  } satisfies Record<PickupStatus, string>,
+};
+
+const as: typeof en = {
+  hello: (name: string) => `নমস্কাৰ, ${name}`,
+  approved: "অনুমোদিত",
+  vendorNo: "বিক্ৰেতা নং",
+  doneMonth: "এই মাহত সম্পূৰ্ণ",
+  kgMonth: "এই মাহত কেজি",
+  paid: "আপুনি পোৱা ধন",
+  pickups: "আপোনাৰ পিকআপ",
+  noPickups: "এতিয়াও কোনো পিকআপ নাই",
+  noPickupsHint: "পিকআপ আহিলে আমি ফোন কৰিম।",
+  directions: "বাট চাওক",
+  today: "আজি",
+  tomorrow: "কাইলৈ",
+  history: "সম্পূৰ্ণ",
+  noHistory: "সম্পূৰ্ণ পিকআপ ইয়াত দেখা যাব।",
+  area: "আপোনাৰ এলেকা",
+  noArea: "এতিয়াও এলেকা নাই। যোগ কৰিবলৈ আমাক ফোন কৰক।",
+  details: "আপোনাৰ তথ্য",
+  phone: "মোবাইল",
+  vehicle: "বাহন",
+  shop: "দোকান",
+  payTo: "ধন যাব",
+  help: "সহায় লাগে?",
+  whatsapp: "WhatsApp",
+  call: "ফোন কৰক",
+  loadErr: "ল'ড নহ'ল। ইণ্টাৰনেট চাই আকৌ চেষ্টা কৰক।",
+  retry: "আকৌ চেষ্টা কৰক",
+  status: {
+    requested: "নতুন",
+    assigned: "আপোনাক দিয়া হ'ল",
+    accepted: "গ্ৰহণ কৰা হ'ল",
+    on_the_way: "বাটত",
+    weighed: "জোখা হ'ল",
+    completed: "সম্পূৰ্ণ",
+    cancelled: "বাতিল",
+  },
+};
+
+export type HomeStrings = typeof en;
+export const homeStrings = (lang: Lang): HomeStrings => (lang === "as" ? as : en);

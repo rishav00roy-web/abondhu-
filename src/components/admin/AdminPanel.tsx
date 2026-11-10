@@ -7,6 +7,7 @@ import { digitsOnly } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cleanMobile, isValid, type VendorStatus } from "@/lib/vendor";
+import { PickupsPanel } from "./PickupsPanel";
 import { ActivityPanel, AreaPanel, EmptyList, ReviewNudge, StatCards, useOverview, type Tab } from "./AdminHome";
 
 const TAB_TITLES: Record<Tab, string> = {
@@ -220,6 +221,7 @@ export function AdminPanel() {
               )}
             </section>
             <aside className="grid gap-6">
+              <PickupsPanel version={version} />
               <AreaPanel areas={overview.data?.areas ?? null} />
               <ActivityPanel activity={overview.data?.activity ?? null} />
             </aside>

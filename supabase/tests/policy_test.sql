@@ -81,8 +81,9 @@ select pg_temp.expect((select count(*) from public.audit_log where table_name = 
 -- ---------- Customer C books a pickup ----------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
 insert into public.addresses (id, profile_id, line1, pincode) values ('00000000-0000-0000-0000-0000000000d1', auth.uid(), 'Near Gar-Ali', '785001');
-insert into public.pickups (id, customer_id, address_id, pincode, town_id)
-select '00000000-0000-0000-0000-0000000000e1', auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', id from public.towns where name = 'Jorhat';
+insert into public.pickups (id, customer_id, address_id, pincode, town_id, customer_note)
+select '00000000-0000-0000-0000-0000000000e1', auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', id, 'Preferred day: Thu 12 Nov. Newspapers' from public.towns where name = 'Jorhat';
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) select '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000d1', '785001', 1$$, 'customer cannot book for someone else');
 select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id, status) select auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1, 'completed'$$, 'customer cannot create a completed pickup');
 
 -- ---------- V accepts and completes it ----------
