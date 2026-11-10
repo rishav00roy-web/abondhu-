@@ -1,10 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Montserrat, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" });
-const playfair = Playfair_Display({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-playfair" });
-const geistMono = Geist_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-geist-mono" });
+// Fonts are bundled with the site (src/app/fonts), so builds never depend on Google Fonts being reachable.
+const montserrat = localFont({ src: "./fonts/montserrat-latin-wght-normal.woff2", weight: "100 900", variable: "--font-montserrat" });
+const playfair = localFont({
+  src: [
+    { path: "./fonts/playfair-display-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/playfair-display-latin-wght-italic.woff2", style: "italic" },
+  ],
+  weight: "400 900",
+  variable: "--font-playfair",
+});
+const geistMono = localFont({ src: "./fonts/geist-mono-latin-wght-normal.woff2", weight: "100 900", variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "Abondhu | Wealth from waste, doorstep scrap pickup in Jorhat",
