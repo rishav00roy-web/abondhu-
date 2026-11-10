@@ -9,13 +9,14 @@ switched on (`towns.is_active`, `pincodes.is_active`).
 | `migrations/20261110090100_security.sql` | Row level security: who can see and change what |
 | `migrations/20261110090200_storage.sql` | Private photo buckets (vendor documents, pickup photos) |
 | `migrations/20261110090300_aadhaar_vault.sql` | Encrypted store for full Aadhaar numbers (server-only) |
+| `migrations/20261110090400_harden_functions.sql` | Locks trigger functions out of the public API |
 | `seed.sql` | Towns, Jorhat pincodes and the list of scrap types |
 | `tests/` | Local security checks (`tests/run.sh`) |
 
 ## Putting it into Supabase (first time)
 
 1. Open the project in the Supabase dashboard, then **SQL Editor > New query**.
-2. Paste and run each migration file **in order** (090000, 090100, 090200, then 090300).
+2. Paste and run each migration file **in order** (090000, 090100, 090200, 090300, then 090400).
 3. Paste and run `seed.sql`.
 4. **Table Editor** should now show 23 tables.
 
