@@ -8,6 +8,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # production build
 npm run lint
+npm test         # admin dashboard number checks (Node 22.18+)
 ```
 
 Going live with vendor sign-up: see `docs/vendor-signup-setup.md`.
@@ -19,7 +20,7 @@ Going live with vendor sign-up: see `docs/vendor-signup-setup.md`.
 | `/` | Landing page |
 | `/vendor` | Why join, for scrap collectors; links to the sign-up |
 | `/partner` | Vendor sign-up (English, one tap for Assamese) |
-| `/admin` | Approve or reject vendor applications |
+| `/admin` | Admin home: vendor counts, vendors by area, recent activity; approve or reject applications |
 
 ## Where things live
 
