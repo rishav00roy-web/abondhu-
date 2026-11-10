@@ -1,12 +1,13 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, Loader2, LogOut, Package } from "lucide-react";
+import { ArrowRight, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 import { btn } from "@/components/site/ui";
 import { getSupabase } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
+import { BookPickup } from "./BookPickup";
 import { cn } from "@/lib/utils";
 
 const field =
@@ -20,17 +21,11 @@ interface Profile {
   email: string | null;
   phone: string | null;
 }
-interface Pickup {
-  id: string;
-  code: string;
-  status: string;
-  requested_at: string;
-}
 
 /**
  * Customer login and account page.
  * Signed out: Google, or a 6-digit code by phone or email.
- * Signed in: a short account page. Vendors and admins get a link to their own dashboards.
+ * Signed in: customers book a pickup and see their pickups. Vendors and admins get a link to their own dashboards.
  */
 export function CustomerAccount() {
   const sb = getSupabase();
@@ -45,17 +40,22 @@ export function CustomerAccount() {
 
   return (
     <section className="bg-cream px-4 py-12 sm:py-20">
-      <div className="mx-auto w-full max-w-md rounded-xl border border-navy/10 bg-white p-6 shadow-xl shadow-navy/5 sm:p-8">
-        {!sb ? (
-          <p className="text-muted">Login is not set up yet. Please try again later.</p>
-        ) : session === undefined ? (
-          <Loader2 className="mx-auto size-6 animate-spin text-navy" aria-label="Loading" />
-        ) : session ? (
+      {sb && session ? (
+        // Signed in: wider page so the booking form has room.
+        <div className="mx-auto w-full max-w-3xl">
           <Account session={session} />
-        ) : (
-          <Login />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mx-auto w-full max-w-md rounded-xl border border-navy/10 bg-white p-6 shadow-xl shadow-navy/5 sm:p-8">
+          {!sb ? (
+            <p className="text-muted">Login is not set up yet. Please try again later.</p>
+          ) : session === undefined ? (
+            <Loader2 className="mx-auto size-6 animate-spin text-navy" aria-label="Loading" />
+          ) : (
+            <Login />
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -178,16 +178,12 @@ function Login() {
 function Account({ session }: { session: Session }) {
   const sb = getSupabase()!;
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [pickups, setPickups] = useState<Pickup[]>([]);
   const [loadErr, setLoadErr] = useState("");
   const uid = session.user.id;
 
   useEffect(() => {
     (async () => {
-      const [p, k] = await Promise.all([
-        sb.from("profiles").select("role, full_name, email, phone").eq("id", uid).single<Profile>(),
-        sb.from("pickups").select("id, code, status, requested_at").eq("customer_id", uid).order("requested_at", { ascending: false }).limit(20),
-      ]);
+      const p = await sb.from("profiles").select("role, full_name, email, phone").eq("id", uid).single<Profile>();
       if (p.error) return setLoadErr("Could not load your account. Please refresh the page.");
       let prof = p.data;
       // Google gives us the person's name: save it the first time so we can greet them.
@@ -197,7 +193,6 @@ function Account({ session }: { session: Session }) {
         prof = { ...prof, full_name: googleName };
       }
       setProfile(prof);
-      setPickups((k.data as Pickup[] | null) ?? []);
     })();
   }, [sb, uid, session.user.user_metadata]);
 
@@ -206,38 +201,19 @@ function Account({ session }: { session: Session }) {
 
   const first = profile.full_name?.split(" ")[0];
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-8">
       <div className="grid gap-1">
-        <h1 className="font-serif text-3xl text-navy">{first ? `Hello, ${first}` : "Hello"}</h1>
+        <h1 className="font-serif text-4xl text-navy">{first ? `Hello, ${first}` : "Hello"}</h1>
         <p className="text-sm text-muted">{profile.email ?? profile.phone}</p>
       </div>
 
       {profile.role !== "customer" && (
-        <Link href={profile.role === "admin" ? "/admin" : "/partner"} className={cn(btn.base, btn.gold, "w-full")}>
+        <Link href={profile.role === "admin" ? "/admin" : "/partner"} className={cn(btn.base, btn.gold, "w-full sm:w-auto sm:justify-self-start")}>
           Visit your dashboard <ArrowRight className="size-4" aria-hidden />
         </Link>
       )}
 
-      <div className="grid gap-3">
-        <h2 className={label}>Your pickups</h2>
-        {pickups.length === 0 ? (
-          <div className="grid justify-items-center gap-2 rounded-lg border border-dashed border-navy/20 bg-sunk px-4 py-8 text-center">
-            <Package className="size-8 text-forest" aria-hidden />
-            <p className="font-semibold text-navy">No pickups yet</p>
-            <p className="max-w-[30ch] text-sm text-muted">Online booking opens soon in Jorhat. We will let you know when you can book here.</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-navy/10 rounded-lg border border-navy/10">
-            {pickups.map((p) => (
-              <li key={p.id} className="flex items-center justify-between px-4 py-3 text-sm">
-                <span className="font-mono text-navy">{p.code}</span>
-                <span className="text-muted">{new Date(p.requested_at).toLocaleDateString("en-IN")}</span>
-                <span className="font-semibold capitalize text-forest">{p.status.replace(/_/g, " ")}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {profile.role === "customer" && <BookPickup />}
 
       <button type="button" onClick={() => sb.auth.signOut()} className="inline-flex items-center justify-center gap-2 text-sm text-muted underline">
         <LogOut className="size-4" aria-hidden /> Log out
