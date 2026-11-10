@@ -13,6 +13,18 @@ export type PhotoType = (typeof PHOTO_TYPES)[number];
 export const EDITABLE_STATUSES: VendorStatus[] = ["draft", "rejected"];
 
 /** Simple format checks for what vendors type. */
+/**
+ * Clean whatever was typed, pasted or autofilled into a 10-digit Indian mobile:
+ * drops spaces/dashes, a leading +91 or 91 (only when there are extra digits),
+ * and leading zeros, then keeps at most 10 digits.
+ */
+export function cleanMobile(input: string): string {
+  let d = input.replace(/\D/g, "");
+  if (d.length > 10 && d.startsWith("91")) d = d.slice(2);
+  d = d.replace(/^0+/, "");
+  return d.slice(0, 10);
+}
+
 export const isValid = {
   mobile: (s: string) => /^[6-9]\d{9}$/.test(s),
   email: (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s),

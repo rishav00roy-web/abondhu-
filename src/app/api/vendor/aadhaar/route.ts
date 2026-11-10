@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const { aadhaar, consent } = (await req.json()) as { aadhaar?: string; consent?: boolean };
     const digits = digitsOnly(aadhaar ?? "");
     if (!consent) throw new HttpError(400, "Please tick the consent box.");
-    if (!isValidAadhaar(digits)) throw new HttpError(400, "This Aadhaar number doesn't look right. Please check it.");
+    if (!isValidAadhaar(digits)) throw new HttpError(400, "This Aadhaar number is not correct. Check all 12 digits on the card, one may be typed wrong.");
 
     const db = supabaseAdmin();
     const hmac = aadhaarHmac(digits);
