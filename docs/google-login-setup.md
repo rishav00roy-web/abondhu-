@@ -24,7 +24,7 @@ Takes about 10 minutes. Nothing here goes in chat or in the code: the secret is 
 3. **Authentication > URL Configuration**:
    - Site URL: `https://abondhu.vercel.app`
    - Redirect URLs: add `https://abondhu.vercel.app/account`
-     (optional, to test on Vercel preview links: `https://*-rishav00roy-webs-projects.vercel.app/**`)
+     (optional, to test on Vercel preview links: `https://*-rishav-s-projects5.vercel.app/**`)
 
 ## 3. Try it
 
