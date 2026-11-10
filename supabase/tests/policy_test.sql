@@ -94,8 +94,8 @@ select pg_temp.expect((select count(*) from public.addresses) = 1, 'vendor sees 
 select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-0000-0000000000e1')$$, 'a pickup cannot be accepted twice');
 select pg_temp.expect_error($$update public.pickups set status = 'completed' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'vendor cannot skip straight to completed');
 update public.pickups set status = 'on_the_way' where id = '00000000-0000-0000-0000-0000000000e1';
-insert into public.pickup_items (pickup_id, material_id, quantity, rate_per_unit)
-select '00000000-0000-0000-0000-0000000000e1', m.id, 8.4, 14 from public.materials m where slug = 'newspaper';
+insert into public.pickup_items (pickup_id, item_name, quantity, rate_per_unit)
+values ('00000000-0000-0000-0000-0000000000e1', 'পুৰণি কাকত (old newspaper)', 8.4, 14);
 update public.pickups set status = 'weighed' where id = '00000000-0000-0000-0000-0000000000e1';
 update public.pickups set status = 'completed', total_amount = 117.60 where id = '00000000-0000-0000-0000-0000000000e1';
 select pg_temp.expect((select amount from public.pickup_items limit 1) = 117.60, 'item amount is weight x rate');

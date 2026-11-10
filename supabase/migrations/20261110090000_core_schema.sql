@@ -91,8 +91,8 @@ create table public.addresses (
 create index addresses_profile_idx on public.addresses(profile_id);
 
 -- ---------------------------------------------------------------------------
--- Scrap types (a fixed list; prices come from the vendors' printed rate charts
--- and are entered per item at the pickup)
+-- Scrap types: optional suggestions only. Vendors write each item's name freely
+-- and enter the rate from their printed chart at the pickup.
 -- ---------------------------------------------------------------------------
 create table public.material_categories (
   id    smallint generated always as identity primary key,
@@ -240,8 +240,10 @@ create trigger pickups_updated before update on public.pickups
 create table public.pickup_items (
   id              bigint generated always as identity primary key,
   pickup_id       uuid not null references public.pickups(id) on delete cascade,
-  material_id     smallint not null references public.materials(id),
-  quantity        numeric(8,2) not null check (quantity > 0),   -- kg or pieces
+  item_name       text not null check (length(trim(item_name)) > 0),  -- vendor writes it freely, any language
+  material_id     smallint references public.materials(id),         -- optional: set only if picked from suggestions
+  unit            public.material_unit not null default 'kg',
+  quantity        numeric(8,2) not null check (quantity > 0),       -- kg or pieces
   rate_per_unit   numeric(10,2) not null check (rate_per_unit >= 0),
   amount          numeric(12,2) generated always as (round(quantity * rate_per_unit, 2)) stored
 );

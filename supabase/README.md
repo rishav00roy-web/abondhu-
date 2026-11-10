@@ -24,7 +24,7 @@ Later, the Supabase CLI can do the same with `supabase link` and `supabase db pu
 
 - **People:** `profiles` (one per login, created automatically), `addresses`
 - **Places:** `towns`, `pincodes` (must start with 78)
-- **Scrap types:** `material_categories`, `materials` (no prices stored: vendors use printed rate charts and enter the rate per item at the pickup)
+- **Scrap types:** `material_categories`, `materials`, optional suggestions only. Vendors write each item's name freely (any language) and enter the rate from their printed chart.
 - **Vendors:** `vendors`, `vendor_service_areas`, `vendor_kyc`,
   `vendor_documents`, `vendor_payout_accounts`
 - **Pickups:** `pickup_slots`, `pickups`, `pickup_items`, `pickup_photos`, `pickup_status_history`
