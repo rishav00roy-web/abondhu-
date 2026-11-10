@@ -6,7 +6,7 @@ import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aa
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
-import { isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
+import { cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
 import { strings, type Lang } from "@/lib/vendor-i18n";
 import { uploadPhoto } from "./photos";
 import { Err, Field, input, PhotoPick, Primary, Row, Shell, Tile, Title } from "./ui";
@@ -246,7 +246,7 @@ export function VendorSignup() {
                 inputMode="numeric"
                 autoComplete="tel-national"
                 value={f.phone}
-                onChange={(e) => set("phone", digitsOnly(e.target.value).slice(0, 10))}
+                onChange={(e) => set("phone", cleanMobile(e.target.value))}
               />
             </div>
           </Field>

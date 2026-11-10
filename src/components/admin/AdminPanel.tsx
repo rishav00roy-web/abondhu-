@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { digitsOnly } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
-import { isValid, type VendorStatus } from "@/lib/vendor";
+import { cleanMobile, isValid, type VendorStatus } from "@/lib/vendor";
 import { ActivityPanel, AreaPanel, EmptyList, ReviewNudge, StatCards, useOverview, type Tab } from "./AdminHome";
 
 const TAB_TITLES: Record<Tab, string> = {
@@ -124,7 +124,7 @@ export function AdminPanel() {
         )}
         {state === "login" && withPhone && (
           <>
-            <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(digitsOnly(e.target.value).slice(0, 10))} />
+            <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(cleanMobile(e.target.value))} />
             <button className={btn} disabled={busy || !isValid.mobile(phone)} onClick={() => act(async () => {
               const { error } = await sb.auth.signInWithOtp({ phone: "+91" + phone, options: { shouldCreateUser: false } });
               if (error) throw error;
