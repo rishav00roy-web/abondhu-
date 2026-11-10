@@ -58,7 +58,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
           ))}
           <VendorLink aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-gold ${vendorPage ? "bg-[length:100%_1px]" : ""}`} />
         </nav>
-        <Link href="/#book" className={`${bookBtn} hidden sm:inline-flex`}>
+        <Link href="/account" className={`${bookBtn} hidden sm:inline-flex`}>
           Book pickup
         </Link>
         <button
@@ -104,7 +104,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
                 <span aria-hidden className="text-gold">●</span>
               </VendorLink>
               <Link
-                href="/#book"
+                href="/account"
                 onClick={() => setOpen(false)}
                 className="m-3 flex h-12 items-center justify-center rounded-sm bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
               >

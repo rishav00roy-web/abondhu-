@@ -166,9 +166,9 @@ export function Closing() {
           Clear the store room, <i className="font-light text-gold">not the riverbank.</i>
         </Reveal>
         <Reveal delay={0.1} className="w-full sm:w-auto">
-          <a href="#book" className={cn(btn.base, btn.gold, "w-full sm:w-auto")}>
+          <Link href="/account" className={cn(btn.base, btn.gold, "w-full sm:w-auto")}>
             Book a free pickup <ArrowRight className="size-4" aria-hidden />
-          </a>
+          </Link>
         </Reveal>
       </Container>
     </section>

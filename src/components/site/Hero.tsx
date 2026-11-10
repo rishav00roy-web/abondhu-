@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowRight, Recycle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Stagger, StaggerItem } from "./motion";
@@ -28,9 +29,9 @@ export function Hero() {
             We buy your scrap at your door in Jorhat and pay on the spot.
           </StaggerItem>
           <StaggerItem className="flex w-full flex-col gap-5 pt-1 sm:w-auto sm:flex-row sm:items-center sm:gap-8">
-            <a href="#book" className={cn(btn.base, btn.primary)}>
+            <Link href="/account" className={cn(btn.base, btn.primary)}>
               Sell your scrap <ArrowRight className="size-4" aria-hidden />
-            </a>
+            </Link>
             <VendorLink className="self-center border-b-2 border-gold pb-1 text-xs font-bold uppercase tracking-[0.15em] text-forest transition-colors duration-200 hover:text-navy sm:self-auto" />
           </StaggerItem>
         </Stagger>
