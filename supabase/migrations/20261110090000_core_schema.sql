@@ -67,7 +67,7 @@ create table public.profiles (
   full_name          text,
   phone              text unique check (phone ~ '^\+91[6-9][0-9]{9}$'),
   email              text,
-  preferred_language text not null default 'en' check (preferred_language in ('en', 'as', 'bn', 'hi')),
+  preferred_language text not null default 'as' check (preferred_language in ('as', 'en')),
   is_blocked         boolean not null default false,
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
