@@ -17,6 +17,7 @@ Going live with vendor sign-up: see `docs/vendor-signup-setup.md`.
 | Route | What it is |
 | --- | --- |
 | `/` | Landing page |
+| `/vendor` | Why join, for scrap collectors; links to the sign-up |
 | `/partner` | Vendor sign-up (English, one tap for Assamese) |
 | `/admin` | Approve or reject vendor applications |
 

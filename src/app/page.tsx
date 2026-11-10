@@ -2,22 +2,21 @@ import { MotionConfig } from "framer-motion";
 import { BookingBar } from "@/components/site/BookingBar";
 import { Hero } from "@/components/site/Hero";
 import { Nav } from "@/components/site/Nav";
-import { RateBoard } from "@/components/site/RateBoard";
-import { SecondLife } from "@/components/site/SecondLife";
-import { Closing, Estates, Faq, Footer, HowItWorks, TrustStrip } from "@/components/site/Sections";
+import { VendorCta } from "@/components/site/VendorCta";
+import { WhatWeBuy } from "@/components/site/WhatWeBuy";
+import { Closing, Faq, Footer, HowItWorks, TrustStrip } from "@/components/site/Sections";
 
 export default function Home() {
   return (
     <MotionConfig reducedMotion="user">
       <Nav />
-      <main id="top">
+      <main id="main">
         <Hero />
         <TrustStrip />
-        <BookingBar />
-        <RateBoard />
         <HowItWorks />
-        <SecondLife />
-        <Estates />
+        <WhatWeBuy />
+        <BookingBar />
+        <VendorCta />
         <Faq />
         <Closing />
       </main>
