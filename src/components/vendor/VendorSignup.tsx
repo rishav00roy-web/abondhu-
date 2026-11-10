@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
 import { strings, type Lang } from "@/lib/vendor-i18n";
 import { uploadPhoto } from "./photos";
+import { VendorHome } from "./VendorHome";
 import { Err, Field, input, PhotoPick, Primary, Row, Shell, Tile, Title } from "./ui";
 
 interface Form {
@@ -391,7 +392,9 @@ export function VendorSignup() {
         </>
       )}
 
-      {screen === 7 && status && (
+      {screen === 7 && status?.status === "approved" && <VendorHome t={t} lang={lang} />}
+
+      {screen === 7 && status && status.status !== "approved" && (
         <div className="flex flex-col items-center gap-4 py-6 text-center">
           <span className={cn("grid size-24 place-items-center rounded-full text-white", status.status === "rejected" ? "bg-danger" : "bg-forest")}>
             <Check className="size-12" strokeWidth={3} />
@@ -402,12 +405,6 @@ export function VendorSignup() {
               <p className="text-muted">{t.appNo}</p>
               <p className="rounded-xl border-2 border-gold bg-white px-5 py-2 font-mono text-2xl font-bold text-navy">{status.code}</p>
               <p className="text-muted">{t.sentHint}</p>
-            </>
-          )}
-          {status.status === "approved" && (
-            <>
-              <Title>{t.approvedTitle}</Title>
-              <p className="text-muted">{t.approvedHint}</p>
             </>
           )}
           {status.status === "rejected" && (
