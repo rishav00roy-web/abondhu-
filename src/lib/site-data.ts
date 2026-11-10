@@ -23,7 +23,6 @@ export const LOCALITIES = [
   "Lichubari",
   "Malow Ali",
 ];
-export const TOWN = "Jorhat";
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 

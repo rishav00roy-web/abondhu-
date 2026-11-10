@@ -1,10 +1,10 @@
 import { MotionConfig } from "framer-motion";
-import { BookingBar } from "@/components/BookingBar";
-import { Hero } from "@/components/Hero";
-import { Nav } from "@/components/Nav";
-import { VendorCta } from "@/components/VendorCta";
-import { WhatWeBuy } from "@/components/WhatWeBuy";
-import { Closing, Faq, Footer, HowItWorks, TrustStrip } from "@/components/Sections";
+import { BookingBar } from "@/components/site/BookingBar";
+import { Hero } from "@/components/site/Hero";
+import { Nav } from "@/components/site/Nav";
+import { VendorCta } from "@/components/site/VendorCta";
+import { WhatWeBuy } from "@/components/site/WhatWeBuy";
+import { Closing, Faq, Footer, HowItWorks, TrustStrip } from "@/components/site/Sections";
 
 export default function Home() {
   return (

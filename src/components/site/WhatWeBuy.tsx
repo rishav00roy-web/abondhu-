@@ -1,5 +1,5 @@
 import { Laptop, Milk, Newspaper, Package, Refrigerator, Wrench, type LucideIcon } from "lucide-react";
-import { BUY } from "@/lib/data";
+import { BUY } from "@/lib/site-data";
 import { inr } from "@/lib/utils";
 import { Stagger, StaggerItem } from "./motion";
 import { Container, SectionHead } from "./ui";

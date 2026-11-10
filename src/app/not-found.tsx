@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { MotionConfig } from "framer-motion";
-import { Nav } from "@/components/Nav";
-import { Footer } from "@/components/Sections";
-import { btn, Container } from "@/components/ui";
+import { Nav } from "@/components/site/Nav";
+import { Footer } from "@/components/site/Sections";
+import { btn, Container } from "@/components/site/ui";
 import { cn } from "@/lib/utils";
 
 export default function NotFound() {

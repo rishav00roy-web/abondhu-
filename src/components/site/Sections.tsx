@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { FAQS } from "@/lib/data";
+import { FAQS } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";

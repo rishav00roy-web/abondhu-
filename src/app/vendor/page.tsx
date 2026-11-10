@@ -1,11 +1,11 @@
 import { MotionConfig } from "framer-motion";
 import type { Metadata } from "next";
-import { Reveal, Stagger, StaggerItem } from "@/components/motion";
-import { Nav } from "@/components/Nav";
-import { Footer } from "@/components/Sections";
-import { TornEdge } from "@/components/TornEdge";
-import { Container, Eyebrow } from "@/components/ui";
-import { VendorForm } from "@/components/VendorForm";
+import { Reveal, Stagger, StaggerItem } from "@/components/site/motion";
+import { Nav } from "@/components/site/Nav";
+import { Footer } from "@/components/site/Sections";
+import { TornEdge } from "@/components/site/TornEdge";
+import { Container, Eyebrow } from "@/components/site/ui";
+import { VendorSignupCard } from "@/components/site/VendorSignupCard";
 
 export const metadata: Metadata = {
   title: "Become a vendor | Abondhu",
@@ -49,7 +49,7 @@ export default function VendorPage() {
               </ul>
             </Reveal>
             <Reveal delay={0.1} className="grid gap-4">
-              <VendorForm />
+              <VendorSignupCard />
               <p className="text-center text-sm text-muted">
                 Prefer to talk?{" "}
                 <a
