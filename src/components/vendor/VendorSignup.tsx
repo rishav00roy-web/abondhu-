@@ -86,6 +86,8 @@ export function VendorSignup() {
       name: p?.full_name ?? prev.name,
       phone: p?.phone ? p.phone.replace(/^\+91/, "") : prev.phone,
       email: p?.email ?? prev.email,
+      // Signed in by email (e.g. from the email link) without a contact number yet.
+      byEmail: prev.byEmail || (!!p?.email && !p?.phone),
       vendorType: (v?.vendor_type as VendorType) ?? prev.vendorType,
     }));
     if (!v) {
@@ -116,8 +118,10 @@ export function VendorSignup() {
       if (!isValid.mobile(f.phone)) fail(t.errMobile);
       if (f.byEmail && !isValid.email(f.email.trim())) fail(t.errEmail);
       if (!f.vendorType) fail(t.errType);
+      // Already signed in (came back through the email link): no code needed.
+      if ((await sb!.auth.getSession()).data.session) return afterLogin();
       const { error } = f.byEmail
-        ? await sb!.auth.signInWithOtp({ email: f.email.trim() })
+        ? await sb!.auth.signInWithOtp({ email: f.email.trim(), options: { emailRedirectTo: `${location.origin}/partner` } })
         : await sb!.auth.signInWithOtp({ phone: "+91" + f.phone });
       if (error) fail(error.message);
       setScreen(2);
@@ -129,24 +133,29 @@ export function VendorSignup() {
         ? await sb!.auth.verifyOtp({ email: f.email.trim(), token: f.otp, type: "email" })
         : await sb!.auth.verifyOtp({ phone: "+91" + f.phone, token: f.otp, type: "sms" });
       if (error) fail(t.errOtp);
-      if (f.byEmail) {
-        // Email logins have no verified phone yet: save the number they typed as the contact.
-        await postJson("/api/vendor/contact", { phone: f.phone }).catch(async (e: Error) => {
-          await sb!.auth.signOut();
-          fail(e.message === "phone_taken" ? t.errPhoneTaken : e.message);
-        });
-      }
-      const id = await uid();
-      await sb!.from("profiles").update({ full_name: f.name.trim(), preferred_language: lang }).eq("id", id);
-      const { data: v } = await sb!.from("vendors").select("id").eq("id", id).maybeSingle();
-      if (!v) {
-        const { error: e2 } = await sb!.from("vendors").insert({ id, vendor_type: f.vendorType, onboarding_step: 3 });
-        if (e2) fail(e2.message);
-        setScreen(3);
-      } else {
-        await resume();
-      }
+      await afterLogin();
     });
+
+  /** Saves step 1 for the signed-in user and moves on. */
+  async function afterLogin() {
+    if (f.byEmail) {
+      // Email logins have no verified phone yet: save the number they typed as the contact.
+      await postJson("/api/vendor/contact", { phone: f.phone }).catch(async (e: Error) => {
+        await sb!.auth.signOut();
+        fail(e.message === "phone_taken" ? t.errPhoneTaken : e.message);
+      });
+    }
+    const id = await uid();
+    await sb!.from("profiles").update({ full_name: f.name.trim(), preferred_language: lang }).eq("id", id);
+    const { data: v } = await sb!.from("vendors").select("id").eq("id", id).maybeSingle();
+    if (!v) {
+      const { error: e2 } = await sb!.from("vendors").insert({ id, vendor_type: f.vendorType, onboarding_step: 3 });
+      if (e2) fail(e2.message);
+      setScreen(3);
+    } else {
+      await resume();
+    }
+  }
 
   const saveShop = () =>
     run(async () => {
