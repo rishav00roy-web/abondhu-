@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { VendorSignupClient } from "@/components/vendor/ClientOnly";
+import { VendorSignupClient } from "@/components/client-only";
 
 export const metadata: Metadata = {
   title: "Become an Abondhu partner | Jorhat",

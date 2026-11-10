@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
-import { AREAS } from "@/lib/data";
+import { AREAS } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, Eyebrow, serifTitle } from "./ui";

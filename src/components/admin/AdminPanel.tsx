@@ -3,10 +3,18 @@
 import { Check, Eye, Loader2, LogOut, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly } from "@/lib/aadhaar";
-import { authedFetch, getSupabase } from "@/lib/supabase";
+import { getSupabase, postJson } from "@/lib/supabase";
+import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
+import type { VendorStatus } from "@/lib/vendor";
 
-type Status = "submitted" | "approved" | "rejected" | "draft";
+type Tab = Exclude<VendorStatus, "suspended">;
+const TABS: { status: Tab; label: string }[] = [
+  { status: "submitted", label: "To review" },
+  { status: "approved", label: "Approved" },
+  { status: "rejected", label: "Rejected" },
+  { status: "draft", label: "Not finished" },
+];
 
 interface VendorRow {
   id: string;
@@ -14,7 +22,7 @@ interface VendorRow {
   business_name: string | null;
   vendor_type: string | null;
   vehicle_type: string | null;
-  status: Status;
+  status: VendorStatus;
   submitted_at: string | null;
   rejection_reason: string | null;
   profile: { full_name: string | null; phone: string | null } | null;
@@ -37,9 +45,9 @@ export function AdminPanel() {
   const [state, setState] = useState<"loading" | "login" | "otp" | "denied" | "ready">("loading");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<Status>("submitted");
+  const { busy, err, run: act } = useAction();
+  const [loadErr, setLoadErr] = useState("");
+  const [tab, setTab] = useState<Tab>("submitted");
   const [rows, setRows] = useState<VendorRow[]>([]);
 
   const check = useCallback(async () => {
@@ -59,7 +67,7 @@ export function AdminPanel() {
   const load = useCallback(async () => {
     if (!sb) return;
     const { data, error } = await sb.from("vendors").select(SELECT).eq("status", tab).order("submitted_at", { ascending: false, nullsFirst: false });
-    if (error) setErr(error.message);
+    setLoadErr(error?.message ?? "");
     setRows((data as unknown as VendorRow[]) ?? []);
   }, [sb, tab]);
 
@@ -67,18 +75,6 @@ export function AdminPanel() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (state === "ready") load();
   }, [state, load]);
-
-  const act = async (fn: () => Promise<void>) => {
-    setErr("");
-    setBusy(true);
-    try {
-      await fn();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
 
   if (!sb) return <Page><p>Supabase keys are not set yet.</p></Page>;
   if (state === "loading") return <Page><Loader2 className="size-6 animate-spin" /></Page>;
@@ -130,13 +126,13 @@ export function AdminPanel() {
       </header>
       <main className="mx-auto max-w-5xl p-6">
         <div className="mb-6 flex gap-2">
-          {(["submitted", "approved", "rejected", "draft"] as Status[]).map((s) => (
-            <button key={s} onClick={() => setTab(s)} className={cn("rounded-full px-4 py-2 text-sm font-semibold capitalize", tab === s ? "bg-navy text-white" : "bg-white text-navy")}>
-              {s === "submitted" ? "To review" : s === "draft" ? "Not finished" : s}
+          {TABS.map(({ status, label }) => (
+            <button key={status} onClick={() => setTab(status)} className={cn("rounded-full px-4 py-2 text-sm font-semibold", tab === status ? "bg-navy text-white" : "bg-white text-navy")}>
+              {label}
             </button>
           ))}
         </div>
-        {err && <p className="mb-4 rounded bg-red-50 p-3 text-danger">{err}</p>}
+        {(err || loadErr) && <p className="mb-4 rounded bg-red-50 p-3 text-danger">{err || loadErr}</p>}
         {rows.length === 0 && <p className="text-muted">Nothing here.</p>}
         <div className="grid gap-4">
           {rows.map((v) => <VendorCard key={v.id} v={v} busy={busy} act={act} reload={load} />)}
@@ -170,13 +166,13 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
   const openDoc = (path: string) =>
     act(async () => {
       const w = window.open("about:blank", "_blank");
-      const { url } = await authedFetch("/api/admin/doc-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path }) });
+      const { url } = await postJson("/api/admin/doc-url", { path });
       if (w) w.location.href = url;
     });
 
   const reveal = () =>
     act(async () => {
-      const r = await authedFetch("/api/admin/aadhaar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vendorId: v.id }) });
+      const r = await postJson("/api/admin/aadhaar", { vendorId: v.id });
       setAadhaar(r.aadhaar);
     });
 

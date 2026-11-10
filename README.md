@@ -1,15 +1,52 @@
 # Abondhu web
 
-Front-end mock of the Abondhu doorstep scrap-pickup site. Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Framer Motion, lucide-react. No backend: the booking form validates and shows a confirmation only.
+Doorstep scrap pickup in Jorhat. Next.js 16 (App Router), TypeScript, Tailwind CSS v4,
+Framer Motion, lucide-react, Supabase.
 
 ```bash
 npm install
 npm run dev      # http://localhost:3000
 npm run build    # production build
-npm run export   # static copy in out/
+npm run lint
 ```
 
-- Palette and tokens: `src/app/globals.css` (white ivory page, Mint Whisper / Emerald / Forest / Dark Evergreen).
-- Content (rates, FAQ, cities, sample receipt): `src/lib/data.ts`.
-- Sections: `src/components/`. Motion follows design-motion-principles: one orchestrated hero moment (receipt prints while the scale climbs), a scroll-drawn timeline, and quick feedback on controls. `MotionConfig reducedMotion="user"` plus `useReducedMotion` checks honour reduced motion.
-- `preview/` builds a single self-contained HTML file of the same components for sharing (`npx esbuild ...`, see `preview/build.mjs`).
+Going live with vendor sign-up: see `docs/vendor-signup-setup.md`.
+
+## Pages
+
+| Route | What it is |
+| --- | --- |
+| `/` | Landing page |
+| `/partner` | Vendor sign-up (English, one tap for Assamese) |
+| `/admin` | Approve or reject vendor applications |
+
+## Where things live
+
+```
+src/
+  app/                    routes; app/api/ holds the server endpoints
+    api/vendor/           vendor uploads photos, saves Aadhaar (encrypted)
+    api/admin/            admin views a photo or the full Aadhaar (logged)
+  components/
+    site/                 landing page sections and their shared ui/motion pieces
+    vendor/               sign-up wizard, its building blocks (ui.tsx), photo upload
+    admin/                admin panel
+    client-only.tsx       browser-only wrappers for the sign-up and admin pages
+  lib/
+    site-data.ts          landing page content (rates, FAQ, areas)
+    vendor.ts             vendor types and format checks, shared by screens and API
+    vendor-i18n.ts        every vendor-facing line, English and Assamese
+    aadhaar.ts            Aadhaar checksum and formatting (browser and server)
+    supabase.ts           browser Supabase client and calls to our API
+    use-action.ts         busy/error handling for buttons
+    server/               server-only: service-role client, auth checks, Aadhaar encryption
+supabase/                 database migrations, seed and security tests
+docs/                     setup guides
+```
+
+## Rules
+
+- Simple yet durable: the simplest thing that works, tested and secure.
+- Vendor screens stay very simple: big buttons, short words, every line in `vendor-i18n.ts`.
+- A full Aadhaar number is only ever handled in `lib/server/` and stored encrypted.
+- Colours and fonts: `src/app/globals.css`.

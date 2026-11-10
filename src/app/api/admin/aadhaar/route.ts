@@ -1,3 +1,4 @@
+import { formatAadhaar } from "@/lib/aadhaar";
 import { decryptAadhaar } from "@/lib/server/aadhaar-crypto";
 import { errorResponse, HttpError, requireAdmin, supabaseAdmin } from "@/lib/server/supabase-admin";
 
@@ -13,8 +14,7 @@ export async function POST(req: Request) {
     const { data } = await db.from("vendor_aadhaar_vault").select("aadhaar_ciphertext").eq("vendor_id", vendorId).maybeSingle();
     if (!data) throw new HttpError(404, "No Aadhaar saved for this vendor.");
     await db.from("audit_log").insert({ actor_id: admin.id, action: "view_aadhaar", table_name: "vendor_aadhaar_vault", record_id: vendorId });
-    const n = decryptAadhaar(data.aadhaar_ciphertext);
-    return Response.json({ aadhaar: n.replace(/(\d{4})(?=\d)/g, "$1 ") });
+    return Response.json({ aadhaar: formatAadhaar(decryptAadhaar(data.aadhaar_ciphertext)) });
   } catch (e) {
     return errorResponse(e);
   }

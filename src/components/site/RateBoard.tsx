@@ -3,7 +3,7 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CATEGORIES, type CategoryKey, RATES, SAMPLE_ESTIMATE } from "@/lib/data";
+import { CATEGORIES, type CategoryKey, RATES, SAMPLE_ESTIMATE } from "@/lib/site-data";
 import { cn, EASE_OUT, inr } from "@/lib/utils";
 import { Stagger, StaggerItem } from "./motion";
 import { TornEdge } from "./TornEdge";

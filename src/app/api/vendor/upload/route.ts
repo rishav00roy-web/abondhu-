@@ -1,28 +1,24 @@
-import { errorResponse, HttpError, requireUser, supabaseAdmin } from "@/lib/server/supabase-admin";
+import { errorResponse, HttpError, requireEditableVendor, supabaseAdmin } from "@/lib/server/supabase-admin";
+import { PHOTO_TYPES, type PhotoType } from "@/lib/vendor";
 
 export const runtime = "nodejs";
 
-const ALLOWED = ["selfie", "aadhaar_photo", "shop_photo"] as const;
-type DocType = (typeof ALLOWED)[number];
 const MAX_BYTES = 5 * 1024 * 1024;
 
 /** Vendor uploads one photo. Stored in the private vendor-docs bucket under their own folder. */
 export async function POST(req: Request) {
   try {
-    const user = await requireUser(req);
+    const user = await requireEditableVendor(req);
     const form = await req.formData();
     const file = form.get("file");
-    const docType = String(form.get("doc_type")) as DocType;
+    const docType = String(form.get("doc_type")) as PhotoType;
 
-    if (!ALLOWED.includes(docType)) throw new HttpError(400, "Unknown photo type.");
+    if (!PHOTO_TYPES.includes(docType)) throw new HttpError(400, "Unknown photo type.");
     if (!(file instanceof File) || file.size === 0) throw new HttpError(400, "Please choose a photo.");
     if (file.size > MAX_BYTES) throw new HttpError(400, "Photo is too large (max 5 MB).");
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new HttpError(400, "Please upload a photo (JPG or PNG).");
 
     const db = supabaseAdmin();
-    const { data: vendor } = await db.from("vendors").select("status").eq("id", user.id).single();
-    if (!vendor) throw new HttpError(400, "Please finish the first steps first.");
-    if (!["draft", "rejected"].includes(vendor.status)) throw new HttpError(409, "Your application is already sent.");
 
     // Replace any earlier photo of the same kind.
     const { data: old } = await db.from("vendor_documents").select("id, storage_path").eq("vendor_id", user.id).eq("doc_type", docType);

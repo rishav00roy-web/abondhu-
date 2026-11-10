@@ -1,17 +1,15 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Bike, Camera, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, Car } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
-import { authedFetch, getSupabase } from "@/lib/supabase";
+import { getSupabase, postJson } from "@/lib/supabase";
+import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
-import { strings, type Lang, type Strings } from "@/lib/vendor-i18n";
-
-type VendorType = "individual_collector" | "scrap_shop" | "recycler";
-type Vehicle = "cycle" | "cart" | "auto" | "truck";
-type Status = "draft" | "submitted" | "approved" | "rejected" | "suspended";
+import { isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
+import { strings, type Lang } from "@/lib/vendor-i18n";
+import { uploadPhoto } from "./photos";
+import { Err, Field, input, PhotoPick, Primary, Row, Shell, Tile, Title } from "./ui";
 
 interface Form {
   name: string;
@@ -43,29 +41,6 @@ const EMPTY: Form = {
 // Screens: 1 about, 2 otp, 3 shop, 4 aadhaar, 5 payment, 6 review, 7 status
 type Screen = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
-/** Shrinks a camera photo to at most 1600px JPEG so uploads stay small on slow networks. */
-async function shrink(file: File): Promise<File> {
-  try {
-    const img = await createImageBitmap(file);
-    const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
-    canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.82));
-    return blob ? new File([blob], "photo.jpg", { type: "image/jpeg" }) : file;
-  } catch {
-    return file;
-  }
-}
-
-async function uploadPhoto(file: File, docType: "selfie" | "aadhaar_photo" | "shop_photo") {
-  const fd = new FormData();
-  fd.append("file", await shrink(file));
-  fd.append("doc_type", docType);
-  await authedFetch("/api/vendor/upload", { method: "POST", body: fd });
-}
-
 export function VendorSignup() {
   const sb = getSupabase();
   // Rendered only in the browser (see VendorSignupClient), so localStorage is safe here.
@@ -79,9 +54,8 @@ export function VendorSignup() {
   const t = strings(lang);
   const [screen, setScreen] = useState<Screen>(1);
   const [f, setF] = useState<Form>(EMPTY);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [status, setStatus] = useState<{ status: Status; code: string | null; reason: string | null } | null>(null);
+  const { busy, err, run } = useAction();
+  const [status, setStatus] = useState<{ status: VendorStatus; code: string | null; reason: string | null } | null>(null);
   const [booting, setBooting] = useState(true);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
@@ -126,17 +100,6 @@ export function VendorSignup() {
     resume().finally(() => setBooting(false));
   }, [resume]);
 
-  async function run(fn: () => Promise<void>) {
-    setErr("");
-    setBusy(true);
-    try {
-      await fn();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }
   const fail = (msg: string): never => {
     throw new Error(msg);
   };
@@ -146,7 +109,7 @@ export function VendorSignup() {
   const sendOtp = () =>
     run(async () => {
       if (f.name.trim().length < 2) fail(t.errName);
-      if (!/^[6-9]\d{9}$/.test(f.phone)) fail(t.errMobile);
+      if (!isValid.mobile(f.phone)) fail(t.errMobile);
       if (!f.vendorType) fail(t.errType);
       const { error } = await sb!.auth.signInWithOtp({ phone: "+91" + f.phone });
       if (error) fail(error.message);
@@ -196,11 +159,7 @@ export function VendorSignup() {
       if (!isValidAadhaar(f.aadhaar)) fail(t.errAadhaar);
       if (!f.aadhaarPhoto || !f.selfie) fail(t.errPhotos);
       if (!f.consent) fail(t.errConsent);
-      await authedFetch("/api/vendor/aadhaar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ aadhaar: digitsOnly(f.aadhaar), consent: true }),
-      });
+      await postJson("/api/vendor/aadhaar", { aadhaar: digitsOnly(f.aadhaar), consent: true });
       await uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo");
       await uploadPhoto(f.selfie!, "selfie");
       await sb!.from("vendors").update({ onboarding_step: 5 }).eq("id", await uid());
@@ -212,10 +171,10 @@ export function VendorSignup() {
       const id = await uid();
       let row: Record<string, string>;
       if (f.payMethod === "upi") {
-        if (!/^[A-Za-z0-9.\-_]{2,}@[A-Za-z]{2,}$/.test(f.upiId)) fail(t.errUpi);
+        if (!isValid.upi(f.upiId)) fail(t.errUpi);
         row = { method: "upi", upi_id: f.upiId };
       } else {
-        if (!/^[0-9]{9,18}$/.test(f.account) || !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(f.ifsc) || f.holder.trim().length < 2) fail(t.errBank);
+        if (!isValid.account(f.account) || !isValid.ifsc(f.ifsc) || f.holder.trim().length < 2) fail(t.errBank);
         row = { method: "bank", account_holder: f.holder.trim(), account_number: f.account, ifsc: f.ifsc };
       }
       await sb!.from("vendor_payout_accounts").delete().eq("vendor_id", id);
@@ -442,135 +401,3 @@ export function VendorSignup() {
     </Shell>
   );
 }
-
-// ---- small building blocks ----
-const input =
-  "h-14 w-full rounded-xl border-2 border-line bg-white px-4 text-lg text-ink outline-none transition-colors focus:border-forest";
-
-function Shell({ t, onLang, step, onBack, onLogout, children }: {
-  t: Strings; onLang: () => void; step?: number; onBack?: () => void; onLogout?: () => void; children: ReactNode;
-}) {
-  return (
-    <div className="min-h-dvh bg-sunk">
-      <header className="bg-navy px-5 pb-4 pt-[max(16px,env(safe-area-inset-top))] text-white">
-        <div className="mx-auto flex max-w-md items-center gap-3">
-          {onBack ? (
-            <button type="button" onClick={onBack} aria-label={t.back} className="-ml-2 grid size-10 place-items-center">
-              <ArrowLeft className="size-6" />
-            </button>
-          ) : null}
-          <Link href="/" className="flex items-center gap-2 font-serif text-xl">
-            <Image src="/abondhu-mark.png" alt="" width={32} height={24} className="h-6 w-auto rounded bg-white p-0.5" />
-            Abondhu
-          </Link>
-          <button type="button" onClick={onLang} className="ml-auto rounded-full border border-gold px-3 py-1 text-sm text-gold">
-            {t.switchTo}
-          </button>
-        </div>
-        {step && (
-          <div className="mx-auto mt-4 max-w-md">
-            <div className="flex gap-1.5">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <span key={i} className={cn("h-1.5 flex-1 rounded-full", i <= step ? "bg-gold" : "bg-white/20")} />
-              ))}
-            </div>
-            <p className="mt-2 text-sm text-gold">{t.step(step)}</p>
-          </div>
-        )}
-      </header>
-      <main className="mx-auto flex max-w-md flex-col gap-4 px-5 py-6">{children}</main>
-      {onLogout && (
-        <div className="mx-auto max-w-md px-5 pb-8 text-center">
-          <button type="button" onClick={onLogout} className="text-sm text-muted underline">
-            {t.logout}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const Title = ({ children }: { children: ReactNode }) => <h1 className="text-2xl font-bold leading-snug text-navy">{children}</h1>;
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[17px] font-semibold text-ink">{label}</span>
-      {children}
-    </div>
-  );
-}
-
-function Tile({ on, onClick, icon, label, row }: { on: boolean; onClick: () => void; icon?: ReactNode; label: string; row?: boolean }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      className={cn(
-        "flex min-h-14 items-center gap-2 rounded-xl border-2 bg-white px-3 py-3 font-semibold transition-colors [&_svg]:size-6 [&_svg]:text-navy",
-        row ? "justify-start" : "flex-col justify-center text-center",
-        on ? "border-gold bg-[#FFF9E6]" : "border-line",
-      )}
-    >
-      {icon && <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sand">{icon}</span>}
-      {label}
-    </button>
-  );
-}
-
-function PhotoPick({ label, file, onPick, t, front }: { label: string; file: File | null; onPick: (f: File | null) => void; t: Strings; front?: boolean }) {
-  const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
-  useEffect(() => () => {
-    if (url) URL.revokeObjectURL(url);
-  }, [url]);
-  return (
-    <Field label={label}>
-      <label className={cn("relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-white font-semibold text-navy", file ? "border-forest" : "border-gold")}>
-        {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt="" className="absolute inset-0 size-full object-cover opacity-40" />
-        ) : null}
-        <Camera className="relative size-9 text-gold" />
-        <span className="relative">{file ? t.retake : t.takePhoto}</span>
-        <input
-          type="file"
-          accept="image/*"
-          capture={front ? "user" : "environment"}
-          className="sr-only"
-          onChange={(e) => onPick(e.target.files?.[0] ?? null)}
-        />
-      </label>
-    </Field>
-  );
-}
-
-function Primary({ children, onClick, busy, disabled, t }: { children: ReactNode; onClick: () => void; busy: boolean; disabled?: boolean; t: Strings }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={busy || disabled}
-      className="mt-2 flex h-16 items-center justify-center gap-3 rounded-2xl bg-forest text-xl font-bold text-white transition-transform active:scale-[0.98] disabled:opacity-50"
-    >
-      {busy ? (
-        <>
-          <Loader2 className="size-6 animate-spin" /> {t.wait}
-        </>
-      ) : (
-        <>
-          {children} <ArrowRight className="size-6" />
-        </>
-      )}
-    </button>
-  );
-}
-
-const Err = ({ msg }: { msg: string }) => (msg ? <p role="alert" className="rounded-xl bg-red-50 p-3 font-medium text-danger">{msg}</p> : null);
-
-const Row = ({ k, v }: { k: string; v: string }) => (
-  <div className="flex flex-col gap-0.5 px-4 py-3">
-    <dt className="text-sm text-muted">{k}</dt>
-    <dd className="font-semibold text-ink">{v}</dd>
-  </div>
-);

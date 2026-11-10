@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { AREAS } from "@/lib/data";
+import { AREAS } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { SPRING, Stagger, StaggerItem } from "./motion";
 import { btn, Eyebrow } from "./ui";

@@ -3,7 +3,7 @@
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { Leaf } from "lucide-react";
 import { useEffect } from "react";
-import { CATEGORIES, RECEIPT } from "@/lib/data";
+import { CATEGORIES, RECEIPT } from "@/lib/site-data";
 import { EASE_OUT } from "@/lib/utils";
 
 /*

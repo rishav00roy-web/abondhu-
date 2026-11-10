@@ -3,7 +3,7 @@
 import { animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { CATEGORIES, type CategoryKey } from "@/lib/data";
+import { CATEGORIES, type CategoryKey } from "@/lib/site-data";
 import { EASE_OUT } from "@/lib/utils";
 import { Stagger, StaggerItem } from "./motion";
 import { Container, SectionHead } from "./ui";

@@ -45,7 +45,6 @@ export const AREAS = [
   { city: "Silchar", days: "Tue, Sat" },
   { city: "Nagaon", days: "Wed, Sun" },
 ];
-export const CITIES = AREAS.map((a) => a.city);
 
 export const RECEIPT = [
   { name: "Newspaper", category: "paper" as CategoryKey, kg: 8.4, rate: 14 },

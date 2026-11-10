@@ -1,10 +1,10 @@
 import { MotionConfig } from "framer-motion";
-import { BookingBar } from "@/components/BookingBar";
-import { Hero } from "@/components/Hero";
-import { Nav } from "@/components/Nav";
-import { RateBoard } from "@/components/RateBoard";
-import { SecondLife } from "@/components/SecondLife";
-import { Closing, Estates, Faq, Footer, HowItWorks, TrustStrip } from "@/components/Sections";
+import { BookingBar } from "@/components/site/BookingBar";
+import { Hero } from "@/components/site/Hero";
+import { Nav } from "@/components/site/Nav";
+import { RateBoard } from "@/components/site/RateBoard";
+import { SecondLife } from "@/components/site/SecondLife";
+import { Closing, Estates, Faq, Footer, HowItWorks, TrustStrip } from "@/components/site/Sections";
 
 export default function Home() {
   return (

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, CalendarCheck, HandCoins, Plus, Recycle, Scale, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { FAQS } from "@/lib/data";
+import { FAQS } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";

@@ -23,3 +23,7 @@ export async function authedFetch(path: string, init: RequestInit = {}) {
   if (!res.ok) throw new Error(body.error ?? "Something went wrong. Please try again.");
   return body;
 }
+
+/** POST a JSON body to our own API as the signed-in user. */
+export const postJson = (path: string, body: unknown) =>
+  authedFetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

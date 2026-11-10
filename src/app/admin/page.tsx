@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AdminPanelClient } from "@/components/vendor/ClientOnly";
+import { AdminPanelClient } from "@/components/client-only";
 
 export const metadata: Metadata = { title: "Abondhu admin", robots: { index: false, follow: false } };
 

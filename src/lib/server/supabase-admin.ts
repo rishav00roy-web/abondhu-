@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { EDITABLE_STATUSES, type VendorStatus } from "@/lib/vendor";
 
 let admin: SupabaseClient | null = null;
 
@@ -31,6 +32,15 @@ export async function requireAdmin(req: Request): Promise<User> {
   const user = await requireUser(req);
   const { data } = await supabaseAdmin().from("profiles").select("role, is_blocked").eq("id", user.id).single();
   if (data?.role !== "admin" || data.is_blocked) throw new HttpError(403, "Admins only.");
+  return user;
+}
+
+/** The signed-in vendor, only while their application can still be changed. */
+export async function requireEditableVendor(req: Request): Promise<User> {
+  const user = await requireUser(req);
+  const { data } = await supabaseAdmin().from("vendors").select("status").eq("id", user.id).single();
+  if (!data) throw new HttpError(400, "Please finish the first steps first.");
+  if (!EDITABLE_STATUSES.includes(data.status as VendorStatus)) throw new HttpError(409, "Your application is already sent.");
   return user;
 }
 
