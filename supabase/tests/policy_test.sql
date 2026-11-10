@@ -111,6 +111,25 @@ insert into public.ratings (pickup_id, rated_by, stars) values ('00000000-0000-0
 select pg_temp.expect((select count(*) from public.pickup_status_history where pickup_id = '00000000-0000-0000-0000-0000000000e1') = 5, 'every status change is recorded');
 select pg_temp.expect((select count(*) from public.vendor_payout_accounts) = 0, 'customer cannot see vendor bank or UPI details');
 
+-- ---------- Aadhaar vault ----------
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at)
+values ('00000000-0000-0000-0000-0000000000b1', 'v1:Zm9vYmFyYmF6:cXV4', 'hmac-abc', '1234', now());
+select pg_temp.expect_error($$insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at) values ('00000000-0000-0000-0000-0000000000b2', '1234 5678 9012', 'hmac-x', '9012', now())$$, 'a plain Aadhaar number is refused in the vault');
+reset role;
+insert into public.vendors (id) values ('00000000-0000-0000-0000-0000000000b2') on conflict do nothing;
+set local role service_role;
+select pg_temp.expect_error($$insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at) values ('00000000-0000-0000-0000-0000000000b2', 'v1:b3RoZXI=:eHl6', 'hmac-abc', '1234', now())$$, 'the same Aadhaar cannot be used by two vendors');
+reset role;
+select pg_temp.expect(not exists (select 1 from public.audit_log where table_name = 'vendor_aadhaar_vault' and (new_data ? 'aadhaar_ciphertext' or new_data ? 'aadhaar_hmac')), 'audit log never copies the encrypted number');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', true);
+select pg_temp.expect_error($$select * from public.vendor_aadhaar_vault$$, 'even an admin cannot read the vault directly');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect_error($$select * from public.vendor_aadhaar_vault$$, 'a vendor cannot read the vault');
+
 reset role;
 rollback;
 \echo ALL POLICY CHECKS PASSED

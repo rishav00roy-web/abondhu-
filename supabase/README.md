@@ -8,15 +8,16 @@ switched on (`towns.is_active`, `pincodes.is_active`).
 | `migrations/20261110090000_core_schema.sql` | All tables, enums, indexes, audit log and triggers |
 | `migrations/20261110090100_security.sql` | Row level security: who can see and change what |
 | `migrations/20261110090200_storage.sql` | Private photo buckets (vendor documents, pickup photos) |
+| `migrations/20261110090300_aadhaar_vault.sql` | Encrypted store for full Aadhaar numbers (server-only) |
 | `seed.sql` | Towns, Jorhat pincodes and the list of scrap types |
 | `tests/` | Local security checks (`tests/run.sh`) |
 
 ## Putting it into Supabase (first time)
 
 1. Open the project in the Supabase dashboard, then **SQL Editor > New query**.
-2. Paste and run each migration file **in order** (090000, then 090100, then 090200).
+2. Paste and run each migration file **in order** (090000, 090100, 090200, then 090300).
 3. Paste and run `seed.sql`.
-4. **Table Editor** should now show 22 tables.
+4. **Table Editor** should now show 23 tables.
 
 Later, the Supabase CLI can do the same with `supabase link` and `supabase db push`.
 
@@ -30,12 +31,14 @@ Later, the Supabase CLI can do the same with `supabase link` and `supabase db pu
 - **Pickups:** `pickup_slots`, `pickups`, `pickup_items`, `pickup_photos`, `pickup_status_history`
 - **Money:** `customer_payments`, `vendor_payouts`
 - **Support:** `ratings`, `complaints`, `notifications`
-- **Safety:** `audit_log`
+- **Safety:** `audit_log`, `vendor_aadhaar_vault`
 
 ## Rules built in
 
-- A full Aadhaar number can never be stored. `vendor_kyc` keeps the last 4 digits,
-  name, date of birth and the provider's reference only.
+- A full Aadhaar number is stored only in `vendor_aadhaar_vault`, encrypted by the
+  server with a key held in the hosting environment (`AADHAAR_KEY`), never in the
+  database. No browser can read that table, admins included; admins see a number only
+  through a server endpoint that logs each view. Everywhere else keeps the last 4 digits.
 - KYC results, approvals and payouts are written by the server (service role key)
   or an admin, never by the vendor's own browser.
 - Vendors edit their application only while it is a draft (or after a rejection).
