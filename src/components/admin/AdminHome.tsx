@@ -283,7 +283,7 @@ export function EmptyList({ tab }: { tab: Tab }) {
 
 /* ------------------------------------------------------------------------- */
 
-function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
+export function Panel({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <section className="rounded-xl border border-line bg-white p-5 shadow-sm">
       <h2 className="mb-4 flex items-center gap-2 font-serif text-lg text-navy"><Icon className="size-4 text-forest" aria-hidden /> {title}</h2>
@@ -296,7 +296,7 @@ function Bar({ w, h, dark }: { w: string; h: string; dark?: boolean }) {
   return <span className={cn("block animate-pulse rounded motion-reduce:animate-none", w, h, dark ? "bg-white/20" : "bg-sunk")} />;
 }
 
-function Skeleton({ rows }: { rows: number }) {
+export function Skeleton({ rows }: { rows: number }) {
   return (
     <div aria-busy="true" aria-label="Loading" className="grid gap-3">
       {Array.from({ length: rows }, (_, i) => <Bar key={i} w="w-full" h="h-5" />)}

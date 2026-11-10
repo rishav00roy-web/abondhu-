@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { ArrowRight, BadgeCheck, Route, Scale, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal, Stagger, StaggerItem } from "./motion";
 import { TornEdge } from "./TornEdge";
 import { btn, Container, Eyebrow } from "./ui";
+import { VendorLink } from "./VendorLink";
 
 const PERKS = [
   { icon: Route, title: "Pickups booked on your route", body: "Households near you book online. You get the list the evening before." },
@@ -28,9 +28,9 @@ export function VendorCta() {
             auto or the truck, and keep the route you know.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-            <Link href="/vendor" className={cn(btn.base, btn.gold)}>
-              Become a vendor <ArrowRight className="size-4" aria-hidden />
-            </Link>
+            <VendorLink className={cn(btn.base, btn.gold)}>
+              <ArrowRight className="size-4" aria-hidden />
+            </VendorLink>
             <span className="text-sm font-light text-white/55">Free to join. Jorhat town only for now.</span>
           </div>
         </Reveal>
