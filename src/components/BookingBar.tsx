@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
-import { AREAS } from "@/lib/data";
+import { LOCALITIES, PIN_RE } from "@/lib/data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, serifTitle } from "./ui";
@@ -11,35 +11,29 @@ import { btn, Container, serifTitle } from "./ui";
 const field =
   "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
-const DAY_CODES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-/** Next five pickup days for a town, following its van schedule. */
-function pickupDays(city: string) {
-  const schedule = AREAS.find((a) => a.city === city)?.days ?? "Every day";
+/** Next five pickup days. Jorhat has a van every day. */
+function pickupDays() {
   const fmt = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short" });
-  const out: { date: Date; label: string }[] = [];
   const today = new Date();
-  for (let d = 0; out.length < 5 && d < 21; d++) {
+  return Array.from({ length: 5 }, (_, d) => {
     const date = new Date(today);
     date.setDate(today.getDate() + d);
-    if (schedule !== "Every day" && !schedule.includes(DAY_CODES[date.getDay()])) continue;
-    out.push({ date, label: (d === 0 ? "Today, " : d === 1 ? "Tomorrow, " : "") + fmt.format(date) });
-  }
-  return out;
+    return { date, label: (d === 0 ? "Today, " : d === 1 ? "Tomorrow, " : "") + fmt.format(date) };
+  });
 }
 
 export function BookingBar() {
   const reduce = useReducedMotion();
-  const [city, setCity] = useState(AREAS[0].city);
+  const [area, setArea] = useState(LOCALITIES[0]);
   const [pin, setPin] = useState("");
   const [phone, setPhone] = useState("");
   const [day, setDay] = useState(0);
   const [error, setError] = useState<"pin" | "phone" | null>(null);
   const [booked, setBooked] = useState(false);
-  const days = useMemo(() => pickupDays(city), [city]);
+  const days = useMemo(() => pickupDays(), []);
   const digits = phone.replace(/\s/g, "");
 
-  const pinOk = (v: string) => /^78\d{4}$/.test(v.trim());
+  const pinOk = (v: string) => PIN_RE.test(v.trim());
   const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
 
   /** On submit, point at the first field that needs fixing and put the cursor in it. */
@@ -60,7 +54,7 @@ export function BookingBar() {
 
   const message =
     error === "pin"
-      ? "We only pick up in Assam. Enter a 6-digit pincode starting with 78."
+      ? "We only pick up in Jorhat for now. Enter a 6-digit pincode starting with 785."
       : error === "phone"
         ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."
         : "No charge for pickup. We text you a two-hour slot the evening before.";
@@ -80,7 +74,7 @@ export function BookingBar() {
         <Reveal className="grid content-start gap-5">
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
-            Guwahati gets a van every day. Other towns have set days, and the dates below follow them.
+            Anywhere in Jorhat town, every day of the week. Pick your area and a day, and we text you a two-hour slot.
           </p>
         </Reveal>
 
@@ -90,21 +84,12 @@ export function BookingBar() {
               <motion.div key="form" {...swap} className="grid gap-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <label htmlFor="city" className={label}>Town</label>
-                    <select
-                      id="city"
-                      className={field}
-                      value={city}
-                      onChange={(e) => {
-                        setCity(e.target.value);
-                        setDay(0);
-                      }}
-                    >
-                      {AREAS.map((a) => (
-                        <option key={a.city} value={a.city}>
-                          {a.city} ({a.days.toLowerCase()})
-                        </option>
+                    <label htmlFor="area" className={label}>Area in Jorhat</label>
+                    <select id="area" className={field} value={area} onChange={(e) => setArea(e.target.value)}>
+                      {LOCALITIES.map((a) => (
+                        <option key={a} value={a}>{a}</option>
                       ))}
+                      <option value="Elsewhere in Jorhat">Elsewhere in Jorhat</option>
                     </select>
                   </div>
                   <div className="grid gap-2">
@@ -121,7 +106,7 @@ export function BookingBar() {
                       id="pin"
                       inputMode="numeric"
                       maxLength={6}
-                      placeholder="781028"
+                      placeholder="785001"
                       autoComplete="postal-code"
                       value={pin}
                       onChange={(e) => {
@@ -171,7 +156,7 @@ export function BookingBar() {
                 </span>
                 <h3 className="font-serif text-3xl text-navy">Pickup booked</h3>
                 <p className="max-w-[52ch] leading-relaxed text-muted">
-                  We&apos;ll come to {pin}, {city} on{" "}
+                  We&apos;ll come to {area}, Jorhat {pin} on{" "}
                   {new Intl.DateTimeFormat("en-IN", { weekday: "long", day: "numeric", month: "long" }).format(days[day].date)}.
                   Your two-hour slot goes to {digits.slice(0, 5)} {digits.slice(5)} the evening before.
                 </p>

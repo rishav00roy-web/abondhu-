@@ -9,7 +9,7 @@ import { VendorForm } from "@/components/VendorForm";
 
 export const metadata: Metadata = {
   title: "Become a vendor | Abondhu",
-  description: "Scrap collectors in Assam: get pickups booked on your route, a calibrated scale, daily UPI payouts and a verified Abondhu badge.",
+  description: "Scrap collectors in Jorhat: get pickups booked on your route, a calibrated scale, daily UPI payouts and a verified Abondhu badge.",
 };
 
 const STEPS = [
@@ -27,17 +27,17 @@ export default function VendorPage() {
           <div className="tea-rows tea-drift absolute inset-y-0 right-0 hidden w-[48%] lg:block" aria-hidden />
           <Container className="relative grid items-center gap-12 py-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
             <Reveal className="grid content-start gap-6">
-              <Eyebrow>For scrap collectors in Assam</Eyebrow>
+              <Eyebrow>For scrap collectors in Jorhat</Eyebrow>
               <h1 className="font-serif text-[clamp(38px,5vw,64px)] leading-[1.06] text-navy">
                 Your route, <span className="italic text-forest">more bookings.</span>
               </h1>
               <p className="max-w-[46ch] text-[17px] font-light leading-relaxed text-ink/75">
-                Households across Guwahati book pickups with Abondhu every day. We pass them to verified local vendors who
+                Households across Jorhat book pickups with Abondhu every day. We pass them to verified local vendors who
                 know the lanes. You keep your trade and gain steady work, fair tools and daily pay.
               </p>
               <p className="max-w-[46ch] text-[15px] leading-relaxed text-ink/75">
                 <span className="font-semibold text-navy">Who can join:</span> anyone 18 or older who already buys or collects scrap
-                in an Abondhu town, on foot, by cart, auto or truck, with an Aadhaar card and a phone with UPI.
+                in Jorhat town, on foot, by cart, auto or truck, with an Aadhaar card and a phone with UPI.
               </p>
               <ul className="grid gap-3 text-[15px] text-navy">
                 {["No fee to join", "Paid every evening by UPI", "Choose the days and areas you work"].map((t) => (

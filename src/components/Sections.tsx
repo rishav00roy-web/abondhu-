@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, CalendarCheck, HandCoins, Plus, Recycle, Scale, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { FAQS } from "@/lib/data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";
-import { Brand, btn, Container, Eyebrow, SectionHead, serifTitle } from "./ui";
+import { Brand, btn, Container, SectionHead, serifTitle } from "./ui";
 
 const TRUST: { icon: LucideIcon; title: string; body: string }[] = [
   { icon: Scale, title: "Weighed in front of you", body: "Calibrated digital scales" },
@@ -40,21 +40,10 @@ export function TrustStrip() {
 }
 
 const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
-  {
-    icon: CalendarCheck,
-    title: "Pick a day",
-    body: "Choose your town and a date, and share your pincode. We text a two-hour window the evening before.",
-  },
-  {
-    icon: Scale,
-    title: "Watch it weighed",
-    body: "Our partner sorts your scrap by type and weighs each pile. You see every reading.",
-  },
-  {
-    icon: HandCoins,
-    title: "Get paid",
-    body: "Money reaches you before the partner leaves, with a digital receipt for every item.",
-  },
+  { icon: Truck, title: "We come to you", body: "Book in a minute. Free pickup anywhere in Jorhat town, same or next day." },
+  { icon: Scale, title: "Weighed at your door", body: "Each kind of scrap goes on a digital scale you can read for yourself." },
+  { icon: IndianRupee, title: "Paid on the spot", body: "Cash or UPI before we leave, with a receipt for every item." },
+  { icon: Recycle, title: "Recycled, not dumped", body: "Sorted and sent to licensed recyclers, so it comes back as new material." },
 ];
 
 /** Dotted line between the step markers. It draws itself once, left to right, when the row scrolls in. */
@@ -77,21 +66,17 @@ function Connector({ vertical = false }: { vertical?: boolean }) {
 
 export function HowItWorks() {
   return (
-    <section id="how" className="relative scroll-mt-20 bg-forest py-20 text-white md:py-32">
-      <TornEdge className="text-forest" />
+    <section id="how" className="relative scroll-mt-20 bg-white py-20 md:py-28">
       <Container>
-        <SectionHead title="Three steps, and you never leave home." center dark>
-          Book in a minute, watch every pile weighed, and get paid before the partner leaves. Then it goes to be recycled.
-        </SectionHead>
-        <Stagger as="ol" className="grid gap-0 md:grid-cols-3 md:gap-10" gap={0.12}>
+        <SectionHead title="Four steps, about ten minutes at your door" eyebrow="How it works" center />
+        <Stagger as="ol" className="grid gap-0 md:grid-cols-4 md:gap-8" gap={0.12}>
           {STEPS.map(({ icon: Icon, title, body }, i) => {
             const last = i === STEPS.length - 1;
             return (
               <StaggerItem as="li" key={title} className="relative grid grid-cols-[56px_1fr] content-start gap-x-5 md:grid-cols-1">
                 <div className="flex flex-col items-center md:items-start">
-                  <span className="grid size-14 shrink-0 place-items-center rounded-full border border-gold text-gold">
-                    <Icon className="size-5" strokeWidth={1.5} aria-hidden />
-                    <span className="sr-only">Step {i + 1}</span>
+                  <span className="grid size-14 shrink-0 place-items-center rounded-full border border-gold bg-cream text-forest">
+                    <Icon className="size-5" strokeWidth={1.75} aria-hidden />
                   </span>
                   {!last && (
                     <span className="flex min-h-6 flex-1 justify-center py-2 md:hidden">
@@ -100,62 +85,20 @@ export function HowItWorks() {
                   )}
                 </div>
                 {!last && (
-                  <span className="absolute left-[68px] right-[-28px] top-[27px] hidden md:flex">
+                  <span className="absolute left-[68px] right-[-20px] top-[27px] hidden md:flex">
                     <Connector />
                   </span>
                 )}
-                <div className={cn("grid content-start gap-3 pt-3 md:pt-8", !last && "pb-10 md:pb-0")}>
-                  <h3 className="font-serif text-2xl">{title}</h3>
-                  <p className="max-w-[38ch] font-light leading-relaxed text-white/75">{body}</p>
+                <div className={cn("grid content-start gap-2 pt-2 md:pt-7", !last && "pb-10 md:pb-0")}>
+                  <span className="font-mono text-xs text-forest">Step {String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="font-serif text-2xl text-navy">{title}</h3>
+                  <p className="max-w-[34ch] font-light leading-relaxed text-muted">{body}</p>
                 </div>
               </StaggerItem>
             );
           })}
         </Stagger>
       </Container>
-    </section>
-  );
-}
-
-const SEGMENTS = [
-  ["Tea estates and factories", "Gunny bags, machinery scrap, drums, old electricals"],
-  ["Offices", "Shredded paper, IT equipment, furniture metal"],
-  ["Housing societies", "One collection day for every flat"],
-  ["Shops and godowns", "Cartons, packing plastic, damaged stock"],
-];
-
-export function Estates() {
-  return (
-    <section id="estates" className="relative scroll-mt-24 bg-sand">
-      <TornEdge className="text-sand" />
-      <div className="grid lg:grid-cols-2">
-        <div className="tea-rows flex flex-col justify-end gap-4 px-6 py-12 text-white md:p-16 lg:min-h-[560px] xl:p-24">
-          <p className="font-serif text-[clamp(56px,7vw,96px)] leading-none text-gold">6</p>
-          <p className="max-w-[24ch] font-serif text-2xl italic leading-snug">
-            towns across Assam, from Guwahati to Silchar, on a fixed van schedule.
-          </p>
-        </div>
-        <Reveal className="flex flex-col justify-center gap-7 px-6 py-14 md:p-16 xl:p-24">
-          <Eyebrow>For tea estates and business</Eyebrow>
-          <h2 className={serifTitle}>Scheduled collection, invoiced properly</h2>
-          <p className="max-w-[48ch] font-light leading-relaxed text-ink/80">
-            A fixed weekly or monthly slot, a vehicle sized to the load, bank transfer, and a GST invoice with a weight report
-            for every collection.
-          </p>
-          <Stagger as="ul" className="grid gap-x-8 gap-y-5 text-sm font-medium tracking-wide text-navy sm:grid-cols-2">
-            {SEGMENTS.map(([title, body]) => (
-              <StaggerItem as="li" key={title} className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-navy/10 pb-4">
-                <span className="text-forest" aria-hidden>❖</span>
-                <span>{title}</span>
-                <span className="col-start-2 text-[13px] font-light tracking-normal text-muted">{body}</span>
-              </StaggerItem>
-            ))}
-          </Stagger>
-          <a href="#contact" className={cn(btn.base, btn.primary, "self-start")}>
-            Talk to our team <ArrowRight className="size-4" aria-hidden />
-          </a>
-        </Reveal>
-      </div>
     </section>
   );
 }
@@ -239,13 +182,13 @@ export function Footer() {
         <div className="grid content-start gap-4">
           <Link href="/" aria-label="Abondhu home" className="justify-self-start"><Brand light /></Link>
           <p className="max-w-[36ch] text-sm font-light leading-relaxed text-white/60">
-            Wealth from waste, across Assam. Weighed in front of you, paid on the spot, and never dumped.
+            Wealth from waste, in Jorhat. Weighed in front of you, paid on the spot, and never dumped.
           </p>
         </div>
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["/#rates", "Today's rates"], ["/#how", "How it works"], ["/#impact", "Where it goes"], ["/#estates", "Tea estates and business"], ["/vendor", "Become a vendor"], ["/#faq", "Questions"]].map(([href, label]) => (
+            {[["/#how", "How it works"], ["/#rates", "Today's rates"], ["/#book", "Book a pickup"], ["/vendor", "Become a vendor"], ["/#faq", "Questions"]].map(([href, label]) => (
               <Link key={href} href={href} className="py-1.5 transition-[color,transform] duration-200 hover:translate-x-1 hover:text-white">{label}</Link>
             ))}
           </nav>
@@ -255,7 +198,7 @@ export function Footer() {
           <div className="grid gap-3 text-sm font-light text-white/70">
             <span>WhatsApp <span className="font-mono text-white">+91 90000 00000</span></span>
             <span>8am to 8pm, every day</span>
-            <span>Guwahati, Assam</span>
+            <span>Jorhat, Assam</span>
           </div>
         </div>
       </Container>

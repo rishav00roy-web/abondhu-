@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Abondhu, Assam. Resort palette shared with Rishav's Willchris site:
+ * Abondhu, Jorhat. Resort palette shared with Rishav's Willchris site:
  *   navy #0A2540 (headings, primary action)   midnight #061727 (nav, footer)
  *   champagne gold #D4AF37 (rules, stars, icons on dark; never small text on white)
  *   forest #0E4D42 (feature bands, italic accent words)   sand #E6E2D6   stone #F5F7FA
@@ -22,6 +22,7 @@
   --gold: #d4af37;
   --forest: #0e4d42;
   --sand: #e6e2d6;
+  --cream: #f4f1ea;
   --accent: #0a2540;
   --accent-ink: #ffffff;
   --accent-soft: #e6e2d6;
@@ -49,6 +50,7 @@
   --color-gold: var(--gold);
   --color-forest: var(--forest);
   --color-sand: var(--sand);
+  --color-cream: var(--cream);
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
@@ -156,4 +158,21 @@ a {
 .receipt-edge {
   -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 5.5px, #000 6px) 0 0 / 16px 100% repeat-x;
   mask: radial-gradient(circle 6px at 50% 100%, transparent 5.5px, #000 6px) 0 0 / 16px 100% repeat-x;
+}
+
+/* hero loop: the dotted orbit turns very slowly, off under reduced motion */
+@keyframes ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ring-spin {
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: ring-spin 90s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-spin {
+    animation: none;
+  }
 }

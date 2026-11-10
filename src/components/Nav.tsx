@@ -8,10 +8,8 @@ import { SPRING_FAST } from "./motion";
 import { Brand, Container } from "./ui";
 
 const LINKS = [
-  ["/#rates", "Rates"],
   ["/#how", "How it works"],
-  ["/#impact", "Where it goes"],
-  ["/#estates", "For business"],
+  ["/#rates", "Rates"],
   ["/#faq", "Questions"],
 ] as const;
 

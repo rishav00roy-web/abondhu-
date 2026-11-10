@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { AREAS } from "@/lib/data";
+import { LOCALITIES } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { SPRING } from "./motion";
 import { btn } from "./ui";
@@ -17,7 +17,7 @@ export function VendorForm() {
   const reduce = useReducedMotion();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [town, setTown] = useState(AREAS[0].city);
+  const [town, setTown] = useState(LOCALITIES[0]);
   const [vehicle, setVehicle] = useState(VEHICLES[0]);
   const [error, setError] = useState<"name" | "phone" | null>(null);
   const [sent, setSent] = useState(false);
@@ -65,9 +65,10 @@ export function VendorForm() {
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="grid gap-2">
-                <label htmlFor="v-town" className={label}>Town</label>
+                <label htmlFor="v-town" className={label}>Area you work in</label>
                 <select id="v-town" value={town} onChange={(e) => setTown(e.target.value)} className={field}>
-                  {AREAS.map((a) => <option key={a.city}>{a.city}</option>)}
+                  {LOCALITIES.map((a) => <option key={a}>{a}</option>)}
+                  <option>All of Jorhat town</option>
                 </select>
               </div>
               <div className="grid gap-2">

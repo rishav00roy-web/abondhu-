@@ -31,7 +31,7 @@ export function VendorCta() {
             <Link href="/vendor" className={cn(btn.base, btn.gold)}>
               Become a vendor <ArrowRight className="size-4" aria-hidden />
             </Link>
-            <span className="text-sm font-light text-white/55">Free to join. Guwahati first, then every town we serve.</span>
+            <span className="text-sm font-light text-white/55">Free to join. Jorhat town only for now.</span>
           </div>
         </Reveal>
         <Stagger as="ul" className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2">
