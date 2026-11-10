@@ -30,6 +30,17 @@ To add one later: `insert into pincodes (pincode, town_id, is_active) select '78
    Add one for yourself (admin) and a few for test vendors.
    Numbers must start with 6, 7, 8 or 9 after the 91.
 
+### Or log in with an email code
+
+Vendors and admins can choose "Get the code by email instead". Vendors still type
+their mobile number, which is saved as their contact number.
+
+1. Authentication > Sign In / Providers > **Email**: enabled (it is by default).
+2. Authentication > Emails > **Magic Link** template: put `{{ .Token }}` in the body
+   (for example `Your Abondhu code is {{ .Token }}`) so it sends a 6-digit code, not a link.
+3. Supabase's built-in email sends only a few emails an hour, and only to your team's
+   addresses. Fine for testing; set up your own SMTP before real vendors use it.
+
 ## 4. Add the keys to Vercel
 
 Vercel > project > Settings > Environment Variables. Add all four
@@ -49,12 +60,11 @@ Then redeploy (Deployments > ... > Redeploy).
 
 ## 5. Make yourself admin
 
-1. Open `/partner` and sign up once with your own test number (step 1 only is enough;
-   this creates your login).
+1. Open `/partner`, fill step 1 and enter the code (this creates your login).
 2. In the SQL Editor run:
    `update profiles set role = 'admin' where phone = '+919812345678';`
-   (use your number).
-3. Open `/admin` and log in with the same number.
+   or, if you logged in by email, `... where email = 'you@example.com';`
+3. Open `/admin` and log in the same way (same number or same email).
 
 ## 6. Try the whole flow
 

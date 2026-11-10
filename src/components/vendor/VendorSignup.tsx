@@ -13,7 +13,9 @@ import { Err, Field, input, PhotoPick, Primary, Row, Shell, Tile, Title } from "
 
 interface Form {
   name: string;
-  phone: string; // 10 digits
+  phone: string; // 10 digits, always kept as the contact number
+  byEmail: boolean; // login code by email instead of SMS
+  email: string;
   vendorType: VendorType | null;
   otp: string;
   shopName: string;
@@ -33,7 +35,7 @@ interface Form {
 }
 
 const EMPTY: Form = {
-  name: "", phone: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
+  name: "", phone: "", byEmail: false, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
   aadhaar: "", aadhaarPhoto: null, selfie: null, consent: false, shopPhoto: null,
   payMethod: "upi", upiId: "", holder: "", account: "", ifsc: "",
 };
@@ -75,13 +77,14 @@ export function VendorSignup() {
     const uid = s.session?.user.id;
     if (!uid) return;
     const [{ data: p }, { data: v }] = await Promise.all([
-      sb.from("profiles").select("full_name, phone").eq("id", uid).single(),
+      sb.from("profiles").select("full_name, phone, email").eq("id", uid).single(),
       sb.from("vendors").select("status, onboarding_step, application_code, rejection_reason, vendor_type").eq("id", uid).maybeSingle(),
     ]);
     setF((prev) => ({
       ...prev,
       name: p?.full_name ?? prev.name,
       phone: p?.phone ? p.phone.replace(/^\+91/, "") : prev.phone,
+      email: p?.email ?? prev.email,
       vendorType: (v?.vendor_type as VendorType) ?? prev.vendorType,
     }));
     if (!v) {
@@ -110,16 +113,28 @@ export function VendorSignup() {
     run(async () => {
       if (f.name.trim().length < 2) fail(t.errName);
       if (!isValid.mobile(f.phone)) fail(t.errMobile);
+      if (f.byEmail && !isValid.email(f.email.trim())) fail(t.errEmail);
       if (!f.vendorType) fail(t.errType);
-      const { error } = await sb!.auth.signInWithOtp({ phone: "+91" + f.phone });
+      const { error } = f.byEmail
+        ? await sb!.auth.signInWithOtp({ email: f.email.trim() })
+        : await sb!.auth.signInWithOtp({ phone: "+91" + f.phone });
       if (error) fail(error.message);
       setScreen(2);
     });
 
   const verifyOtp = () =>
     run(async () => {
-      const { error } = await sb!.auth.verifyOtp({ phone: "+91" + f.phone, token: f.otp, type: "sms" });
+      const { error } = f.byEmail
+        ? await sb!.auth.verifyOtp({ email: f.email.trim(), token: f.otp, type: "email" })
+        : await sb!.auth.verifyOtp({ phone: "+91" + f.phone, token: f.otp, type: "sms" });
       if (error) fail(t.errOtp);
+      if (f.byEmail) {
+        // Email logins have no verified phone yet: save the number they typed as the contact.
+        await postJson("/api/vendor/contact", { phone: f.phone }).catch(async (e: Error) => {
+          await sb!.auth.signOut();
+          fail(e.message === "phone_taken" ? t.errPhoneTaken : e.message);
+        });
+      }
       const id = await uid();
       await sb!.from("profiles").update({ full_name: f.name.trim(), preferred_language: lang }).eq("id", id);
       const { data: v } = await sb!.from("vendors").select("id").eq("id", id).maybeSingle();
@@ -235,6 +250,14 @@ export function VendorSignup() {
               />
             </div>
           </Field>
+          {f.byEmail && (
+            <Field label={t.email}>
+              <input className={input} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={f.email} onChange={(e) => set("email", e.target.value)} />
+            </Field>
+          )}
+          <button type="button" className="self-start font-semibold text-forest underline" onClick={() => set("byEmail", !f.byEmail)}>
+            {f.byEmail ? t.usePhone : t.useEmail}
+          </button>
           <Field label={t.whoAreYou}>
             <div className="grid grid-cols-3 gap-3">
               <Tile on={f.vendorType === "individual_collector"} onClick={() => set("vendorType", "individual_collector")} icon={<User />} label={t.collector} />
@@ -249,9 +272,9 @@ export function VendorSignup() {
 
       {screen === 2 && (
         <>
-          <Title>{t.otpTitle}</Title>
+          <Title>{f.byEmail ? t.otpTitleEmail : t.otpTitle}</Title>
           <p className="text-muted">
-            {t.otpSent} <b className="text-ink">+91 {f.phone}</b>
+            {t.otpSent} <b className="break-all text-ink">{f.byEmail ? f.email.trim() : `+91 ${f.phone}`}</b>
           </p>
           <input
             className={cn(input, "h-16 text-center font-mono text-3xl tracking-[0.5em]")}
@@ -358,6 +381,7 @@ export function VendorSignup() {
           <dl className="divide-y divide-line rounded-xl border border-line bg-white">
             <Row k={t.name} v={f.name} />
             <Row k={t.mobile} v={"+91 " + f.phone} />
+            {f.email && <Row k={t.email} v={f.email} />}
             {f.address && <Row k={t.address} v={`${f.address}, ${f.pincode}`} />}
             {f.aadhaar && <Row k={t.aadhaarNo} v={maskAadhaar(f.aadhaar)} />}
             {(f.upiId || f.account) && <Row k={t.payWhere} v={f.payMethod === "upi" ? f.upiId : `${t.bank} …${f.account.slice(-4)}`} />}

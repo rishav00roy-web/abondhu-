@@ -6,7 +6,7 @@ import { digitsOnly } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
-import type { VendorStatus } from "@/lib/vendor";
+import { isValid, type VendorStatus } from "@/lib/vendor";
 
 type Tab = Exclude<VendorStatus, "suspended">;
 const TABS: { status: Tab; label: string }[] = [
@@ -25,7 +25,7 @@ interface VendorRow {
   status: VendorStatus;
   submitted_at: string | null;
   rejection_reason: string | null;
-  profile: { full_name: string | null; phone: string | null } | null;
+  profile: { full_name: string | null; phone: string | null; email: string | null } | null;
   address: { line1: string; pincode: string } | null;
   kyc: { aadhaar_last4: string | null; status: string }[];
   docs: { doc_type: string; storage_path: string }[];
@@ -33,7 +33,7 @@ interface VendorRow {
 }
 
 const SELECT = `id, application_code, business_name, vendor_type, vehicle_type, status, submitted_at, rejection_reason,
-  profile:profiles!vendors_id_fkey(full_name, phone),
+  profile:profiles!vendors_id_fkey(full_name, phone, email),
   address:addresses!vendors_address_id_fkey(line1, pincode),
   kyc:vendor_kyc(aadhaar_last4, status),
   docs:vendor_documents(doc_type, storage_path),
@@ -44,6 +44,8 @@ export function AdminPanel() {
   const sb = getSupabase();
   const [state, setState] = useState<"loading" | "login" | "otp" | "denied" | "ready">("loading");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [byEmail, setByEmail] = useState(false);
   const [otp, setOtp] = useState("");
   const { busy, err, run: act } = useAction();
   const [loadErr, setLoadErr] = useState("");
@@ -85,18 +87,30 @@ export function AdminPanel() {
         <h1 className="text-2xl font-bold text-navy">Admin login</h1>
         {state === "login" ? (
           <>
-            <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(digitsOnly(e.target.value).slice(0, 10))} />
-            <button className={btn} disabled={busy || phone.length !== 10} onClick={() => act(async () => {
-              const { error } = await sb.auth.signInWithOtp({ phone: "+91" + phone, options: { shouldCreateUser: false } });
+            {byEmail ? (
+              <input className={input} type="email" autoComplete="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
+            ) : (
+              <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(digitsOnly(e.target.value).slice(0, 10))} />
+            )}
+            <button className={btn} disabled={busy || (byEmail ? !isValid.email(email) : !isValid.mobile(phone))} onClick={() => act(async () => {
+              const options = { shouldCreateUser: false };
+              const { error } = byEmail
+                ? await sb.auth.signInWithOtp({ email, options })
+                : await sb.auth.signInWithOtp({ phone: "+91" + phone, options });
               if (error) throw error;
               setState("otp");
             })}>Send code</button>
+            <button className="text-sm font-semibold text-forest underline" onClick={() => setByEmail(!byEmail)}>
+              {byEmail ? "Use mobile instead" : "Use email instead"}
+            </button>
           </>
         ) : (
           <>
             <input className={input} inputMode="numeric" placeholder="6-digit code" value={otp} onChange={(e) => setOtp(digitsOnly(e.target.value).slice(0, 6))} />
             <button className={btn} disabled={busy || otp.length !== 6} onClick={() => act(async () => {
-              const { error } = await sb.auth.verifyOtp({ phone: "+91" + phone, token: otp, type: "sms" });
+              const { error } = byEmail
+                ? await sb.auth.verifyOtp({ email, token: otp, type: "email" })
+                : await sb.auth.verifyOtp({ phone: "+91" + phone, token: otp, type: "sms" });
               if (error) throw error;
               await check();
             })}>Log in</button>
@@ -185,6 +199,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       </div>
       <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <Item k="Phone" v={v.profile?.phone} />
+        {v.profile?.email && <Item k="Email" v={v.profile.email} />}
         <Item k="Type / vehicle" v={[v.vendor_type, v.vehicle_type].filter(Boolean).join(" · ")} />
         <Item k="Shop" v={v.business_name} />
         <Item k="Address" v={v.address ? `${v.address.line1}, ${v.address.pincode}` : null} />
