@@ -44,6 +44,29 @@ export async function requireEditableVendor(req: Request): Promise<User> {
   return user;
 }
 
+/** The signed-in vendor, only once an admin has approved them. */
+export async function requireApprovedVendor(req: Request): Promise<User> {
+  const user = await requireUser(req);
+  const { data } = await supabaseAdmin().from("vendors").select("status").eq("id", user.id).single();
+  if (data?.status !== "approved") throw new HttpError(403, "Only approved vendors can do this.");
+  return user;
+}
+
+/**
+ * True when this Aadhaar (by its keyed hash) is already saved for someone else:
+ * any vendor other than `vendorId`, or any worker. One Aadhaar = one person on Abondhu.
+ */
+export async function aadhaarTaken(hmac: string, vendorId?: string): Promise<boolean> {
+  const db = supabaseAdmin();
+  const [v, s] = await Promise.all([
+    db.from("vendor_aadhaar_vault").select("vendor_id").eq("aadhaar_hmac", hmac).maybeSingle(),
+    db.from("staff_aadhaar_vault").select("staff_id").eq("aadhaar_hmac", hmac).maybeSingle(),
+  ]);
+  if (v.error) throw v.error;
+  if (s.error) throw s.error;
+  return !!s.data || (!!v.data && v.data.vendor_id !== vendorId);
+}
+
 export function errorResponse(e: unknown) {
   if (e instanceof HttpError) return Response.json({ error: e.message }, { status: e.status });
   console.error(e);

@@ -4,7 +4,7 @@ import { authedFetch } from "@/lib/supabase";
 import type { PhotoType } from "@/lib/vendor";
 
 /** Shrinks a camera photo to at most 1600px JPEG so uploads stay small on slow networks. */
-async function shrink(file: File): Promise<File> {
+export async function shrink(file: File): Promise<File> {
   try {
     const img = await createImageBitmap(file);
     const scale = Math.min(1, 1600 / Math.max(img.width, img.height));

@@ -1,10 +1,10 @@
 "use client";
 
 // Home screen for an approved vendor: who they are, their pickups, their area and help.
-// Read-only for now; actions (accept, weigh, pay) arrive one by one in later releases.
+// Vendors can add their workers here; other actions (accept, weigh, pay) arrive one by one in later releases.
 import { motion, MotionConfig } from "framer-motion";
 import {
-  BadgeCheck, CalendarClock, CheckCircle2, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Wallet,
+  BadgeCheck, CalendarClock, CheckCircle2, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Users, Wallet,
 } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase";
@@ -14,6 +14,7 @@ import {
 } from "@/lib/vendor-home";
 import { homeStrings, type HomeStrings } from "@/lib/vendor-home-i18n";
 import type { Lang, Strings } from "@/lib/vendor-i18n";
+import { StaffSection } from "./StaffSection";
 
 interface Data {
   name: string | null;
@@ -185,6 +186,11 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
               ))}
             </Card>
           )}
+        </Section>
+
+        {/* Workers who go on pickups; each one is checked by an admin */}
+        <Section icon={<Users />} title={h.staff.title}>
+          <StaffSection t={t} h={h} />
         </Section>
 
         {/* Area */}
