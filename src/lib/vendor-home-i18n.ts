@@ -1,6 +1,7 @@
 // Vendor home screen words: English first, Assamese on one tap. Keep every line short.
 // The Assamese was written by Claude and needs a check by a native speaker.
 import type { Lang } from "./vendor-i18n";
+import type { StaffStatus } from "./vendor";
 import type { PickupStatus } from "./vendor-home";
 
 const en = {
@@ -30,6 +31,25 @@ const en = {
   call: "Call us",
   loadErr: "Could not load. Check the internet and try again.",
   retry: "Try again",
+  staff: {
+    title: "Your workers",
+    emptyHint: "Add the people who go on pickups for you. We check each one before they can work.",
+    add: "Add a worker",
+    formTitle: "New worker",
+    name: "Worker's name",
+    mobile: "Worker's mobile number",
+    aadhaarNo: "Worker's Aadhaar number",
+    aadhaarPhoto: "Photo of the worker's Aadhaar card",
+    face: "Photo of the worker's face",
+    consent: "The worker agrees that Abondhu keeps their Aadhaar safely (encrypted) to check who they are.",
+    save: "Send for checking",
+    cancel: "Cancel",
+    remove: "Remove",
+    removeAsk: (name: string) => `Remove ${name}? Their photos and Aadhaar will be deleted.`,
+    errName: "Please write the worker's name.",
+    errTaken: "This Aadhaar is already registered on Abondhu.",
+    status: { pending: "Being checked", approved: "Approved", rejected: "Not approved" } satisfies Record<StaffStatus, string>,
+  },
   status: {
     requested: "New",
     assigned: "Given to you",
@@ -68,6 +88,25 @@ const as: typeof en = {
   call: "ফোন কৰক",
   loadErr: "ল'ড নহ'ল। ইণ্টাৰনেট চাই আকৌ চেষ্টা কৰক।",
   retry: "আকৌ চেষ্টা কৰক",
+  staff: {
+    title: "আপোনাৰ কৰ্মচাৰী",
+    emptyHint: "আপোনাৰ হৈ পিকআপলৈ যোৱা লোকসকলক যোগ কৰক। কাম কৰাৰ আগতে আমি প্ৰত্যেককে পৰীক্ষা কৰোঁ।",
+    add: "কৰ্মচাৰী যোগ কৰক",
+    formTitle: "নতুন কৰ্মচাৰী",
+    name: "কৰ্মচাৰীৰ নাম",
+    mobile: "কৰ্মচাৰীৰ মোবাইল নম্বৰ",
+    aadhaarNo: "কৰ্মচাৰীৰ আধাৰ নম্বৰ",
+    aadhaarPhoto: "কৰ্মচাৰীৰ আধাৰ কাৰ্ডৰ ফটো",
+    face: "কৰ্মচাৰীৰ মুখৰ ফটো",
+    consent: "পৰিচয় নিশ্চিত কৰিবলৈ Abondhu এ আধাৰ সুৰক্ষিতভাৱে (এনক্ৰিপ্ট কৰি) ৰাখিব, ইয়াত কৰ্মচাৰী সন্মত।",
+    save: "পৰীক্ষাৰ বাবে পঠাওক",
+    cancel: "বাতিল",
+    remove: "আঁতৰাওক",
+    removeAsk: (name: string) => `${name}ক আঁতৰাবনে? তেওঁৰ ফটো আৰু আধাৰ মচি পেলোৱা হ'ব।`,
+    errName: "কৰ্মচাৰীৰ নাম লিখক।",
+    errTaken: "এই আধাৰ আগতে Abondhu ত পঞ্জীয়ন হৈছে।",
+    status: { pending: "পৰীক্ষা চলি আছে", approved: "অনুমোদিত", rejected: "অনুমোদন নহ'ল" },
+  },
   status: {
     requested: "নতুন",
     assigned: "আপোনাক দিয়া হ'ল",

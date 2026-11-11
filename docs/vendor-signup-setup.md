@@ -36,8 +36,9 @@ Vendors and admins can choose "Get the code by email instead". Vendors still typ
 their mobile number, which is saved as their contact number.
 
 1. Authentication > Sign In / Providers > **Email**: enabled (it is by default).
-2. Authentication > Emails > **Magic Link** template: put `{{ .Token }}` in the body
-   (for example `Your Abondhu code is {{ .Token }}`) so it sends a 6-digit code, not a link.
+2. Authentication > Emails: change **both** the **Confirm signup** and the **Magic Link**
+   templates to show `{{ .Token }}` so they send a 6-digit code, not a link.
+   Copy-paste HTML and steps: `docs/email-code-template.md`.
 3. Supabase's built-in email sends only a few emails an hour, and only to your team's
    addresses. Fine for testing; set up your own SMTP before real vendors use it.
 

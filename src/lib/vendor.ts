@@ -9,6 +9,10 @@ export type Vehicle = "cycle" | "cart" | "auto" | "truck";
 export const PHOTO_TYPES = ["selfie", "aadhaar_photo", "shop_photo"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];
 
+/** Workers a vendor sends on pickups. An admin checks each one. */
+export type StaffStatus = "pending" | "approved" | "rejected";
+export const MAX_STAFF = 20;
+
 /** A vendor can change their application only in these states. */
 export const EDITABLE_STATUSES: VendorStatus[] = ["draft", "rejected"];
 

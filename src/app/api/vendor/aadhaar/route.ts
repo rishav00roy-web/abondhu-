@@ -1,6 +1,6 @@
 import { digitsOnly, isValidAadhaar } from "@/lib/aadhaar";
 import { aadhaarHmac, encryptAadhaar } from "@/lib/server/aadhaar-crypto";
-import { errorResponse, HttpError, requireEditableVendor, supabaseAdmin } from "@/lib/server/supabase-admin";
+import { aadhaarTaken, errorResponse, HttpError, requireEditableVendor, supabaseAdmin } from "@/lib/server/supabase-admin";
 
 export const runtime = "nodejs";
 
@@ -15,8 +15,7 @@ export async function POST(req: Request) {
 
     const db = supabaseAdmin();
     const hmac = aadhaarHmac(digits);
-    const { data: taken } = await db.from("vendor_aadhaar_vault").select("vendor_id").eq("aadhaar_hmac", hmac).maybeSingle();
-    if (taken && taken.vendor_id !== user.id) throw new HttpError(409, "This Aadhaar is already registered with another account.");
+    if (await aadhaarTaken(hmac, user.id)) throw new HttpError(409, "This Aadhaar is already registered with another account.");
 
     const last4 = digits.slice(-4);
     const vault = await db.from("vendor_aadhaar_vault").upsert({

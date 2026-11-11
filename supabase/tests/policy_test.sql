@@ -131,6 +131,35 @@ select pg_temp.expect_error($$select * from public.vendor_aadhaar_vault$$, 'even
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
 select pg_temp.expect_error($$select * from public.vendor_aadhaar_vault$$, 'a vendor cannot read the vault');
 
+-- ---------- Workers (vendor_staff) ----------
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+insert into public.vendor_staff (id, vendor_id, full_name, phone, aadhaar_last4, aadhaar_photo_path, face_photo_path)
+values ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000b1', 'Worker One', '+919800000009', '4321',
+        '00000000-0000-0000-0000-0000000000b1/staff/f1/aadhaar.jpg', '00000000-0000-0000-0000-0000000000b1/staff/f1/face.jpg');
+insert into public.staff_aadhaar_vault (staff_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at)
+values ('00000000-0000-0000-0000-0000000000f1', 'v1:c3RhZmY=:eHl6', 'hmac-staff', '4321', now());
+select pg_temp.expect_error($$insert into public.staff_aadhaar_vault (staff_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at) values ('00000000-0000-0000-0000-0000000000f1', '1234 5678 9012', 'hmac-y', '9012', now())$$, 'a plain worker Aadhaar is refused');
+select pg_temp.expect_error($$insert into public.vendor_staff (vendor_id, full_name, phone, aadhaar_last4, aadhaar_photo_path, face_photo_path) values ('00000000-0000-0000-0000-0000000000b1', 'X', '12345', '1', 'a', 'b')$$, 'bad worker phone or name refused');
+reset role;
+select pg_temp.expect(not exists (select 1 from public.audit_log where table_name = 'staff_aadhaar_vault' and (new_data ? 'aadhaar_ciphertext' or new_data ? 'aadhaar_hmac')), 'audit log never copies a worker''s encrypted number');
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect((select count(*) from public.vendor_staff) = 1, 'vendor sees their own worker');
+update public.vendor_staff set status = 'approved';
+select pg_temp.expect((select status from public.vendor_staff) = 'pending', 'vendor cannot approve their own worker');
+select pg_temp.expect_error($$insert into public.vendor_staff (vendor_id, full_name, phone, aadhaar_last4, aadhaar_photo_path, face_photo_path) values (auth.uid(), 'Sneaky', '+919800000010', '1111', 'a', 'b')$$, 'vendor cannot add a worker without the server');
+select pg_temp.expect_error($$select * from public.staff_aadhaar_vault$$, 'a vendor cannot read the worker vault');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b2', true);
+select pg_temp.expect((select count(*) from public.vendor_staff) = 0, 'another vendor cannot see the worker');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', true);
+update public.vendor_staff set status = 'approved', reviewed_at = now(), reviewed_by = auth.uid() where id = '00000000-0000-0000-0000-0000000000f1';
+select pg_temp.expect((select status from public.vendor_staff where id = '00000000-0000-0000-0000-0000000000f1') = 'approved', 'admin approves a worker');
+select pg_temp.expect_error($$update public.vendor_staff set full_name = 'changed'$$, 'admin cannot change worker details from the browser');
+select pg_temp.expect_error($$select * from public.staff_aadhaar_vault$$, 'even an admin cannot read the worker vault directly');
+
 reset role;
 rollback;
 \echo ALL POLICY CHECKS PASSED
