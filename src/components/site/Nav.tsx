@@ -16,7 +16,7 @@ const LINKS = [
 ] as const;
 
 const bookBtn =
-  "h-10 items-center whitespace-nowrap rounded-full bg-gold px-5 text-[11px] font-bold uppercase tracking-[0.15em] text-midnight transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white active:scale-[0.97]";
+  "h-10 items-center whitespace-nowrap rounded-full bg-gold px-5 text-[11px] font-bold uppercase tracking-[0.15em] text-midnight transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-navy hover:text-white active:scale-[0.97]";
 
 export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
   const reduce = useReducedSafe();
@@ -49,17 +49,17 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
     // Floating glass pill. The header takes no height, so each page's first section
     // carries the top padding that keeps its content clear of the pill.
     <header className="sticky top-0 z-50 h-0 px-3 sm:px-6">
-      <div className="relative top-[calc(env(safe-area-inset-top)+12px)] mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border border-white/15 bg-midnight/85 pl-5 pr-2 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08),0_16px_40px_-16px_rgb(6_23_39_/_0.6)] backdrop-blur-xl backdrop-saturate-150 sm:pl-6 lg:gap-8">
+      <div className="relative top-[calc(env(safe-area-inset-top)+12px)] mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border border-white/70 bg-white/55 pl-5 pr-2 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.9),0_16px_40px_-18px_rgb(6_23_39_/_0.35)] backdrop-blur-2xl backdrop-saturate-[1.8] sm:pl-6 lg:gap-8">
         <Link href="/" aria-label="Abondhu home" className="mr-auto">
-          <Brand light />
+          <Brand />
         </Link>
         <nav aria-label="Main" className="hidden gap-7 text-sm font-medium lg:flex">
           {LINKS.map(([href, label]) => (
-            <Link key={href} href={href} className="draw pb-1 text-white/80 hover:text-white">
+            <Link key={href} href={href} className="draw pb-1 text-navy/80 hover:text-navy">
               {label}
             </Link>
           ))}
-          <VendorLink aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-gold ${vendorPage ? "bg-[length:100%_1px]" : ""}`} />
+          <VendorLink aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-forest ${vendorPage ? "bg-[length:100%_1px]" : ""}`} />
         </nav>
         <Link href="/account" className={`${bookBtn} hidden sm:inline-flex`}>
           Book pickup
@@ -70,7 +70,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((o) => !o)}
-          className="grid size-10 place-items-center rounded-full text-white transition-[background-color,transform] duration-150 hover:bg-white/10 active:scale-[0.92] lg:hidden"
+          className="grid size-10 place-items-center rounded-full text-navy transition-[background-color,transform] duration-150 hover:bg-navy/5 active:scale-[0.92] lg:hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.span key={open ? "x" : "menu"} {...icon} className="grid">
