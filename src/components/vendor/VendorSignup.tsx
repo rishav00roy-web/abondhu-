@@ -35,8 +35,11 @@ interface Form {
   ifsc: string;
 }
 
+// SMS codes stay off until MSG91 (DLT sender ID + template) is live. Then set true.
+const SMS_READY = false;
+
 const EMPTY: Form = {
-  name: "", phone: "", byEmail: false, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
+  name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
   aadhaar: "", aadhaarPhoto: null, selfie: null, consent: false, shopPhoto: null,
   payMethod: "upi", upiId: "", holder: "", account: "", ifsc: "",
 };
@@ -271,9 +274,16 @@ export function VendorSignup() {
               <input className={input} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={f.email} onChange={(e) => set("email", e.target.value)} />
             </Field>
           )}
-          <button type="button" className="self-start font-semibold text-forest underline" onClick={() => set("byEmail", !f.byEmail)}>
-            {f.byEmail ? t.usePhone : t.useEmail}
-          </button>
+          {SMS_READY ? (
+            <button type="button" className="self-start font-semibold text-forest underline" onClick={() => set("byEmail", !f.byEmail)}>
+              {f.byEmail ? t.usePhone : t.useEmail}
+            </button>
+          ) : (
+            <button type="button" disabled className="flex items-center gap-2 self-start font-semibold text-muted">
+              {t.usePhone}
+              <span className="rounded-full bg-sand px-2 py-0.5 text-xs font-bold text-navy">{t.comingSoon}</span>
+            </button>
+          )}
           <Field label={t.whoAreYou}>
             <div className="grid grid-cols-3 gap-3">
               <Tile on={f.vendorType === "individual_collector"} onClick={() => set("vendorType", "individual_collector")} icon={<User />} label={t.collector} />

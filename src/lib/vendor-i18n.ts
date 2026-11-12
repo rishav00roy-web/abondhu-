@@ -24,6 +24,7 @@ export const T = {
     email: "Email",
     useEmail: "Get the code by email instead",
     usePhone: "Get the code by SMS instead",
+    comingSoon: "Coming soon",
     errEmail: "Please check the email address.",
     errPhoneTaken: "This mobile number is already registered. Log in with it instead.",
 
@@ -108,6 +109,7 @@ export const T = {
     email: "ইমেইল",
     useEmail: "কোডটো ইমেইলত লওক",
     usePhone: "কোডটো SMS ত লওক",
+    comingSoon: "সোনকালে আহিব",
     errEmail: "ইমেইল ঠিকনাটো চাওক।",
     errPhoneTaken: "এই মোবাইল নম্বৰ আগতে পঞ্জীয়ন হৈছে। সেই নম্বৰেৰে লগ ইন কৰক।",
 
