@@ -190,8 +190,8 @@ export function VendorSignup() {
       if (!f.aadhaarPhoto || !f.selfie) fail(t.errPhotos);
       if (!f.consent) fail(t.errConsent);
       await postJson("/api/vendor/aadhaar", { aadhaar: digitsOnly(f.aadhaar), consent: true });
-      await uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo");
-      await uploadPhoto(f.selfie!, "selfie");
+      // the two photos are independent, so send them together
+      await Promise.all([uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo"), uploadPhoto(f.selfie!, "selfie")]);
       await sb!.from("vendors").update({ onboarding_step: 5 }).eq("id", await uid());
       setScreen(5);
     });

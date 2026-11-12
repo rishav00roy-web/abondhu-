@@ -26,7 +26,6 @@ export interface PayoutLite {
 
 /** Abondhu's help line. Placeholder until the real WhatsApp number is in. */
 export const HELP_PHONE = "919181330755";
-export const HELP_PHONE_LABEL = "+91 91813 30755";
 
 const ACTIVE: PickupStatus[] = ["assigned", "accepted", "on_the_way", "weighed"];
 const num = (v: number | string | null | undefined) => (v == null ? 0 : Number(v) || 0);

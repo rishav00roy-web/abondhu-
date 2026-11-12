@@ -210,3 +210,50 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .lamp { animation: none; }
 }
+
+/*
+ * Hero entrance, in plain CSS so it plays from the first paint instead of waiting for the
+ * page's JavaScript (that wait kept the headline hidden for seconds on phones).
+ * Same motion as before: rise 10px + 4px blur with a zero-bounce ease, staggered by --d.
+ */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+}
+@keyframes hero-letter {
+  from { opacity: 0; transform: translateY(0.35em); filter: blur(6px); }
+}
+@keyframes hero-strike {
+  from { transform: scaleX(0); }
+}
+@keyframes hero-pop {
+  from { opacity: 0; scale: 0.92; }
+}
+@keyframes hero-turn {
+  from { opacity: 0; rotate: -120deg; }
+}
+@keyframes hero-up {
+  from { opacity: 0; translate: 0 6px; }
+}
+.hero-rise,
+.hero-letter,
+.hero-strike,
+.hero-pop,
+.hero-turn,
+.hero-up {
+  animation: hero-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) both;
+}
+.hero-letter { animation-name: hero-letter; }
+.hero-strike { animation-name: hero-strike; animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+.hero-pop { animation-name: hero-pop; transform-box: view-box; }
+.hero-turn { animation-name: hero-turn; animation-duration: 1s; }
+.hero-up { animation-name: hero-up; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-letter,
+  .hero-strike,
+  .hero-pop,
+  .hero-turn,
+  .hero-up {
+    animation: none;
+  }
+}
