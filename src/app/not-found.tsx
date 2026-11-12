@@ -10,7 +10,7 @@ export default function NotFound() {
     <MotionConfig reducedMotion="user">
       <Nav />
       <main id="main" className="bg-sunk">
-        <Container className="grid min-h-[60vh] content-center gap-6 py-24">
+        <Container className="grid min-h-[60vh] content-center gap-6 pb-24 pt-32">
           <p className="font-mono text-sm text-faint tabular">404, 0.00 kg on the scale</p>
           <h1 className="max-w-[16ch] font-serif text-[clamp(38px,5vw,64px)] leading-[1.06] text-navy">
             Nothing on this page worth weighing.

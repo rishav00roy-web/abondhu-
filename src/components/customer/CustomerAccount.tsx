@@ -39,7 +39,7 @@ export function CustomerAccount() {
   }, [sb]);
 
   return (
-    <section className="bg-cream px-4 py-12 sm:py-20">
+    <section className="bg-cream px-4 pb-12 pt-28 sm:pb-20 sm:pt-32">
       {sb && session ? (
         // Signed in: wider page so the booking form has room.
         <div className="mx-auto w-full max-w-3xl">

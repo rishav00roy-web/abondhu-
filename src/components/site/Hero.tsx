@@ -16,7 +16,7 @@ import { VendorLink } from "./VendorLink";
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-cream">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-6 pb-16 pt-10 sm:pt-14 md:px-12 lg:min-h-[calc(100svh-76px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:py-16">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-6 pb-16 pt-28 sm:pt-32 md:px-12 lg:min-h-svh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:pb-16 lg:pt-28">
         <Stagger className="grid content-start justify-items-start gap-6 sm:gap-7" gap={0.08}>
           <StaggerItem>
             <span className="inline-flex items-center gap-2 rounded-full border border-forest/30 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-forest sm:text-xs">

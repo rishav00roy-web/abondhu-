@@ -25,7 +25,7 @@ export default function VendorPage() {
       <main id="main">
         <section className="relative overflow-hidden bg-sunk">
           <div className="tea-rows tea-drift absolute inset-y-0 right-0 hidden w-[48%] lg:block" aria-hidden />
-          <Container className="relative grid items-center gap-12 py-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+          <Container className="relative grid items-center gap-12 pb-12 pt-28 sm:pb-16 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-36">
             <Reveal className="grid content-start gap-6">
               <Eyebrow>For scrap collectors in Jorhat</Eyebrow>
               <h1 className="font-serif text-[clamp(38px,5vw,64px)] leading-[1.06] text-navy">

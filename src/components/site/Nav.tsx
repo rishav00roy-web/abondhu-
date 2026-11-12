@@ -6,7 +6,7 @@ import { useReducedSafe } from "@/lib/use-reduced";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SPRING_FAST } from "./motion";
-import { Brand, Container } from "./ui";
+import { Brand } from "./ui";
 import { VendorLink } from "./VendorLink";
 
 const LINKS = [
@@ -16,7 +16,7 @@ const LINKS = [
 ] as const;
 
 const bookBtn =
-  "h-10 items-center whitespace-nowrap rounded-lg border-2 border-white px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white hover:text-midnight active:scale-[0.97] sm:px-5";
+  "h-10 items-center whitespace-nowrap rounded-full bg-gold px-5 text-[11px] font-bold uppercase tracking-[0.15em] text-midnight transition-[background-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white active:scale-[0.97]";
 
 export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
   const reduce = useReducedSafe();
@@ -46,8 +46,10 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
       };
 
   return (
-    <header className="sticky top-0 z-50 bg-midnight pt-[env(safe-area-inset-top)] shadow-md">
-      <Container className="relative flex h-16 items-center gap-3 lg:gap-8">
+    // Floating glass pill. The header takes no height, so each page's first section
+    // carries the top padding that keeps its content clear of the pill.
+    <header className="sticky top-0 z-50 h-0 px-3 sm:px-6">
+      <div className="relative top-[calc(env(safe-area-inset-top)+12px)] mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border border-white/15 bg-midnight/85 pl-5 pr-2 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08),0_16px_40px_-16px_rgb(6_23_39_/_0.6)] backdrop-blur-xl backdrop-saturate-150 sm:pl-6 lg:gap-8">
         <Link href="/" aria-label="Abondhu home" className="mr-auto">
           <Brand light />
         </Link>
@@ -68,7 +70,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((o) => !o)}
-          className="-mr-2 grid size-11 place-items-center text-white transition-transform duration-150 active:scale-[0.92] lg:hidden"
+          className="grid size-10 place-items-center rounded-full text-white transition-[background-color,transform] duration-150 hover:bg-white/10 active:scale-[0.92] lg:hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.span key={open ? "x" : "menu"} {...icon} className="grid">
@@ -86,7 +88,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
               initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: -6, filter: "blur(4px)" }}
               animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)", transition: SPRING_FAST }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.98, transition: { duration: 0.12 } }}
-              className="absolute right-4 top-[calc(100%+8px)] w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl lg:hidden"
+              className="absolute right-0 top-[calc(100%+8px)] w-[min(18rem,calc(100vw-1.5rem))] overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-xl lg:hidden"
             >
               {LINKS.map(([href, label]) => (
                 <Link
@@ -107,14 +109,14 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
               <Link
                 href="/account"
                 onClick={() => setOpen(false)}
-                className="m-3 flex h-12 items-center justify-center rounded-sm bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
+                className="m-3 flex h-12 items-center justify-center rounded-full bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
               >
                 Book a free pickup
               </Link>
             </motion.nav>
           )}
         </AnimatePresence>
-      </Container>
+      </div>
     </header>
   );
 }
