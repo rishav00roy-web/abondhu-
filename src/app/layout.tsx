@@ -14,11 +14,19 @@ const playfair = localFont({
 });
 const geistMono = localFont({ src: "./fonts/geist-mono-latin-wght-normal.woff2", weight: "100 900", variable: "--font-geist-mono" });
 
+const title = "Abondhu | Wealth from waste, doorstep scrap pickup in Jorhat";
+const description =
+  "Doorstep scrap pickup in Jorhat. Weighed on a digital scale in front of you, paid on the spot, and sent to licensed recyclers.";
+
+// The link preview image is src/app/opengraph-image.jpg (1200 x 630); Next adds its tags.
+// metadataBase makes its URL absolute, which WhatsApp and other apps need.
 export const metadata: Metadata = {
-  title: "Abondhu | Wealth from waste, doorstep scrap pickup in Jorhat",
-  description:
-    "Doorstep scrap pickup in Jorhat. Weighed on a digital scale in front of you, paid on the spot, and sent to licensed recyclers.",
+  metadataBase: new URL("https://abondhu.com"),
+  title,
+  description,
   icons: { icon: "/abondhu-mark.png" },
+  openGraph: { type: "website", siteName: "Abondhu", locale: "en_IN", title, description },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export const viewport: Viewport = {
