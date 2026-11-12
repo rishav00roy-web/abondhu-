@@ -53,14 +53,14 @@ export default function VendorPage() {
               <p className="text-center text-sm text-muted">
                 Prefer to talk?{" "}
                 <a
-                  href="https://wa.me/919000000000?text=Hi%20Abondhu%2C%20I%20want%20to%20become%20a%20vendor"
+                  href="https://wa.me/919181330755?text=Hi%20Abondhu%2C%20I%20want%20to%20become%20a%20vendor"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-forest underline decoration-forest/40 underline-offset-4 hover:decoration-forest"
                 >
                   WhatsApp our vendor team
                 </a>{" "}
-                on +91 90000 00000.
+                on +91 91813 30755.
               </p>
             </Reveal>
           </Container>

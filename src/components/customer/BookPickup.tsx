@@ -2,7 +2,8 @@
 
 // Booking form for a signed-in customer: saves a real pickup request, then lists
 // their pickups. Expects the browser Supabase client to already have a session.
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, Check, Loader2, Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
@@ -13,7 +14,7 @@ import { useAction } from "@/lib/use-action";
 import { cn, EASE_OUT } from "@/lib/utils";
 
 const field =
-  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none sm:text-[15px]";
+  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none focus:ring-2 focus:ring-gold/60 sm:text-[15px]";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 const OTHER_AREA = "Elsewhere in Jorhat";
 
@@ -47,7 +48,7 @@ interface Form {
 
 export function BookPickup() {
   const sb = getSupabase();
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const days = useMemo(() => pickupDays(), []);
   const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], scrap: "" });
   const [savedPhone, setSavedPhone] = useState<string | null>(null); // phone already on the profile

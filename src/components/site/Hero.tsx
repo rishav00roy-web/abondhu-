@@ -32,7 +32,7 @@ export function Hero() {
             <Link href="/account" className={cn(btn.base, btn.primary)}>
               Sell your scrap <ArrowRight className="size-4" aria-hidden />
             </Link>
-            <VendorLink className="self-center border-b-2 border-gold pb-1 text-xs font-bold uppercase tracking-[0.15em] text-forest transition-colors duration-200 hover:text-navy sm:self-auto" />
+            <VendorLink className="relative self-center after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[''] border-b-2 border-gold pb-1 text-xs font-bold uppercase tracking-[0.15em] text-forest transition-colors duration-200 hover:text-navy sm:self-auto" />
           </StaggerItem>
         </Stagger>
 

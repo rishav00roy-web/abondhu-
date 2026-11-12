@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SPRING_FAST } from "./motion";
@@ -18,7 +19,7 @@ const bookBtn =
   "h-10 items-center whitespace-nowrap rounded-lg border-2 border-white px-4 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white hover:text-midnight active:scale-[0.97] sm:px-5";
 
 export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const [open, setOpen] = useState(false);
 
   // close on Escape, and when the viewport grows past the menu breakpoint

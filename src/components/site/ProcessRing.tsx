@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import { IndianRupee, Recycle, Scale, Truck, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SPRING } from "./motion";
@@ -41,7 +42,7 @@ const STEPS: { word: string; icon: LucideIcon; fill: string; place: string; alig
 ];
 
 export function ProcessRing({ className }: { className?: string }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const appear = (i: number, extra = 0) =>
     reduce
       ? {}
