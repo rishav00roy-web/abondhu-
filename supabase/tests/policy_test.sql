@@ -47,13 +47,25 @@ select pg_temp.expect_error($$update public.vendors set status = 'approved' wher
 select pg_temp.expect_error($$insert into public.vendor_kyc (vendor_id, method, status, aadhaar_last4) values (auth.uid(), 'digilocker', 'verified', '1234')$$, 'vendor cannot write their own KYC result');
 select pg_temp.expect_error($$insert into public.vendors (id) values ('00000000-0000-0000-0000-0000000000b2')$$, 'cannot create a vendor row for someone else');
 
+select pg_temp.expect_error($$update public.vendors set status = 'submitted' where id = auth.uid()$$, 'cannot send an application with steps missing');
+insert into public.addresses (id, profile_id, label, line1, pincode) values ('00000000-0000-0000-0000-0000000000d9', auth.uid(), 'shop', 'Shop lane', '785001');
+update public.vendors set address_id = '00000000-0000-0000-0000-0000000000d9' where id = auth.uid();
+insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'aadhaar_photo', auth.uid() || '/aadhaar.jpg');
+reset role;
+set local role service_role;
+select set_config('request.jwt.claim.sub', '', true);
+insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at)
+values ('00000000-0000-0000-0000-0000000000b1', 'v1:Zm9vYmFyYmF6:cXV4', 'hmac-abc', '1234', now());
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
 update public.vendors set status = 'submitted', onboarding_step = 6 where id = auth.uid();
 select pg_temp.expect((select application_code like 'ABV-%' from public.vendors where id = auth.uid()), 'submitting gives an application code');
 update public.vendors set business_name = 'changed' where id = auth.uid();
 select pg_temp.expect((select business_name from public.vendors where id = auth.uid()) = 'Jorhat Kabadi', 'submitted application is locked for editing');
 reset role;
 
-select pg_temp.expect((select role from public.profiles where id = '00000000-0000-0000-0000-0000000000b1') = 'vendor', 'profile role switched to vendor');
+select pg_temp.expect((select role from public.profiles where id = '00000000-0000-0000-0000-0000000000b1') = 'customer', 'sending an application does not make you a vendor yet');
 
 -- ---------- Server writes the KYC result (service role) ----------
 set local role service_role;
@@ -77,6 +89,7 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a
 select pg_temp.expect((select count(*) from public.vendors where status = 'submitted') = 1, 'admin sees the submitted application');
 update public.vendors set status = 'approved', reviewed_at = now(), reviewed_by = auth.uid() where id = '00000000-0000-0000-0000-0000000000b1';
 select pg_temp.expect((select count(*) from public.audit_log where table_name = 'vendors') >= 3, 'vendor changes are in the audit log');
+select pg_temp.expect((select role from public.profiles where id = '00000000-0000-0000-0000-0000000000b1') = 'vendor', 'approval makes the profile a vendor');
 
 -- ---------- Customer C books a pickup ----------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
@@ -89,17 +102,20 @@ select pg_temp.expect_error($$insert into public.pickups (customer_id, address_i
 -- ---------- V accepts and completes it ----------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
 select pg_temp.expect((select count(*) from public.pickups where status = 'requested') = 1, 'approved vendor sees open pickups in their area');
-select pg_temp.expect((select count(*) from public.addresses) = 0, 'vendor cannot see the address before accepting');
+select pg_temp.expect((select count(*) from public.addresses where profile_id <> auth.uid()) = 0, 'vendor cannot see the address before accepting');
 select (public.accept_pickup('00000000-0000-0000-0000-0000000000e1')).status;
-select pg_temp.expect((select count(*) from public.addresses) = 1, 'vendor sees the address after accepting');
+select pg_temp.expect((select count(*) from public.addresses where profile_id <> auth.uid()) = 1, 'vendor sees the address after accepting');
 select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-0000-0000000000e1')$$, 'a pickup cannot be accepted twice');
 select pg_temp.expect_error($$update public.pickups set status = 'completed' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'vendor cannot skip straight to completed');
 update public.pickups set status = 'on_the_way' where id = '00000000-0000-0000-0000-0000000000e1';
 insert into public.pickup_items (pickup_id, item_name, quantity, rate_per_unit)
 values ('00000000-0000-0000-0000-0000000000e1', 'পুৰণি কাকত (old newspaper)', 8.4, 14);
 update public.pickups set status = 'weighed' where id = '00000000-0000-0000-0000-0000000000e1';
-update public.pickups set status = 'completed', total_amount = 117.60 where id = '00000000-0000-0000-0000-0000000000e1';
+select pg_temp.expect_error($$update public.pickups set total_amount = 5000 where id = '00000000-0000-0000-0000-0000000000e1'$$, 'vendor cannot type in the total');
+update public.pickups set status = 'completed' where id = '00000000-0000-0000-0000-0000000000e1';
 select pg_temp.expect((select amount from public.pickup_items limit 1) = 117.60, 'item amount is weight x rate');
+select pg_temp.expect((select total_amount = 117.60 and total_weight_kg = 8.4 from public.pickups where id = '00000000-0000-0000-0000-0000000000e1'), 'pickup totals are added up from the items');
+select pg_temp.expect_error($$update public.pickups set customer_note = 'x' where id = '00000000-0000-0000-0000-0000000000e1'$$, 'a finished pickup cannot be changed');
 
 -- ---------- V2 (not approved) cannot take pickups ----------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b2', true);
@@ -109,6 +125,8 @@ select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-00
 -- ---------- C rates it, sees the history ----------
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
 insert into public.ratings (pickup_id, rated_by, stars) values ('00000000-0000-0000-0000-0000000000e1', auth.uid(), 5);
+select pg_temp.expect_error($$update public.pickups set total_amount = 99999 where id = '00000000-0000-0000-0000-0000000000e1'$$, 'customer cannot change the money on their pickup');
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id, total_amount) select auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1, 5000$$, 'customer cannot book with a total filled in');
 select pg_temp.expect((select count(*) from public.pickup_status_history where pickup_id = '00000000-0000-0000-0000-0000000000e1') = 5, 'every status change is recorded');
 select pg_temp.expect((select count(*) from public.vendor_payout_accounts) = 0, 'customer cannot see vendor bank or UPI details');
 
@@ -116,8 +134,6 @@ select pg_temp.expect((select count(*) from public.vendor_payout_accounts) = 0, 
 reset role;
 set local role service_role;
 select set_config('request.jwt.claim.sub', '', true);
-insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at)
-values ('00000000-0000-0000-0000-0000000000b1', 'v1:Zm9vYmFyYmF6:cXV4', 'hmac-abc', '1234', now());
 select pg_temp.expect_error($$insert into public.vendor_aadhaar_vault (vendor_id, aadhaar_ciphertext, aadhaar_hmac, aadhaar_last4, consent_at) values ('00000000-0000-0000-0000-0000000000b2', '1234 5678 9012', 'hmac-x', '9012', now())$$, 'a plain Aadhaar number is refused in the vault');
 reset role;
 insert into public.vendors (id) values ('00000000-0000-0000-0000-0000000000b2') on conflict do nothing;
@@ -159,6 +175,40 @@ update public.vendor_staff set status = 'approved', reviewed_at = now(), reviewe
 select pg_temp.expect((select status from public.vendor_staff where id = '00000000-0000-0000-0000-0000000000f1') = 'approved', 'admin approves a worker');
 select pg_temp.expect_error($$update public.vendor_staff set full_name = 'changed'$$, 'admin cannot change worker details from the browser');
 select pg_temp.expect_error($$select * from public.staff_aadhaar_vault$$, 'even an admin cannot read the worker vault directly');
+
+-- ---------- Holes closed in the 2026-11-12 review ----------
+reset role;
+insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c2', '919800000005');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c2', true);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1)$$, 'customer cannot book at someone else''s address');
+
+-- C books again; V takes it, then an admin suspends V
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
+insert into public.pickups (id, customer_id, address_id, pincode, town_id) values ('00000000-0000-0000-0000-0000000000e2', auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1);
+insert into public.pickups (id, customer_id, address_id, pincode, town_id) values ('00000000-0000-0000-0000-0000000000e3', auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1);
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select (public.accept_pickup('00000000-0000-0000-0000-0000000000e2')).status;
+select (public.accept_pickup('00000000-0000-0000-0000-0000000000e3')).status;
+update public.pickups set status = 'on_the_way' where id = '00000000-0000-0000-0000-0000000000e3';
+select pg_temp.expect_error($$update public.pickups set status = 'weighed' where id = '00000000-0000-0000-0000-0000000000e3'$$, 'cannot mark weighed with nothing weighed');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', true);
+update public.vendors set status = 'suspended', rejection_reason = 'complaints' where id = '00000000-0000-0000-0000-0000000000b1';
+select pg_temp.expect((select status = 'requested' and vendor_id is null from public.pickups where id = '00000000-0000-0000-0000-0000000000e2'), 'suspending hands back pickups not yet started');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect_error($$update public.pickups set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000e3'$$, 'a suspended vendor cannot move pickups');
+select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-0000-0000000000e2')$$, 'a suspended vendor cannot accept pickups');
+
+-- Blocked people
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000a', true);
+update public.vendors set status = 'approved' where id = '00000000-0000-0000-0000-0000000000b1';
+reset role;
+update public.profiles set is_blocked = true where id in ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000c1');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-0000-0000000000e2')$$, 'a blocked vendor cannot accept pickups');
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1)$$, 'a blocked customer cannot book');
 
 reset role;
 rollback;

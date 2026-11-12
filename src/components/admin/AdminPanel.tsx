@@ -3,10 +3,9 @@
 import { MotionConfig } from "framer-motion";
 import { Check, ExternalLink, Eye, Loader2, LogOut, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { digitsOnly } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
-import { cleanMobile, isValid, type VendorStatus } from "@/lib/vendor";
+import { isValid, type VendorStatus } from "@/lib/vendor";
 import { PickupsPanel } from "./PickupsPanel";
 import { StaffReview } from "./StaffReview";
 import { ActivityPanel, AreaPanel, EmptyList, ReviewNudge, StatCards, useOverview, type Tab } from "./AdminHome";
@@ -16,6 +15,7 @@ const TAB_TITLES: Record<Tab, string> = {
   approved: "Approved vendors",
   rejected: "Rejected applications",
   draft: "Unfinished sign-ups",
+  suspended: "Suspended vendors",
 };
 const isTab = (s: string | null): s is Tab => !!s && s in TAB_TITLES;
 
@@ -47,12 +47,9 @@ const SELECT = `id, application_code, business_name, vendor_type, vehicle_type, 
 /** Admin: log in, see the home overview and applications, approve or reject. */
 export function AdminPanel() {
   const sb = getSupabase();
-  const [state, setState] = useState<"loading" | "login" | "otp" | "denied" | "ready">("loading");
-  const [phone, setPhone] = useState("");
+  const [state, setState] = useState<"loading" | "login" | "denied" | "ready">("loading");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [withPhone, setWithPhone] = useState(false);
-  const [otp, setOtp] = useState("");
   const { busy, err, run: act } = useAction();
   const [loadErr, setLoadErr] = useState("");
   // The selected list lives in the URL (?tab=approved) so a refresh or a shared link keeps it.
@@ -79,8 +76,8 @@ export function AdminPanel() {
     if (!sb) return;
     const { data } = await sb.auth.getSession();
     if (!data.session) return setState("login");
-    const { data: p } = await sb.from("profiles").select("role").eq("id", data.session.user.id).single();
-    setState(p?.role === "admin" ? "ready" : "denied");
+    const { data: p } = await sb.from("profiles").select("role, is_blocked").eq("id", data.session.user.id).single();
+    setState(p?.role === "admin" && !p.is_blocked ? "ready" : "denied");
   }, [sb]);
 
   useEffect(() => {
@@ -111,46 +108,19 @@ export function AdminPanel() {
   if (!sb) return <Page><p>Supabase keys are not set yet.</p></Page>;
   if (state === "loading") return <Page><Loader2 className="size-6 animate-spin" /></Page>;
 
-  if (state === "login" || state === "otp") {
+  if (state === "login") {
     return (
       <Page>
         <h1 className="text-2xl font-bold text-navy">Admin login</h1>
-        {state === "login" && !withPhone && (
-          <form className="contents" onSubmit={(e) => { e.preventDefault(); act(async () => {
-            const { error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            await check();
-          }); }}>
-            <input className={input} type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
-            <input className={input} type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <button type="submit" className={btn} disabled={busy || !isValid.email(email) || !password}>Log in</button>
-          </form>
-        )}
-        {state === "login" && withPhone && (
-          <>
-            <input className={input} inputMode="numeric" placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(cleanMobile(e.target.value))} />
-            <button className={btn} disabled={busy || !isValid.mobile(phone)} onClick={() => act(async () => {
-              const { error } = await sb.auth.signInWithOtp({ phone: "+91" + phone, options: { shouldCreateUser: false } });
-              if (error) throw error;
-              setState("otp");
-            })}>Send code</button>
-          </>
-        )}
-        {state === "login" && (
-          <button className="text-sm font-semibold text-forest underline" onClick={() => setWithPhone(!withPhone)}>
-            {withPhone ? "Use email and password instead" : "Use mobile code instead"}
-          </button>
-        )}
-        {state === "otp" && (
-          <>
-            <input className={input} inputMode="numeric" placeholder="6-digit code" value={otp} onChange={(e) => setOtp(digitsOnly(e.target.value).slice(0, 6))} />
-            <button className={btn} disabled={busy || otp.length !== 6} onClick={() => act(async () => {
-              const { error } = await sb.auth.verifyOtp({ phone: "+91" + phone, token: otp, type: "sms" });
-              if (error) throw error;
-              await check();
-            })}>Log in</button>
-          </>
-        )}
+        <form className="contents" onSubmit={(e) => { e.preventDefault(); act(async () => {
+          const { error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          await check();
+        }); }}>
+          <input className={input} type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
+          <input className={input} type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <button type="submit" className={btn} disabled={busy || !isValid.email(email) || !password}>Log in</button>
+        </form>
         {err && <p className="text-danger">{err}</p>}
       </Page>
     );
@@ -243,11 +213,14 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
   const [aadhaar, setAadhaar] = useState<string | null>(null);
   const pay = v.payout[0];
 
-  const setStatus = (status: "approved" | "rejected") =>
+  const setStatus = (status: "approved" | "rejected" | "suspended") =>
     act(async () => {
       let reason: string | null = null;
-      if (status === "rejected") {
-        reason = window.prompt("Reason (the vendor will see this):")?.trim() || null;
+      if (status !== "approved") {
+        const ask = status === "suspended"
+          ? "Why pause this vendor? (they will see this; pickups not yet started go back to the open list)"
+          : "Reason (the vendor will see this):";
+        reason = window.prompt(ask)?.trim() || null;
         if (!reason) return;
       }
       const { data: s } = await sb.auth.getSession();
@@ -255,7 +228,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
         status, rejection_reason: reason, reviewed_at: new Date().toISOString(), reviewed_by: s.session?.user.id,
       }).eq("id", v.id);
       if (error) throw error;
-      if (status === "approved") await sb.from("vendor_kyc").update({ status: "verified", verified_at: new Date().toISOString(), reviewed_by: s.session?.user.id }).eq("vendor_id", v.id);
+      if (status === "approved" && v.status === "submitted") await sb.from("vendor_kyc").update({ status: "verified", verified_at: new Date().toISOString(), reviewed_by: s.session?.user.id }).eq("vendor_id", v.id);
       await reload();
     });
 
@@ -288,7 +261,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
         <Item k="Aadhaar" v={aadhaar ?? (v.kyc[0]?.aadhaar_last4 ? `XXXX XXXX ${v.kyc[0].aadhaar_last4}` : null)} />
         <Item k="Payout" v={pay ? (pay.method === "upi" ? `UPI ${pay.upi_id}` : `${pay.account_holder} · ${pay.account_number} · ${pay.ifsc}`) : null} />
         {v.staff.length > 0 && <Item k="Workers" v={v.staff.map((p) => `${p.full_name} (${p.status})`).join(", ")} />}
-        {v.rejection_reason && <Item k="Rejected because" v={v.rejection_reason} />}
+        {v.rejection_reason && <Item k={v.status === "suspended" ? "Suspended because" : v.status === "rejected" ? "Rejected because" : "Last reason given"} v={v.rejection_reason} />}
       </dl>
       <div className="mt-4 flex flex-wrap gap-2">
         {v.docs.map((d) => (
@@ -309,6 +282,16 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
             <X className="size-5" /> Reject
           </button>
         </div>
+      )}
+      {v.status === "approved" && (
+        <button disabled={busy} onClick={() => setStatus("suspended")} className="mt-5 rounded-lg border border-danger px-4 py-2 text-sm font-semibold text-danger disabled:opacity-50">
+          Suspend vendor
+        </button>
+      )}
+      {v.status === "suspended" && (
+        <button disabled={busy} onClick={() => setStatus("approved")} className="mt-5 flex items-center gap-2 rounded-lg bg-forest px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+          <Check className="size-4" /> Reinstate vendor
+        </button>
       )}
     </article>
   );

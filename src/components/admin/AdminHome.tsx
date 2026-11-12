@@ -5,7 +5,7 @@
 // through the vendor cards in AdminPanel.
 import { motion } from "framer-motion";
 import {
-  CheckCircle2, Clock, Eye, FilePen, Inbox, MapPin, ShieldCheck, Sparkles, UserPlus, XCircle,
+  CheckCircle2, Clock, Eye, FilePen, Inbox, MapPin, PauseCircle, ShieldCheck, Sparkles, UserPlus, XCircle,
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -16,7 +16,7 @@ import {
 import { getSupabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
-export type Tab = Exclude<Status, "suspended">;
+export type Tab = Status;
 
 const PAGE = 1000; // Supabase returns at most 1000 rows per request, so read in pages.
 
@@ -109,15 +109,16 @@ const STATUS_CARDS: { status: Tab; label: string; hint: string; icon: LucideIcon
   { status: "approved", label: "Approved", hint: "Active vendors", icon: CheckCircle2, accent: "text-forest" },
   { status: "rejected", label: "Rejected", hint: "Sent back with a reason", icon: XCircle, accent: "text-danger" },
   { status: "draft", label: "Not finished", hint: "Started, not submitted", icon: FilePen, accent: "text-muted" },
+  { status: "suspended", label: "Suspended", hint: "Paused by you", icon: PauseCircle, accent: "text-danger" },
 ];
 
 const rise = { hidden: { opacity: 0, y: 8 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 
-/** Four status cards that double as the list filter, plus sign-ups this week. */
+/** Five status cards that double as the list filter, plus sign-ups this week. */
 export function StatCards({ summary, tab, onTab }: { summary: Summary | null; tab: Tab; onTab: (t: Tab) => void }) {
   return (
-    <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+    <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
       {STATUS_CARDS.map(({ status, label, hint, icon: Icon, accent }) => {
         const active = tab === status;
         return (
@@ -249,6 +250,7 @@ const EMPTY: Record<Tab, { title: string; body: string }> = {
   submitted: { title: "No applications to review", body: "When a vendor finishes signing up and presses Submit, their application appears here for you to approve or reject." },
   approved: { title: "No approved vendors yet", body: "Approve an application from To review and the vendor moves here." },
   rejected: { title: "Nothing rejected", body: "Applications you reject show here with the reason you gave. The vendor can fix and resend." },
+  suspended: { title: "No suspended vendors", body: "Use Suspend vendor on an approved vendor to pause them. They show here until you reinstate them." },
   draft: { title: "No unfinished sign-ups", body: "Vendors who start signing up but don't submit show here, so you can call and help them finish." },
 };
 
