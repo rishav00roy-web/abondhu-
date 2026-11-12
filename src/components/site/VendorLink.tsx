@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { getSupabase } from "@/lib/supabase";
 
 // One check per page load, shared by every vendor link on the page.
 let vendorCheck: Promise<boolean> | null = null;
@@ -10,6 +9,11 @@ let vendorCheck: Promise<boolean> | null = null;
 /** True when the signed-in person has a vendor account (any status). */
 function checkVendor(): Promise<boolean> {
   vendorCheck ??= (async () => {
+    // Most visitors have never logged in: skip loading the Supabase library for them.
+    // supabase-js keeps the session in localStorage under "sb-<project>-auth-token".
+    const hasSession = Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+    if (!hasSession) return false;
+    const { getSupabase } = await import("@/lib/supabase");
     const sb = getSupabase();
     if (!sb) return false;
     const uid = (await sb.auth.getSession()).data.session?.user.id;

@@ -1,15 +1,11 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { useReducedSafe } from "@/lib/use-reduced";
 import { IndianRupee, Recycle, Scale, Truck, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { SPRING } from "./motion";
+import { cn, delay } from "@/lib/utils";
 
 /*
  * The hero's one picture: the pickup as a loop of four arrows, read clockwise from the top.
  * Pickup, weigh, pay, recycle, and back round as new material. One word per step here;
  * the detail lives in the How it works section below.
+ * Entrance is plain CSS (.hero-* in globals.css): it plays from the first paint, without JavaScript.
  */
 const SIZE = 720;
 const C = SIZE / 2;
@@ -42,19 +38,10 @@ const STEPS: { word: string; icon: LucideIcon; fill: string; place: string; alig
 ];
 
 export function ProcessRing({ className }: { className?: string }) {
-  const reduce = useReducedSafe();
-  const appear = (i: number, extra = 0) =>
-    reduce
-      ? {}
-      : {
-          initial: { opacity: 0, scale: 0.92 },
-          animate: { opacity: 1, scale: 1 },
-          transition: { ...SPRING, delay: 0.35 + i * 0.14 + extra },
-        };
-
   return (
     <figure className={cn("relative mx-auto aspect-square w-full max-w-[600px]", className)} aria-label="How a pickup works: pickup, weigh, pay, recycle">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 size-full overflow-visible" aria-hidden>
+      {/* dotted orbit on its own layer: turning a whole layer is cheap, turning an SVG shape repaints every frame */}
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="ring-spin absolute inset-0 size-full overflow-visible" aria-hidden>
         <circle
           cx={C}
           cy={C}
@@ -64,10 +51,11 @@ export function ProcessRing({ className }: { className?: string }) {
           strokeWidth={1.5}
           strokeDasharray="2 9"
           strokeLinecap="round"
-          className="ring-spin"
         />
+      </svg>
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 size-full overflow-visible" aria-hidden>
         {STEPS.map((s, i) => (
-          <motion.path key={s.word} d={arrow(i * 90 + 2, i * 90 + 86)} fill={s.fill} style={{ transformOrigin: "50% 50%" }} {...appear(i)} />
+          <path key={s.word} d={arrow(i * 90 + 2, i * 90 + 86)} fill={s.fill} className="hero-pop origin-center" style={delay(0.35 + i * 0.14)} />
         ))}
         <circle cx={C} cy={C} r={R_IN - 16} fill="#fff" />
       </svg>
@@ -76,28 +64,22 @@ export function ProcessRing({ className }: { className?: string }) {
       {STEPS.map(({ word, icon: Icon }, i) => {
         const [x, y] = pt(i * 90 + 45, R_MID);
         return (
-          <motion.span
+          <span
             key={word}
             aria-hidden
-            className="absolute grid size-[13%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-navy shadow-[0_14px_24px_-12px_rgb(6_23_39_/_0.55)]"
-            style={{ left: `${(x / SIZE) * 100}%`, top: `${(y / SIZE) * 100}%` }}
-            {...appear(i, 0.12)}
+            className="hero-pop absolute grid size-[13%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-navy shadow-[0_14px_24px_-12px_rgb(6_23_39_/_0.55)]"
+            style={{ left: `${(x / SIZE) * 100}%`, top: `${(y / SIZE) * 100}%`, ...delay(0.47 + i * 0.14) }}
           >
             <Icon className="size-[44%]" strokeWidth={1.75} />
-          </motion.span>
+          </span>
         );
       })}
 
       {/* centre */}
       <div className="absolute inset-0 grid place-content-center justify-items-center text-center" aria-hidden>
-        <motion.span
-          className="text-gold"
-          initial={reduce ? false : { rotate: -120, opacity: 0 }}
-          animate={{ rotate: 0, opacity: 1 }}
-          transition={{ ...SPRING, duration: 1, delay: reduce ? 0 : 0.9 }}
-        >
+        <span className="hero-turn text-gold" style={delay(0.9)}>
           <Recycle className="size-[clamp(32px,7vw,52px)]" strokeWidth={1.6} />
-        </motion.span>
+        </span>
         <span className="mt-2 font-serif text-[clamp(18px,3.4vw,26px)] text-navy sm:mt-3">Waste to wealth</span>
         <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-forest sm:text-[11px]">Jorhat</span>
       </div>
@@ -105,16 +87,16 @@ export function ProcessRing({ className }: { className?: string }) {
       {/* step words in the four corners, a real list for screen readers */}
       <ol className="absolute -inset-2 sm:-inset-6">
         {STEPS.map((s, i) => (
-          <motion.li
+          <li
             key={s.word}
-            className={cn("absolute flex flex-col gap-1.5 sm:gap-2", s.place, s.align)}
-            {...(reduce ? {} : { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, transition: { ...SPRING, delay: 0.6 + i * 0.14 } })}
+            className={cn("hero-up absolute flex flex-col gap-1.5 sm:gap-2", s.place, s.align)}
+            style={delay(0.6 + i * 0.14)}
           >
             <span className="grid size-6 place-items-center rounded-full bg-navy font-mono text-[11px] text-gold sm:size-7 sm:text-xs" aria-hidden>
               {i + 1}
             </span>
             <span className="font-serif text-lg font-semibold text-navy sm:text-2xl">{s.word}</span>
-          </motion.li>
+          </li>
         ))}
       </ol>
     </figure>
