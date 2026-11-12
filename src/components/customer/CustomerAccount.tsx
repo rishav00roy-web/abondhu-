@@ -11,7 +11,7 @@ import { BookPickup } from "./BookPickup";
 import { cn } from "@/lib/utils";
 
 const field =
-  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none";
+  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none focus:ring-2 focus:ring-gold/60";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 
 type Role = "customer" | "vendor" | "admin";

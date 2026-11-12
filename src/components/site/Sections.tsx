@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { VendorLink } from "./VendorLink";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { FAQS } from "@/lib/site-data";
@@ -49,7 +50,7 @@ const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
 
 /** Dotted line between the step markers. It draws itself once, left to right, when the row scrolls in. */
 function Connector({ vertical = false }: { vertical?: boolean }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const dash = vertical
     ? "bg-[repeating-linear-gradient(to_bottom,rgb(212_175_55_/_0.7)_0_5px,transparent_5px_10px)]"
     : "bg-[repeating-linear-gradient(to_right,rgb(212_175_55_/_0.7)_0_5px,transparent_5px_10px)]";
@@ -105,7 +106,7 @@ export function HowItWorks() {
 }
 
 export function Faq() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section id="faq" className="relative scroll-mt-20 bg-white py-20 md:py-32">
@@ -114,7 +115,7 @@ export function Faq() {
         <Reveal className="grid content-start gap-3">
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
-            Anything else? WhatsApp us on <span className="font-mono text-ink">+91 90000 00000</span>, 8am to 8pm.
+            Anything else? WhatsApp us on <span className="font-mono text-ink">+91 91813 30755</span>, 8am to 8pm.
           </p>
         </Reveal>
         <div className="divide-y divide-navy/10 border-y border-navy/10">
@@ -203,7 +204,7 @@ export function Footer() {
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Contact</p>
           <div className="grid gap-3 text-sm font-light text-white/70">
-            <span>WhatsApp <span className="font-mono text-white">+91 90000 00000</span></span>
+            <span>WhatsApp <span className="font-mono text-white">+91 91813 30755</span></span>
             <span>8am to 8pm, every day</span>
             <span>Jorhat, Assam</span>
           </div>

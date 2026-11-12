@@ -49,6 +49,6 @@ test("money and payout masking", () => {
 
 test("helpLink names the vendor", () => {
   const url = helpLink("Ram Das", "AB-V-1001");
-  assert.ok(url.startsWith("https://wa.me/919000000000?text="));
+  assert.ok(url.startsWith("https://wa.me/919181330755?text="));
   assert.ok(decodeURIComponent(url).includes("Ram Das (AB-V-1001)"));
 });

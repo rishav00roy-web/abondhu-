@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import type { ReactNode } from "react";
 
 /*
@@ -36,16 +37,18 @@ export function Reveal({
   delay?: number;
   as?: Tag;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const M = motion[as];
-  if (reduce) return <M className={className}>{children}</M>;
+  // Same element on server and client; reduced motion just snaps to the final state.
   return (
     <M
       className={className}
       initial="hidden"
-      whileInView="shown"
-      viewport={VIEWPORT}
-      variants={{ hidden: rise.hidden, shown: { ...rise.shown, transition: { ...SPRING, delay } } }}
+      {...(reduce ? { animate: "shown" } : { whileInView: "shown", viewport: VIEWPORT })}
+      variants={{
+        hidden: rise.hidden,
+        shown: { ...rise.shown, transition: reduce ? { duration: 0 } : { ...SPRING, delay } },
+      }}
     >
       {children}
     </M>
@@ -64,16 +67,14 @@ export function Stagger({
   as?: Tag;
   gap?: number;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const M = motion[as];
-  if (reduce) return <M className={className}>{children}</M>;
   return (
     <M
       className={className}
       initial="hidden"
-      whileInView="shown"
-      viewport={VIEWPORT}
-      variants={{ hidden: {}, shown: { transition: { staggerChildren: gap } } }}
+      {...(reduce ? { animate: "shown" } : { whileInView: "shown", viewport: VIEWPORT })}
+      variants={{ hidden: {}, shown: { transition: { staggerChildren: reduce ? 0 : gap } } }}
     >
       {children}
     </M>

@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedSafe } from "@/lib/use-reduced";
 import { SPRING } from "./motion";
 
 /*
@@ -9,12 +10,12 @@ import { SPRING } from "./motion";
  * first frame, so it reads the same with motion off.
  */
 export function WasteToWealth() {
-  const reduce = useReducedMotion();
+  const reduce = useReducedSafe();
   const letters = Array.from("wealth");
   return (
     <h1 className="font-serif text-[clamp(52px,7vw,92px)] leading-[1.02] tracking-[-0.01em] text-navy">
       From{" "}
-      <span className="relative inline-block text-navy/40">
+      <span className="relative inline-block text-navy/60">
         waste
         <motion.span
           aria-hidden

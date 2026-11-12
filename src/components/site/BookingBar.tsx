@@ -2,15 +2,22 @@
 
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { dayLabel, pickupDays, saveDraft } from "@/lib/booking";
 import { LOCALITIES, PIN_RE } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, serifTitle } from "./ui";
 
+type Days = ReturnType<typeof pickupDays>;
+let clientDays: Days | null = null;
+const noop = () => () => {};
+const getClientDays = () => (clientDays ??= pickupDays());
+const NO_DAYS: Days = [];
+const getServerDays = () => NO_DAYS;
+
 const field =
-  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none aria-[invalid=true]:border-danger";
+  "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 sm:text-[15px] placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none focus:ring-2 focus:ring-gold/60 aria-[invalid=true]:border-danger";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 export function BookingBar() {
   const router = useRouter();
@@ -19,7 +26,8 @@ export function BookingBar() {
   const [phone, setPhone] = useState("");
   const [day, setDay] = useState(0);
   const [error, setError] = useState<"pin" | "phone" | null>(null);
-  const days = useMemo(() => pickupDays(), []);
+  // Dates depend on the visitor's clock, so they are built on the client only (server and first paint match).
+  const days = useSyncExternalStore(noop, getClientDays, getServerDays);
 
   const pinOk = (v: string) => PIN_RE.test(v.trim());
   const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
