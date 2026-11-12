@@ -1,6 +1,6 @@
 "use client";
 
-import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User } from "lucide-react";
+import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
@@ -164,12 +164,14 @@ export function VendorSignup() {
       const { data: pin } = await sb!.from("pincodes").select("pincode").eq("pincode", f.pincode).eq("is_active", true).maybeSingle();
       if (!pin) fail(t.errPincode);
       const id = await uid();
-      const { data: addr, error } = await sb!
-        .from("addresses")
-        .insert({ profile_id: id, label: "shop", line1: f.address.trim(), pincode: f.pincode, is_default: true })
-        .select("id")
-        .single();
+      // Coming back to this step edits the same shop address and area instead of adding more.
+      const { data: v } = await sb!.from("vendors").select("address_id").eq("id", id).single();
+      const shop = { profile_id: id, label: "shop", line1: f.address.trim(), pincode: f.pincode, is_default: true };
+      const { data: addr, error } = v?.address_id
+        ? await sb!.from("addresses").update(shop).eq("id", v.address_id).select("id").single()
+        : await sb!.from("addresses").insert(shop).select("id").single();
       if (error) fail(error.message);
+      await sb!.from("vendor_service_areas").delete().eq("vendor_id", id).neq("pincode", f.pincode);
       await sb!.from("vendor_service_areas").upsert({ vendor_id: id, pincode: f.pincode });
       const { error: e2 } = await sb!
         .from("vendors")
@@ -202,8 +204,12 @@ export function VendorSignup() {
         if (!isValid.account(f.account) || !isValid.ifsc(f.ifsc) || f.holder.trim().length < 2) fail(t.errBank);
         row = { method: "bank", account_holder: f.holder.trim(), account_number: f.account, ifsc: f.ifsc };
       }
-      await sb!.from("vendor_payout_accounts").delete().eq("vendor_id", id);
-      const { error } = await sb!.from("vendor_payout_accounts").insert({ vendor_id: id, ...row });
+      // Edit the saved account in place, so a failed save never leaves the vendor with none.
+      const blank = { upi_id: null, account_holder: null, account_number: null, ifsc: null, is_verified: false };
+      const { data: saved } = await sb!.from("vendor_payout_accounts").select("id").eq("vendor_id", id).maybeSingle();
+      const { error } = saved
+        ? await sb!.from("vendor_payout_accounts").update({ ...blank, ...row }).eq("id", saved.id)
+        : await sb!.from("vendor_payout_accounts").insert({ vendor_id: id, ...row });
       if (error) fail(t.errBank);
       if (f.shopPhoto) await uploadPhoto(f.shopPhoto, "shop_photo");
       await sb!.from("vendors").update({ onboarding_step: 6 }).eq("id", id);
@@ -214,7 +220,7 @@ export function VendorSignup() {
     run(async () => {
       const id = await uid();
       const { error } = await sb!.from("vendors").update({ status: "submitted" }).eq("id", id);
-      if (error) fail(error.message);
+      if (error) fail(error.message.includes("not complete") ? t.errIncomplete : error.message);
       await resume();
     });
 
@@ -405,8 +411,8 @@ export function VendorSignup() {
 
       {screen === 7 && status && status.status !== "approved" && (
         <div className="flex flex-col items-center gap-4 py-6 text-center">
-          <span className={cn("grid size-24 place-items-center rounded-full text-white", status.status === "rejected" ? "bg-danger" : "bg-forest")}>
-            <Check className="size-12" strokeWidth={3} />
+          <span className={cn("grid size-24 place-items-center rounded-full text-white", status.status === "submitted" ? "bg-forest" : "bg-danger")}>
+            {status.status === "submitted" ? <Check className="size-12" strokeWidth={3} /> : <X className="size-12" strokeWidth={3} />}
           </span>
           {status.status === "submitted" && (
             <>
@@ -424,6 +430,14 @@ export function VendorSignup() {
               </p>
               <Err msg={err} />
               <Primary busy={busy} t={t} onClick={fixAgain}>{t.fix}</Primary>
+            </>
+          )}
+          {status.status === "suspended" && (
+            <>
+              <Title>{t.suspendedTitle}</Title>
+              <p className="text-muted">
+                {t.suspendedHint} {status.reason}
+              </p>
             </>
           )}
         </div>
