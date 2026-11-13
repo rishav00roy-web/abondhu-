@@ -20,12 +20,7 @@ export async function POST(req: Request) {
 
     const db = supabaseAdmin();
 
-    // Replace any earlier photo of the same kind.
     const { data: old } = await db.from("vendor_documents").select("id, storage_path").eq("vendor_id", user.id).eq("doc_type", docType);
-    if (old?.length) {
-      await db.storage.from("vendor-docs").remove(old.map((d) => d.storage_path));
-      await db.from("vendor_documents").delete().in("id", old.map((d) => d.id));
-    }
 
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const path = `${user.id}/${docType}-${Date.now()}.${ext}`;
@@ -33,7 +28,16 @@ export async function POST(req: Request) {
     if (up.error) throw up.error;
 
     const ins = await db.from("vendor_documents").insert({ vendor_id: user.id, doc_type: docType, storage_path: path });
-    if (ins.error) throw ins.error;
+    if (ins.error) {
+      await db.storage.from("vendor-docs").remove([path]);
+      throw ins.error;
+    }
+
+    // Only now, with the new photo safely saved, remove the earlier one of the same kind.
+    if (old?.length) {
+      await db.from("vendor_documents").delete().in("id", old.map((d) => d.id));
+      await db.storage.from("vendor-docs").remove(old.map((d) => d.storage_path));
+    }
     return Response.json({ ok: true });
   } catch (e) {
     return errorResponse(e);
