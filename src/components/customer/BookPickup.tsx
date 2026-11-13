@@ -46,6 +46,9 @@ interface Form {
   scrap: string;
 }
 
+/** Same limit as the database (can_book): stops fake bulk bookings. */
+const MAX_WAITING = 3;
+
 export function BookPickup() {
   const sb = getSupabase();
   const reduce = useReducedSafe();
@@ -102,6 +105,8 @@ export function BookPickup() {
       if (!isMobile(phone)) fail("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (line1.length < 5) fail("Please write your house and street.");
       if (!isJorhatPin(f.pin)) fail("We only pick up in Jorhat for now. Enter a 6-digit pincode starting with 785.");
+      const waiting = (pickups ?? []).filter((p) => p.status !== "completed" && p.status !== "cancelled").length;
+      if (waiting >= MAX_WAITING) fail(`You already have ${MAX_WAITING} pickups waiting. Please wait for one to finish, or WhatsApp us.`);
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
