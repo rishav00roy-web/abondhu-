@@ -26,29 +26,57 @@ export const LOCALITIES = [
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 
-export const FAQS = [
+/**
+ * Customer questions, shown in the FAQ section and sent to Google as FAQPage data.
+ * Text in [square brackets] is a fact still to be confirmed by the team: replace it before going live.
+ */
+export const FAQS: { q: string; a: string }[] = [
   {
-    q: "Where does my scrap actually go?",
-    a: "Paper goes to a paper mill, metal to a foundry, plastic to a pelletising unit and appliances to an authorised e-waste recycler. Every partner is licensed, and nothing is burnt, buried or dumped.",
+    q: "What scrap do you buy?",
+    a: "Newspaper, books and copies, cardboard, iron, steel and cans, plastic bottles and hard plastic, old phones and laptops (working or not), and big appliances such as fridges, ACs and washing machines. If you are not sure about something, send us a photo on WhatsApp.",
   },
   {
-    q: "Which areas do you cover?",
-    a: "Jorhat town only for now, every day: Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and the areas around them. If your pincode starts with 785 and you are in town, we come to you.",
+    q: "How do I book a pickup, and is it free?",
+    a: "Book on this site or send us a WhatsApp message on +91 91813 30755 with your address and what you have. Pickup is free, and there is no charge for coming to your door.",
   },
   {
-    q: "Is there a minimum quantity?",
-    a: "We ask for about 15 kg on weekdays and nothing on weekends. A heavy item such as a fridge or AC counts on its own.",
+    q: "How is the price decided?",
+    a: "Each kind of scrap has a rate per kilo, or per piece for appliances and electronics. Rates move with the market, so our partner tells you the rate before weighing, and you only sell if you agree.",
   },
   {
     q: "How do I know the weight is right?",
-    a: "Every partner carries a calibrated digital scale. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
+    a: "Every partner carries a digital scale with a display you can read yourself. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
+  },
+  {
+    q: "How and when do I get paid?",
+    a: "On the spot, before our partner leaves, in cash or by UPI, whichever you prefer.",
+  },
+  {
+    q: "Is there a minimum quantity?",
+    a: "[Minimum weight to confirm]. A single large item such as a fridge, AC or washing machine is always enough on its own.",
+  },
+  {
+    q: "Which areas do you cover, and when?",
+    a: "Jorhat town only for now, including Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and nearby areas. Pickups run [pickup days and hours to confirm], usually the same or next day.",
+  },
+  {
+    q: "Can I change or cancel my pickup?",
+    a: "Yes. Send us a WhatsApp message on +91 91813 30755 and we will move it to another time or cancel it.",
   },
   {
     q: "What don't you take?",
-    a: "Glass, wet waste, medical waste, and anything hazardous such as paint, leaking batteries or gas cylinders.",
+    a: "Glass, wet or food waste, medical waste, and anything hazardous such as paint, leaking batteries or gas cylinders.",
   },
   {
-    q: "Do you work with shops and tea estates?",
-    a: "Yes. We collect cartons, gunny bags, machinery scrap, drums and old electricals from shops, offices and estates around Jorhat on a fixed schedule, with a weight report and GST invoice.",
+    q: "Where does my scrap go?",
+    a: "Paper goes to paper mills, metal to foundries, plastic to recycling units and electronics to authorised e-waste recyclers. Nothing is burnt, buried or dumped.",
+  },
+  {
+    q: "Do you collect from shops, offices and tea estates?",
+    a: "Yes. We collect cartons, gunny bags, machinery scrap, drums and old electricals on a regular schedule, with a weight report for every visit. WhatsApp us to set it up.",
+  },
+  {
+    q: "Who runs Abondhu?",
+    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at abondhu.lios@gmail.com.",
   },
 ];

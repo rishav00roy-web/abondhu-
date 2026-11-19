@@ -105,11 +105,19 @@ export function HowItWorks() {
   );
 }
 
+/** FAQPage structured data, so Google can show these answers in search. Built from the same list as the section. */
+const FAQ_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+}).replace(/</g, "\\u003c");
+
 export function Faq() {
   const reduce = useReducedSafe();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section id="faq" className="relative scroll-mt-20 bg-white py-20 md:py-32">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: FAQ_JSON_LD }} />
       <TornEdge className="text-white" />
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal className="grid content-start gap-3">
