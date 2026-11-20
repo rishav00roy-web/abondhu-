@@ -102,14 +102,12 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
               ))}
               <VendorLink
                 onClick={() => setOpen(false)}
-                className="flex min-h-12 items-center justify-between border-b border-navy/5 px-5 text-sm font-semibold text-forest active:bg-sunk"
-              >
-                <span aria-hidden className="text-gold">●</span>
-              </VendorLink>
+                className="flex min-h-12 items-center border-b border-navy/5 px-5 text-sm font-semibold text-forest active:bg-sunk"
+              />
               <Link
                 href="/account"
                 onClick={() => setOpen(false)}
-                className="m-3 flex h-12 items-center justify-center rounded-full bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
+                className="m-3 flex h-12 items-center justify-center rounded-xl bg-navy text-xs font-bold uppercase tracking-[0.15em] text-white active:scale-[0.98]"
               >
                 Book a free pickup
               </Link>

@@ -82,8 +82,8 @@ export function WhatWeBuy() {
                   aria-pressed={on}
                   onClick={() => setPick(i)}
                   className={cn(
-                    "group grid content-start gap-3 p-5 text-left transition-colors duration-200 hover:bg-[#fbfaf6] sm:p-6",
-                    on ? "bg-[#fbfaf6] shadow-[inset_0_-3px_0_var(--gold)]" : "bg-white",
+                    "group grid content-start gap-3 p-5 text-left transition-colors duration-200 hover:bg-cream/50 sm:p-6",
+                    on ? "bg-cream/50 shadow-[inset_0_-3px_0_var(--gold)]" : "bg-white",
                   )}
                 >
                   <span className="grid size-12 place-items-center rounded-full bg-cream text-forest transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-0.5">
