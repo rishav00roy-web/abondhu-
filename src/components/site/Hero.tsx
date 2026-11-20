@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Recycle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { cn, delay } from "@/lib/utils";
 import { ProcessRing } from "./ProcessRing";
 import { WasteToWealth } from "./WasteToWealth";
@@ -16,17 +16,11 @@ export function Hero() {
       <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-6 pb-16 pt-28 sm:pt-32 md:px-12 lg:min-h-svh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:pb-16 lg:pt-28">
         {/* entrance is CSS (.hero-rise in globals.css) so the headline shows from the first paint */}
         <div className="grid content-start justify-items-start gap-6 sm:gap-7">
-          <div className="hero-rise" style={delay(0)}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-forest/30 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-forest sm:text-xs">
-              <Recycle className="size-4" strokeWidth={2} aria-hidden />
-              Doorstep scrap pickup in Jorhat
-            </span>
-          </div>
-          <div className="hero-rise" style={delay(0.08)}><WasteToWealth /></div>
-          <p className="hero-rise max-w-[34ch] text-lg font-light leading-relaxed text-muted sm:text-xl" style={delay(0.16)}>
+          <div className="hero-rise" style={delay(0)}><WasteToWealth /></div>
+          <p className="hero-rise max-w-[34ch] text-lg font-light leading-relaxed text-muted sm:text-xl" style={delay(0.08)}>
             We buy your scrap at your door in Jorhat and pay on the spot.
           </p>
-          <div className="hero-rise flex w-full flex-col gap-5 pt-1 sm:w-auto sm:flex-row sm:items-center sm:gap-8" style={delay(0.24)}>
+          <div className="hero-rise flex w-full flex-col gap-5 pt-1 sm:w-auto sm:flex-row sm:items-center sm:gap-8" style={delay(0.16)}>
             <Link href="/account" className={cn(btn.base, btn.primary)}>
               Sell your scrap <ArrowRight className="size-4" aria-hidden />
             </Link>

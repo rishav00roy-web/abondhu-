@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { dayLabel, pickupDays, saveDraft } from "@/lib/booking";
@@ -26,6 +26,7 @@ export function BookingBar() {
   const [phone, setPhone] = useState("");
   const [day, setDay] = useState(0);
   const [error, setError] = useState<"pin" | "phone" | null>(null);
+  const [sending, setSending] = useState(false);
   // Dates depend on the visitor's clock, so they are built on the client only (server and first paint match).
   const days = useSyncExternalStore(noop, getClientDays, getServerDays);
 
@@ -40,6 +41,7 @@ export function BookingBar() {
     if (bad) return document.getElementById(bad)?.focus();
     // Carry what they typed over the login step; the booking form picks it up.
     saveDraft({ area, pin: pin.trim(), phone: phone.replace(/\s/g, ""), day: days[day] });
+    setSending(true); // the next page can take a moment on a slow phone connection
     router.push("/account");
   }
 
@@ -128,8 +130,16 @@ export function BookingBar() {
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-                  <button type="submit" className={cn(btn.base, btn.primary, "w-full sm:w-auto")}>
-                    Book pickup <ArrowRight className="size-4" aria-hidden />
+                  <button type="submit" disabled={sending} className={cn(btn.base, btn.primary, "w-full sm:w-auto")}>
+                    {sending ? (
+                      <>
+                        Opening <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+                      </>
+                    ) : (
+                      <>
+                        Book pickup <ArrowRight className="size-4" aria-hidden />
+                      </>
+                    )}
                   </button>
                   <p id="book-msg" aria-live="polite" className={cn("text-sm", error ? "text-danger" : "text-muted")}>
                     {message}
