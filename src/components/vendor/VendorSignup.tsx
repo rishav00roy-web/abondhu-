@@ -3,7 +3,7 @@
 import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
-import { getSupabase, NETWORK_ERR, postJson } from "@/lib/supabase";
+import { getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
@@ -250,7 +250,8 @@ export function VendorSignup() {
   const fixAgain = () =>
     run(async () => {
       const id = await uid();
-      await sb!.from("vendors").update({ status: "draft", onboarding_step: 3 }).eq("id", id);
+      const { error } = await sb!.from("vendors").update({ status: "draft", onboarding_step: 3 }).eq("id", id);
+      if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : error.message); // don't open the form if it can't be edited
       setStatus(null);
       setScreen(3);
     });
@@ -268,7 +269,7 @@ export function VendorSignup() {
 
   const stepNo = Math.min(screen, 6);
   // No internet shows in the vendor's language, not as the browser's "Failed to fetch".
-  const errMsg = err === NETWORK_ERR || err.includes("Failed to fetch") ? t.errNetwork : err;
+  const errMsg = err === NETWORK_ERR || isNetworkError(err) ? t.errNetwork : err;
   const back = screen > 3 && screen < 7 ? () => setScreen((screen - 1) as Screen) : screen === 2 ? () => setScreen(1) : undefined;
 
   return (

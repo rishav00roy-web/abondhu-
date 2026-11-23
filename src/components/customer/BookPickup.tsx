@@ -10,7 +10,7 @@ import { btn } from "@/components/site/ui";
 import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, pickupDays, pickupNote, SCRAP_TYPES, slotsFor, takeDraft } from "@/lib/booking";
 import { readyPhoto } from "@/lib/shrink-photo";
 import { LOCALITIES } from "@/lib/site-data";
-import { authedFetch, getSupabase, NETWORK_ERR, postJson } from "@/lib/supabase";
+import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn, EASE_OUT } from "@/lib/utils";
 
@@ -159,7 +159,7 @@ export function BookPickup() {
           .insert({ profile_id: uid, label: "home", line1: fullLine, pincode: f.pin.trim(), is_default: true })
           .select("id")
           .single();
-        if (error) fail(error.message.includes("fetch") ? NETWORK_ERR : "Could not save your address. Please try again.");
+        if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not save your address. Please try again.");
         addressId = data!.id;
       }
 
@@ -170,7 +170,7 @@ export function BookPickup() {
         .single();
       if (error?.hint === "open_limit") fail("You already have 3 pickups booked. You can book again when one is done.");
       if (error?.hint === "daily_limit") fail("You have booked 5 pickups today. Please book again tomorrow.");
-      if (error) fail(error.message.includes("fetch") ? NETWORK_ERR : "Could not book the pickup. Please try again.");
+      if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not book the pickup. Please try again.");
 
       // The photo is a nice-to-have: the pickup is booked even if it fails to upload.
       let photoFailed = false;
