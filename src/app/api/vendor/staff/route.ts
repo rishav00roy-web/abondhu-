@@ -1,20 +1,10 @@
 import { digitsOnly, isValidAadhaar } from "@/lib/aadhaar";
 import { aadhaarHmac, encryptAadhaar } from "@/lib/server/aadhaar-crypto";
 import { aadhaarTaken, errorResponse, HttpError, requireApprovedVendor, supabaseAdmin } from "@/lib/server/supabase-admin";
+import { photoFrom, PHOTO_EXT } from "@/lib/server/photo";
 import { isValid, MAX_STAFF } from "@/lib/vendor";
 
 export const runtime = "nodejs";
-
-const MAX_BYTES = 5 * 1024 * 1024;
-const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-
-function photo(form: FormData, key: string): File {
-  const f = form.get(key);
-  if (!(f instanceof File) || f.size === 0) throw new HttpError(400, "Please add both photos.");
-  if (f.size > MAX_BYTES) throw new HttpError(400, "Photo is too large (max 5 MB).");
-  if (!TYPES[f.type]) throw new HttpError(400, "Please upload a photo (JPG or PNG).");
-  return f;
-}
 
 /**
  * An approved vendor adds a worker: name, mobile, Aadhaar (number + card photo) and face photo.
@@ -34,8 +24,8 @@ export async function POST(req: Request) {
     if (!isValid.mobile(phone)) throw new HttpError(400, "Please enter a 10-digit mobile number.");
     if (!isValidAadhaar(aadhaar)) throw new HttpError(400, "This Aadhaar number is not correct. Check all 12 digits on the card.");
     if (form.get("consent") !== "true") throw new HttpError(400, "Please tick the consent box.");
-    const card = photo(form, "aadhaar_photo");
-    const face = photo(form, "face_photo");
+    const card = photoFrom(form, "aadhaar_photo", "Please add both photos.");
+    const face = photoFrom(form, "face_photo", "Please add both photos.");
 
     const { count } = await db.from("vendor_staff").select("id", { count: "exact", head: true }).eq("vendor_id", user.id);
     if ((count ?? 0) >= MAX_STAFF) throw new HttpError(400, `You can add up to ${MAX_STAFF} workers. Remove one first.`);
@@ -45,7 +35,7 @@ export async function POST(req: Request) {
 
     staffId = crypto.randomUUID();
     const folder = `${user.id}/staff/${staffId}`;
-    const paths = { card: `${folder}/aadhaar.${TYPES[card.type]}`, face: `${folder}/face.${TYPES[face.type]}` };
+    const paths = { card: `${folder}/aadhaar.${PHOTO_EXT[card.type]}`, face: `${folder}/face.${PHOTO_EXT[face.type]}` };
     for (const [path, file] of [[paths.card, card], [paths.face, face]] as const) {
       const up = await db.storage.from("vendor-docs").upload(path, file, { contentType: file.type, upsert: false });
       if (up.error) throw up.error;

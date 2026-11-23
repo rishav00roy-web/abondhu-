@@ -6,12 +6,47 @@ export const isJorhatPin = (s: string) => /^785\d{3}$/.test(s.trim());
 /** Indian mobile: 10 digits starting 6-9 (spaces allowed while typing). */
 export const isMobile = (s: string) => /^[6-9]\d{9}$/.test(s.replace(/\s/g, ""));
 
-/** The next five pickup days as yyyy-mm-dd (local time), today first. */
+/** Pickup time slots, Monday to Saturday (the hours in site-data's HOURS). `start` is the hour, 24h clock. */
+export const TIME_SLOTS = [
+  { start: 9, label: "9 AM to 12 PM" },
+  { start: 12, label: "12 PM to 3 PM" },
+  { start: 15, label: "3 PM to 6 PM" },
+] as const;
+
+/** Slots still open on a day: on today, only the ones that have not started yet. */
+export function slotsFor(dayIso: string, now = new Date()): string[] {
+  const today = dayIso === isoDay(now);
+  return TIME_SLOTS.filter((s) => !today || s.start > now.getHours()).map((s) => s.label);
+}
+
+/** Kinds of scrap a customer can pick when booking. "Other" lets them write it. */
+export const SCRAP_TYPES = [
+  "Newspaper and books",
+  "Cardboard and cartons",
+  "Plastic",
+  "Iron and steel",
+  "Aluminium, copper and brass",
+  "Old appliances (fridge, AC, cooler, washing machine)",
+  "Old phones, laptops and TVs",
+  "Mixed scrap",
+  "Other",
+] as const;
+export const OTHER_SCRAP = "Other";
+
+const isoDay = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** The next five pickup days as yyyy-mm-dd (local time). No Sundays; today only while a slot is still open. */
 export function pickupDays(now = new Date()): string[] {
-  return Array.from({ length: 5 }, (_, i) => {
+  const days: string[] = [];
+  for (let i = 0; days.length < 5; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  });
+    if (d.getDay() === 0) continue;
+    const iso = isoDay(d);
+    if (i === 0 && slotsFor(iso, now).length === 0) continue;
+    days.push(iso);
+  }
+  return days;
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -27,12 +62,13 @@ export function dayLabel(iso: string, now = new Date()): string {
 }
 
 /**
- * The note saved on the pickup. The preferred day goes first so the team sees it
- * at a glance (there is no slot booking yet; the team confirms a time by phone).
+ * The note saved on the pickup: preferred day and time first so the team sees them
+ * at a glance (the team confirms by phone), then what scrap it is.
  */
-export function pickupNote(dayIso: string, scrap: string, now = new Date()): string {
+export function pickupNote(dayIso: string, slot: string, scrap: string, now = new Date()): string {
   const what = scrap.trim().replace(/\s+/g, " ").slice(0, 300);
-  return `Preferred day: ${dayLabel(dayIso, now).replace(/^(Today|Tomorrow), /, "")}.${what ? " " + what : ""}`;
+  const day = dayLabel(dayIso, now).replace(/^(Today|Tomorrow), /, "");
+  return `Preferred: ${day}, ${slot}.${what ? " " + what : ""}`;
 }
 
 /** What someone typed on the home page before logging in, carried over to the booking form. */

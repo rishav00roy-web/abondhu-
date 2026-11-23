@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { Check, ExternalLink, Eye, Loader2, LogOut, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase, postJson } from "@/lib/supabase";
+import { openPhoto } from "./open-photo";
 import { useAction } from "@/lib/use-action";
 import { isValid, type VendorStatus } from "@/lib/vendor";
 import { PickupsPanel } from "./PickupsPanel";
@@ -232,12 +233,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       await reload();
     });
 
-  const openDoc = (path: string) =>
-    act(async () => {
-      const w = window.open("about:blank", "_blank");
-      const { url } = await postJson("/api/admin/doc-url", { path });
-      if (w) w.location.href = url;
-    });
+  const openDoc = (path: string) => act(() => openPhoto(path));
 
   const reveal = () =>
     act(async () => {

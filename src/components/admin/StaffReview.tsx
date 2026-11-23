@@ -5,6 +5,7 @@
 import { Check, Eye, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase, postJson } from "@/lib/supabase";
+import { openPhoto } from "./open-photo";
 import { useAction } from "@/lib/use-action";
 
 interface Row {
@@ -53,12 +54,7 @@ export function StaffReview({ version }: { version: number }) {
       await load();
     });
 
-  const openDoc = (path: string) =>
-    run(async () => {
-      const w = window.open("about:blank", "_blank");
-      const { url } = await postJson("/api/admin/doc-url", { path });
-      if (w) w.location.href = url;
-    });
+  const openDoc = (path: string) => run(() => openPhoto(path));
 
   const reveal = (id: string) =>
     run(async () => {
