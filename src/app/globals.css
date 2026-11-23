@@ -257,3 +257,8 @@ a {
     animation: none;
   }
 }
+
+/* body copy: avoid a single word left alone on the last line */
+p {
+  text-wrap: pretty;
+}

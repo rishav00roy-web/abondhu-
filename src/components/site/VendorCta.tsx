@@ -31,13 +31,13 @@ export function VendorCta() {
             <VendorLink className={cn(btn.base, btn.gold)}>
               <ArrowRight className="size-4" aria-hidden />
             </VendorLink>
-            <span className="text-sm font-light text-white/55">Free to join. Jorhat town only for now.</span>
+            <span className="text-sm font-light text-white/70">Free to join. Jorhat town only for now.</span>
           </div>
         </Reveal>
         <Stagger as="ul" className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2">
           {PERKS.map(({ icon: Icon, title, body }) => (
             <StaggerItem as="li" key={title} className="grid content-start gap-3 bg-midnight p-6 sm:p-7">
-              <Icon className="size-5 text-gold" strokeWidth={1.5} aria-hidden />
+              <Icon className="size-5 text-gold" strokeWidth={1.75} aria-hidden />
               <h3 className="font-serif text-xl">{title}</h3>
               <p className="text-sm font-light leading-relaxed text-white/65">{body}</p>
             </StaggerItem>

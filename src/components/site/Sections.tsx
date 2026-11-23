@@ -27,7 +27,7 @@ export function TrustStrip() {
           {TRUST.map(({ icon: Icon, title, body }) => (
             <StaggerItem as="li" key={title} className="flex items-center gap-4">
               <span className="grid size-12 shrink-0 place-items-center rounded-full border border-gold/40 text-gold">
-                <Icon className="size-5" strokeWidth={1.5} aria-hidden />
+                <Icon className="size-5" strokeWidth={1.75} aria-hidden />
               </span>
               <span className="grid gap-1">
                 <span className="text-[15px] font-semibold">{title}</span>
@@ -92,7 +92,7 @@ export function HowItWorks() {
                   </span>
                 )}
                 <div className={cn("grid content-start gap-2 pt-2 md:pt-7", !last && "pb-10 md:pb-0")}>
-                  <span className="font-mono text-xs text-forest">Step {String(i + 1).padStart(2, "0")}</span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.15em] text-forest">Step {i + 1}</span>
                   <h3 className="font-serif text-2xl text-navy">{title}</h3>
                   <p className="max-w-[34ch] font-light leading-relaxed text-muted">{body}</p>
                 </div>
@@ -123,7 +123,7 @@ export function Faq() {
         <Reveal className="grid content-start gap-3">
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
-            Anything else? WhatsApp us on <span className="font-mono text-ink">+91 91813 30755</span>, 8am to 8pm.
+            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, 8am to 8pm.
           </p>
         </Reveal>
         <div className="divide-y divide-navy/10 border-y border-navy/10">
@@ -198,7 +198,7 @@ export function Footer() {
           </p>
         </div>
         <div>
-          <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Explore</p>
+          <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
             {[["/#how", "How it works"], ["/#rates", "Today's rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"]].map(([href, label]) =>
               href === "/vendor" ? (
@@ -210,16 +210,16 @@ export function Footer() {
           </nav>
         </div>
         <div>
-          <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/40">Contact</p>
+          <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Contact</p>
           <div className="grid gap-3 text-sm font-light text-white/70">
-            <span>WhatsApp <span className="font-mono text-white">+91 91813 30755</span></span>
+            <span>WhatsApp <span className="tabular font-medium text-white">+91 91813 30755</span></span>
             <span>8am to 8pm, every day</span>
             <span>Jorhat, Assam</span>
           </div>
         </div>
       </Container>
       <div className="border-t border-white/5 bg-black/20">
-        <Container className="flex flex-col items-center justify-between gap-3 py-6 text-xs font-light text-white/45 sm:flex-row">
+        <Container className="flex flex-col items-center justify-between gap-3 py-6 text-xs font-light text-white/60 sm:flex-row">
           <span>© 2026 Abondhu. All rights reserved.</span>
           <span>Rates and figures are placeholders.</span>
         </Container>
