@@ -7,6 +7,7 @@ import { getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supaba
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
+import { inLang } from "@/lib/err-lang";
 import { strings, type Lang } from "@/lib/vendor-i18n";
 import { uploadPhoto } from "./photos";
 import { VendorHome } from "./VendorHome";
@@ -202,6 +203,7 @@ export function VendorSignup() {
 
   const saveAadhaar = () =>
     run(async () => {
+      if (!digitsOnly(f.aadhaar)) fail(t.errAadhaarEmpty);
       if (!isValidAadhaar(f.aadhaar)) fail(t.errAadhaar);
       if (!f.aadhaarPhoto || !f.aadhaarBack || !f.selfie) fail(t.errPhotos);
       if (!f.consent) fail(t.errConsent);
@@ -269,7 +271,8 @@ export function VendorSignup() {
 
   const stepNo = Math.min(screen, 6);
   // No internet shows in the vendor's language, not as the browser's "Failed to fetch".
-  const errMsg = err === NETWORK_ERR || isNetworkError(err) ? t.errNetwork : err;
+  // Other errors follow the language switch too (inLang).
+  const errMsg = err === NETWORK_ERR || isNetworkError(err) ? t.errNetwork : inLang(err, lang);
   const back = screen > 3 && screen < 7 ? () => setScreen((screen - 1) as Screen) : screen === 2 ? () => setScreen(1) : undefined;
 
   return (
