@@ -246,7 +246,7 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
 
         {/* Workers who go on pickups; each one is checked by an admin */}
         <Section icon={<Users />} title={h.staff.title}>
-          <StaffSection t={t} h={h} />
+          <StaffSection t={t} h={h} lang={lang} />
         </Section>
 
         {/* Area */}

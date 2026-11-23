@@ -10,7 +10,8 @@ import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, MAX_STAFF, type StaffStatus } from "@/lib/vendor";
 import type { HomeStrings } from "@/lib/vendor-home-i18n";
-import type { Strings } from "@/lib/vendor-i18n";
+import { inLang } from "@/lib/err-lang";
+import type { Lang, Strings } from "@/lib/vendor-i18n";
 import { Err, Field, input, PhotoPick, Primary } from "./ui";
 
 interface Staff {
@@ -29,7 +30,7 @@ const BADGE: Record<StaffStatus, string> = {
 
 const EMPTY = { name: "", phone: "", aadhaar: "", card: null as File | null, face: null as File | null, consent: false };
 
-export function StaffSection({ t, h }: { t: Strings; h: HomeStrings }) {
+export function StaffSection({ t, h, lang }: { t: Strings; h: HomeStrings; lang: Lang }) {
   const s = h.staff;
   const [list, setList] = useState<Staff[] | null>(null);
   const [adding, setAdding] = useState(false);
@@ -54,6 +55,7 @@ export function StaffSection({ t, h }: { t: Strings; h: HomeStrings }) {
     run(async () => {
       if (f.name.trim().length < 2) throw new Error(s.errName);
       if (!isValid.mobile(f.phone)) throw new Error(t.errMobile);
+      if (!digitsOnly(f.aadhaar)) throw new Error(t.errAadhaarEmpty);
       if (!isValidAadhaar(f.aadhaar)) throw new Error(t.errAadhaar);
       if (!f.card || !f.face) throw new Error(t.errPhotos);
       if (!f.consent) throw new Error(t.errConsent);
@@ -118,7 +120,7 @@ export function StaffSection({ t, h }: { t: Strings; h: HomeStrings }) {
           <input type="checkbox" className="mt-1 size-5 accent-[var(--forest)]" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
           {s.consent}
         </label>
-        <Err msg={err} />
+        <Err msg={inLang(err, lang)} />
         <Primary busy={busy} t={t} onClick={save}>{s.save}</Primary>
         <button type="button" className="py-2 font-semibold text-muted underline" disabled={busy} onClick={() => { setAdding(false); setF(EMPTY); }}>
           {s.cancel}
@@ -152,7 +154,7 @@ export function StaffSection({ t, h }: { t: Strings; h: HomeStrings }) {
           </button>
         </div>
       ))}
-      <Err msg={err} />
+      <Err msg={inLang(err, lang)} />
       {list && list.length < MAX_STAFF && (
         <button
           type="button"
