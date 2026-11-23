@@ -34,6 +34,7 @@ export const T = {
     confirm: "Confirm",
     resend: "No code? Send again",
     errOtp: "That code is not right. Please try again.",
+    errNetwork: "No internet. Check the internet and try again.",
 
     shopTitle: "Business and area",
     shopName: "Business name (if any)",
@@ -120,6 +121,7 @@ export const T = {
     confirm: "নিশ্চিত কৰক",
     resend: "কোড অহা নাই? আকৌ পঠিয়াওক",
     errOtp: "কোডটো শুদ্ধ নহয়। আকৌ চেষ্টা কৰক।",
+    errNetwork: "ইণ্টাৰনেট নাই। ইণ্টাৰনেট চাই আকৌ চেষ্টা কৰক।",
 
     shopTitle: "ব্যৱসায় আৰু এলেকা",
     shopName: "ব্যৱসায়ৰ নাম (যদি আছে)",

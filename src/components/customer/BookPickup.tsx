@@ -10,7 +10,7 @@ import { btn } from "@/components/site/ui";
 import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, pickupDays, pickupNote, SCRAP_TYPES, slotsFor, takeDraft } from "@/lib/booking";
 import { shrink } from "@/lib/shrink-photo";
 import { LOCALITIES } from "@/lib/site-data";
-import { authedFetch, getSupabase, postJson } from "@/lib/supabase";
+import { authedFetch, getSupabase, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn, EASE_OUT } from "@/lib/utils";
 
@@ -112,7 +112,8 @@ export function BookPickup() {
       const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
-      const { data: pin } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
+      const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
+      if (pinErr) fail(NETWORK_ERR); // a dropped connection must not read as "we don't cover this pincode"
       if (!pin) fail("We don't cover this pincode yet. WhatsApp us and we'll try to help.");
 
       if (!savedPhone) {
@@ -131,7 +132,7 @@ export function BookPickup() {
           .insert({ profile_id: uid, label: "home", line1: fullLine, pincode: f.pin.trim(), is_default: true })
           .select("id")
           .single();
-        if (error) fail("Could not save your address. Please try again.");
+        if (error) fail(error.message.includes("fetch") ? NETWORK_ERR : "Could not save your address. Please try again.");
         addressId = data!.id;
       }
 
@@ -140,7 +141,9 @@ export function BookPickup() {
         .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, scrapText) })
         .select("id, code")
         .single();
-      if (error) fail("Could not book the pickup. Please try again.");
+      if (error?.hint === "open_limit") fail("You already have 3 pickups booked. You can book again when one is done.");
+      if (error?.hint === "daily_limit") fail("You have booked 5 pickups today. Please book again tomorrow.");
+      if (error) fail(error.message.includes("fetch") ? NETWORK_ERR : "Could not book the pickup. Please try again.");
 
       // The photo is a nice-to-have: the pickup is booked even if it fails to upload.
       let photoFailed = false;
@@ -204,7 +207,7 @@ export function BookPickup() {
             <h2 className="font-serif text-3xl text-navy">Book a pickup</h2>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field id="bp-name" label="Your name">
-                <input id="bp-name" className={field} autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} />
+                <input id="bp-name" className={field} autoComplete="name" maxLength={100} value={f.name} onChange={(e) => set("name", e.target.value)} />
               </Field>
               <Field id="bp-phone" label="Mobile number">
                 <input
@@ -221,7 +224,7 @@ export function BookPickup() {
                 />
               </Field>
               <Field id="bp-line1" label="House and street" wide>
-                <input id="bp-line1" className={field} autoComplete="street-address" placeholder="House 12, near the Namghar" value={f.line1} onChange={(e) => set("line1", e.target.value)} />
+                <input id="bp-line1" className={field} autoComplete="street-address" placeholder="House 12, near the Namghar" maxLength={200} value={f.line1} onChange={(e) => set("line1", e.target.value)} />
               </Field>
               <Field id="bp-area" label="Area in Jorhat">
                 <select id="bp-area" className={field} value={f.area} onChange={(e) => set("area", e.target.value)}>

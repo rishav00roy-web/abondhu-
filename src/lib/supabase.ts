@@ -12,13 +12,18 @@ export function getSupabase(): SupabaseClient | null {
   return client;
 }
 
+/** Shown when the phone has no internet, instead of the browser's "Failed to fetch". */
+export const NETWORK_ERR = "No internet. Please check your connection and try again.";
+
 /** fetch() to our own API with the signed-in user's token attached. */
 export async function authedFetch(path: string, init: RequestInit = {}) {
   const sb = getSupabase();
   const { data } = (await sb?.auth.getSession()) ?? { data: { session: null } };
   const headers = new Headers(init.headers);
   if (data.session) headers.set("Authorization", `Bearer ${data.session.access_token}`);
-  const res = await fetch(path, { ...init, headers });
+  const res = await fetch(path, { ...init, headers }).catch(() => {
+    throw new Error(NETWORK_ERR);
+  });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error ?? "Something went wrong. Please try again.");
   return body;

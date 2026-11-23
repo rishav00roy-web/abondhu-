@@ -56,12 +56,22 @@ export function Shell({ t, onLang, step, onBack, onLogout, children }: {
 
 export const Title = ({ children }: { children: ReactNode }) => <h1 className="text-2xl font-bold leading-snug text-navy">{children}</h1>;
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[17px] font-semibold text-ink">{label}</span>
+/**
+ * A labelled field. Wraps its input in a <label> so screen readers read the name out.
+ * Use `group` for a set of buttons or a photo picker (they can't sit inside a label).
+ */
+export function Field({ label, group, children }: { label: string; group?: boolean; children: ReactNode }) {
+  const text = <span className="text-[17px] font-semibold text-ink">{label}</span>;
+  return group ? (
+    <div role="group" aria-label={label} className="flex flex-col gap-2">
+      {text}
       {children}
     </div>
+  ) : (
+    <label className="flex flex-col gap-2">
+      {text}
+      {children}
+    </label>
   );
 }
 
@@ -89,7 +99,7 @@ export function PhotoPick({ label, file, onPick, t, front }: { label: string; fi
     if (url) URL.revokeObjectURL(url);
   }, [url]);
   return (
-    <Field label={label}>
+    <Field label={label} group>
       <label className={cn("relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-white font-semibold text-navy", file ? "border-forest" : "border-gold")}>
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element

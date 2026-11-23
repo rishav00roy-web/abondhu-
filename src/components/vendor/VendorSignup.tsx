@@ -3,7 +3,7 @@
 import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
-import { getSupabase, postJson } from "@/lib/supabase";
+import { getSupabase, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
@@ -81,10 +81,17 @@ export function VendorSignup() {
     const { data: s } = await sb.auth.getSession();
     const uid = s.session?.user.id;
     if (!uid) return;
-    const [{ data: p }, { data: v }] = await Promise.all([
+    const [{ data: p }, { data: v }, { data: pay }] = await Promise.all([
       sb.from("profiles").select("full_name, phone, email").eq("id", uid).single(),
-      sb.from("vendors").select("status, onboarding_step, application_code, rejection_reason, vendor_type").eq("id", uid).maybeSingle(),
+      sb
+        .from("vendors")
+        .select("status, onboarding_step, application_code, rejection_reason, vendor_type, business_name, vehicle_type, addresses(line1, pincode)")
+        .eq("id", uid)
+        .maybeSingle(),
+      sb.from("vendor_payout_accounts").select("method, upi_id, account_holder, account_number, ifsc").eq("vendor_id", uid).maybeSingle(),
     ]);
+    // What they already saved, so coming back (or fixing a rejected application) never means typing it all again.
+    const shop = (Array.isArray(v?.addresses) ? v.addresses[0] : v?.addresses) as { line1: string; pincode: string } | null | undefined;
     setF((prev) => ({
       ...prev,
       name: p?.full_name ?? prev.name,
@@ -93,6 +100,13 @@ export function VendorSignup() {
       // Signed in by email (e.g. from the email link) without a contact number yet.
       byEmail: prev.byEmail || (!!p?.email && !p?.phone),
       vendorType: (v?.vendor_type as VendorType) ?? prev.vendorType,
+      shopName: prev.shopName || v?.business_name || "",
+      address: prev.address || shop?.line1 || "",
+      pincode: prev.pincode || shop?.pincode || "",
+      vehicle: prev.vehicle ?? (v?.vehicle_type as Vehicle | null) ?? null,
+      ...(pay && !prev.upiId && !prev.account
+        ? { payMethod: pay.method, upiId: pay.upi_id ?? "", holder: pay.account_holder ?? "", account: pay.account_number ?? "", ifsc: pay.ifsc ?? "" }
+        : {}),
     }));
     if (!v) {
       setScreen(1);
@@ -165,7 +179,8 @@ export function VendorSignup() {
     run(async () => {
       if (f.address.trim().length < 5) fail(t.errAddress);
       if (!f.vehicle) fail(t.errVehicle);
-      const { data: pin } = await sb!.from("pincodes").select("pincode").eq("pincode", f.pincode).eq("is_active", true).maybeSingle();
+      const { data: pin, error: pinErr } = await sb!.from("pincodes").select("pincode").eq("pincode", f.pincode).eq("is_active", true).maybeSingle();
+      if (pinErr) fail(NETWORK_ERR);
       if (!pin) fail(t.errPincode);
       const id = await uid();
       // Coming back to this step edits the same shop address and area instead of adding more.
@@ -252,6 +267,8 @@ export function VendorSignup() {
   if (booting) return <Shell t={t} onLang={toggleLang}><Loader2 className="mx-auto size-8 animate-spin text-forest" /></Shell>;
 
   const stepNo = Math.min(screen, 6);
+  // No internet shows in the vendor's language, not as the browser's "Failed to fetch".
+  const errMsg = err === NETWORK_ERR || err.includes("Failed to fetch") ? t.errNetwork : err;
   const back = screen > 3 && screen < 7 ? () => setScreen((screen - 1) as Screen) : screen === 2 ? () => setScreen(1) : undefined;
 
   return (
@@ -260,7 +277,7 @@ export function VendorSignup() {
         <>
           <Title>{t.aboutTitle}</Title>
           <Field label={t.name}>
-            <input className={input} value={f.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" />
+            <input className={input} value={f.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" maxLength={100} />
           </Field>
           <Field label={t.mobile}>
             <div className={cn(input, "flex items-center gap-2")}>
@@ -289,14 +306,14 @@ export function VendorSignup() {
               <span className="rounded-full bg-sand px-2 py-0.5 text-xs font-bold text-navy">{t.comingSoon}</span>
             </button>
           )}
-          <Field label={t.whoAreYou}>
+          <Field label={t.whoAreYou} group>
             <div className="grid grid-cols-3 gap-3">
               <Tile on={f.vendorType === "individual_collector"} onClick={() => set("vendorType", "individual_collector")} icon={<User />} label={t.collector} />
               <Tile on={f.vendorType === "scrap_shop"} onClick={() => set("vendorType", "scrap_shop")} icon={<Store />} label={t.shop} />
               <Tile on={f.vendorType === "recycler"} onClick={() => set("vendorType", "recycler")} icon={<Recycle />} label={t.recycler} />
             </div>
           </Field>
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={sendOtp}>{t.next}</Primary>
         </>
       )}
@@ -319,7 +336,7 @@ export function VendorSignup() {
           <button type="button" className="text-center font-semibold text-forest underline" onClick={sendOtp} disabled={busy}>
             {t.resend}
           </button>
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={verifyOtp} disabled={f.otp.length !== 6}>{t.confirm}</Primary>
         </>
       )}
@@ -328,15 +345,15 @@ export function VendorSignup() {
         <>
           <Title>{t.shopTitle}</Title>
           <Field label={t.shopName}>
-            <input className={input} value={f.shopName} onChange={(e) => set("shopName", e.target.value)} />
+            <input className={input} value={f.shopName} onChange={(e) => set("shopName", e.target.value)} maxLength={100} />
           </Field>
           <Field label={t.address}>
-            <textarea className={cn(input, "h-auto min-h-20 py-3")} rows={2} value={f.address} onChange={(e) => set("address", e.target.value)} autoComplete="street-address" />
+            <textarea className={cn(input, "h-auto min-h-20 py-3")} rows={2} maxLength={250} value={f.address} onChange={(e) => set("address", e.target.value)} autoComplete="street-address" />
           </Field>
           <Field label={t.pincode}>
             <input className={input} inputMode="numeric" value={f.pincode} onChange={(e) => set("pincode", digitsOnly(e.target.value).slice(0, 6))} autoComplete="postal-code" />
           </Field>
-          <Field label={t.vehicle}>
+          <Field label={t.vehicle} group>
             <div className="grid grid-cols-2 gap-3">
               <Tile row on={f.vehicle === "cycle"} onClick={() => set("vehicle", "cycle")} icon={<Bike />} label={t.cycle} />
               <Tile row on={f.vehicle === "cart"} onClick={() => set("vehicle", "cart")} icon={<ShoppingCart />} label={t.cart} />
@@ -344,7 +361,7 @@ export function VendorSignup() {
               <Tile row on={f.vehicle === "truck"} onClick={() => set("vehicle", "truck")} icon={<Truck />} label={t.truck} />
             </div>
           </Field>
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={saveShop}>{t.next}</Primary>
         </>
       )}
@@ -369,7 +386,7 @@ export function VendorSignup() {
             <input type="checkbox" className="mt-1 size-5 accent-[var(--forest)]" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
             {t.consent}
           </label>
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={saveAadhaar}>{t.next}</Primary>
         </>
       )}
@@ -378,7 +395,7 @@ export function VendorSignup() {
         <>
           <Title>{t.payTitle}</Title>
           <PhotoPick label={t.shopPhoto} file={f.shopPhoto} onPick={(x) => set("shopPhoto", x)} t={t} />
-          <Field label={t.payWhere}>
+          <Field label={t.payWhere} group>
             <div className="grid grid-cols-2 gap-3">
               <Tile row on={f.payMethod === "upi"} onClick={() => set("payMethod", "upi")} label={t.upi} />
               <Tile row on={f.payMethod === "bank"} onClick={() => set("payMethod", "bank")} label={t.bank} />
@@ -391,7 +408,7 @@ export function VendorSignup() {
           ) : (
             <>
               <Field label={t.holder}>
-                <input className={input} value={f.holder} onChange={(e) => set("holder", e.target.value)} />
+                <input className={input} value={f.holder} onChange={(e) => set("holder", e.target.value)} maxLength={100} />
               </Field>
               <Field label={t.account}>
                 <input className={input} inputMode="numeric" value={f.account} onChange={(e) => set("account", digitsOnly(e.target.value).slice(0, 18))} />
@@ -401,7 +418,7 @@ export function VendorSignup() {
               </Field>
             </>
           )}
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={savePayment}>{t.next}</Primary>
         </>
       )}
@@ -418,7 +435,7 @@ export function VendorSignup() {
             {f.aadhaar && <Row k={t.aadhaarNo} v={maskAadhaar(f.aadhaar)} />}
             {(f.upiId || f.account) && <Row k={t.payWhere} v={f.payMethod === "upi" ? f.upiId : `${t.bank} …${f.account.slice(-4)}`} />}
           </dl>
-          <Err msg={err} />
+          <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={submit}>{t.send}</Primary>
         </>
       )}
@@ -444,7 +461,7 @@ export function VendorSignup() {
               <p className="text-muted">
                 {t.rejectedHint} {status.reason}
               </p>
-              <Err msg={err} />
+              <Err msg={errMsg} />
               <Primary busy={busy} t={t} onClick={fixAgain}>{t.fix}</Primary>
             </>
           )}
