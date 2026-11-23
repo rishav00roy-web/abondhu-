@@ -25,7 +25,7 @@ function checkVendor(): Promise<boolean> {
 }
 
 /**
- * "Become a vendor" link that turns into "Visit your dashboard" (to /partner)
+ * "Become a dealer" link that turns into "Visit your dashboard" (to /partner)
  * for someone already signed up as a vendor.
  */
 export function VendorLink({ className, onClick, children, ...rest }: {
@@ -44,7 +44,7 @@ export function VendorLink({ className, onClick, children, ...rest }: {
   }, []);
   return (
     <Link href={isVendor ? "/partner" : "/vendor"} className={className} onClick={onClick} {...rest}>
-      {isVendor ? "Visit your dashboard" : "Become a vendor"} {children}
+      {isVendor ? "Visit your dashboard" : "Become a dealer"} {children}
     </Link>
   );
 }

@@ -19,12 +19,12 @@ export function Hero() {
           <div className="hero-rise" style={delay(0)}>
             <span className="inline-flex items-center gap-2 rounded-full border border-forest/30 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-forest sm:text-xs">
               <Recycle className="size-4" strokeWidth={2} aria-hidden />
-              Doorstep scrap pickup in Jorhat
+              Scrap pickup across India
             </span>
           </div>
           <div className="hero-rise" style={delay(0.08)}><WasteToWealth /></div>
           <p className="hero-rise max-w-[34ch] text-lg font-light leading-relaxed text-muted sm:text-xl" style={delay(0.16)}>
-            We buy your scrap at your door in Jorhat and pay on the spot.
+            We connect you with a verified scrap dealer near you, who buys your scrap at your door and pays on the spot.
           </p>
           <div className="hero-rise flex w-full flex-col gap-5 pt-1 sm:w-auto sm:flex-row sm:items-center sm:gap-8" style={delay(0.24)}>
             <Link href="/account" className={cn(btn.base, btn.primary)}>

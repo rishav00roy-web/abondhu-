@@ -81,7 +81,7 @@ export function ProcessRing({ className }: { className?: string }) {
           <Recycle className="size-[clamp(32px,7vw,52px)]" strokeWidth={1.6} />
         </span>
         <span className="mt-2 font-serif text-[clamp(18px,3.4vw,26px)] text-navy sm:mt-3">Waste to wealth</span>
-        <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-forest sm:text-[11px]">Jorhat</span>
+        <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-forest sm:text-[11px]">Across India</span>
       </div>
 
       {/* step words in the four corners, a real list for screen readers */}

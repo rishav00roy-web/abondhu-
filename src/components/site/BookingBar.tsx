@@ -52,7 +52,7 @@ export function BookingBar() {
 
   const message =
     error === "pin"
-      ? "We only pick up in Jorhat for now. Enter a 6-digit pincode starting with 785."
+      ? "Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785."
       : error === "phone"
         ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."
         : "No charge for pickup. Next, log in with Google or your phone to confirm.";
@@ -63,7 +63,7 @@ export function BookingBar() {
         <Reveal className="grid content-start gap-5">
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
-            Anywhere in Jorhat town, every day of the week. Pick your area and a day, and we call you to confirm a time.
+            Pickups are open in Jorhat now, with more cities joining as dealers sign up. Pick your area and a day, and we call you to confirm a time with a dealer near you.
           </p>
         </Reveal>
 

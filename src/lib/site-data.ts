@@ -1,6 +1,6 @@
 export type Unit = "kg" | "pc";
 
-/** What we buy, with sample starting rates for Jorhat. */
+/** What dealers buy, with sample starting rates (Jorhat for now). */
 export const BUY: { id: string; name: string; price: number; unit: Unit; examples: string }[] = [
   { id: "paper", name: "Newspaper and books", price: 12, unit: "kg", examples: "Papers, copies, magazines" },
   { id: "cardboard", name: "Cardboard", price: 10, unit: "kg", examples: "Cartons and boxes" },
@@ -10,7 +10,7 @@ export const BUY: { id: string; name: string; price: number; unit: Unit; example
   { id: "appliance", name: "Fridges, ACs, washers", price: 900, unit: "pc", examples: "Any condition" },
 ];
 
-/** Jorhat only for now. Localities the vans cover every day (mock list). */
+/** Bookings are open in Jorhat only for now. Localities covered every day (mock list). */
 export const LOCALITIES = [
   "Gar-Ali",
   "AT Road",
@@ -28,12 +28,16 @@ export const PIN_RE = /^785\d{3}$/;
 
 export const FAQS = [
   {
+    q: "Does Abondhu buy my scrap?",
+    a: "No. Abondhu is a free service that connects you with a verified scrap dealer near you. The dealer weighs your scrap in front of you, buys it and pays you directly.",
+  },
+  {
     q: "Where does my scrap actually go?",
-    a: "Paper goes to a paper mill, metal to a foundry, plastic to a pelletising unit and appliances to an authorised e-waste recycler. Every partner is licensed, and nothing is burnt, buried or dumped.",
+    a: "Dealers send paper to a paper mill, metal to a foundry, plastic to a pelletising unit and appliances to an authorised e-waste recycler. Nothing is burnt, buried or dumped.",
   },
   {
     q: "Which areas do you cover?",
-    a: "Jorhat town only for now, every day: Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and the areas around them. If your pincode starts with 785 and you are in town, we come to you.",
+    a: "Abondhu is for all of India, and opens city by city as dealers join. Pickups are open in Jorhat now, every day: Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and the areas around them. Elsewhere? WhatsApp us and we will tell you when your area opens.",
   },
   {
     q: "Is there a minimum quantity?",
@@ -41,7 +45,7 @@ export const FAQS = [
   },
   {
     q: "How do I know the weight is right?",
-    a: "Every partner carries a calibrated digital scale. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
+    a: "Every dealer carries a calibrated digital scale. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
   },
   {
     q: "What don't you take?",
@@ -49,6 +53,6 @@ export const FAQS = [
   },
   {
     q: "Do you work with shops and tea estates?",
-    a: "Yes. We collect cartons, gunny bags, machinery scrap, drums and old electricals from shops, offices and estates around Jorhat on a fixed schedule, with a weight report and GST invoice.",
+    a: "Yes. We can match you with a dealer who collects cartons, gunny bags, machinery scrap, drums and old electricals from shops, offices and tea estates on a fixed schedule, with a weight report.",
   },
 ];
