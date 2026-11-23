@@ -59,6 +59,7 @@ export const T = {
     consent: "I agree that Abondhu keeps my Aadhaar safely (encrypted) to check who I am.",
     errAadhaar: "This Aadhaar number is not correct. Check all 12 digits on the card, one may be typed wrong.",
     errPhotos: "Please add all 3 photos.",
+    errPhotoType: "This photo can't be used. Please take a new photo with the camera.",
     errConsent: "Please tick the box to agree.",
 
     payTitle: "Photo and payment",
@@ -146,6 +147,7 @@ export const T = {
     consent: "মোৰ পৰিচয় নিশ্চিত কৰিবলৈ Abondhu এ মোৰ আধাৰ সুৰক্ষিতভাৱে (এনক্ৰিপ্ট কৰি) ৰাখিব, ইয়াত মই সন্মত।",
     errAadhaar: "আধাৰ নম্বৰটো শুদ্ধ নহয়। কাৰ্ডৰ ১২টা সংখ্যা আকৌ চাওক, এটা ভুল হ’ব পাৰে।",
     errPhotos: "তিনিওখন ফটো দিয়ক।",
+    errPhotoType: "এই ফটোখন ব্যৱহাৰ কৰিব নোৱাৰি। কেমেৰাৰে নতুন ফটো তুলক।",
     errConsent: "সন্মতিৰ বাকচত টিক দিয়ক।",
 
     payTitle: "ফটো আৰু টকা",
