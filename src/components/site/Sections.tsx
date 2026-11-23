@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { FAQS } from "@/lib/site-data";
+import { FAQS, WORKING_HOURS } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";
@@ -123,7 +123,7 @@ export function Faq() {
         <Reveal className="grid content-start gap-3">
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
-            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, 8am to 8pm.
+            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, {WORKING_HOURS}.
           </p>
         </Reveal>
         <div className="divide-y divide-navy/10 border-y border-navy/10">
@@ -213,7 +213,7 @@ export function Footer() {
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Contact</p>
           <div className="grid gap-3 text-sm font-light text-white/70">
             <span>WhatsApp <span className="tabular font-medium text-white">+91 91813 30755</span></span>
-            <span>8am to 8pm, every day</span>
+            <span>{WORKING_HOURS}, every day</span>
             <span>Jorhat, Assam</span>
           </div>
         </div>

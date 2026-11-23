@@ -26,6 +26,10 @@ export const LOCALITIES = [
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 
+/** Opening hours, shown in the FAQ, the booking form and the footer. Change them here only. */
+export const PICKUP_HOURS = "[pickup hours to confirm]";
+export const WORKING_HOURS = "[working hours to confirm]";
+
 /**
  * Customer questions, shown in the FAQ section and sent to Google as FAQPage data.
  * Text in [square brackets] is a fact still to be confirmed by the team: replace it before going live.
@@ -53,11 +57,11 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Is there a minimum quantity?",
-    a: "[Minimum weight to confirm]. A single large item such as a fridge, AC or washing machine is always enough on its own.",
+    a: "No, there is no minimum for now. Book a pickup for whatever you have, big or small.",
   },
   {
     q: "Which areas do you cover, and when?",
-    a: "Jorhat town only for now, including Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and nearby areas. Pickups run [pickup days and hours to confirm], usually the same or next day.",
+    a: `Jorhat town only for now, including Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and nearby areas. Pickups run every day, ${PICKUP_HOURS}, usually the same or next day. You can reach us on WhatsApp ${WORKING_HOURS}.`,
   },
   {
     q: "Can I change or cancel my pickup?",

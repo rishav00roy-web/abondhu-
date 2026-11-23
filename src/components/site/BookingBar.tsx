@@ -4,7 +4,7 @@ import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { dayLabel, pickupDays, saveDraft } from "@/lib/booking";
-import { LOCALITIES, PIN_RE } from "@/lib/site-data";
+import { LOCALITIES, PICKUP_HOURS, PIN_RE } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, serifTitle } from "./ui";
@@ -65,7 +65,7 @@ export function BookingBar() {
         <Reveal className="grid content-start gap-5">
           <h2 className={serifTitle}>Book a pickup</h2>
           <p className="max-w-[40ch] font-light leading-relaxed text-muted">
-            Anywhere in Jorhat town, every day of the week. Pick your area and a day, and we call you to confirm a time.
+            Anywhere in Jorhat town, every day of the week. Pickups run {PICKUP_HOURS}. Pick your area and a day, and we call you to confirm a time.
           </p>
         </Reveal>
 
