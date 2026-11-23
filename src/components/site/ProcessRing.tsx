@@ -92,7 +92,7 @@ export function ProcessRing({ className }: { className?: string }) {
             className={cn("hero-up absolute flex flex-col gap-1.5 sm:gap-2", s.place, s.align)}
             style={delay(0.6 + i * 0.14)}
           >
-            <span className="grid size-6 place-items-center rounded-full bg-navy font-mono text-[11px] text-gold sm:size-7 sm:text-xs" aria-hidden>
+            <span className="grid size-6 place-items-center rounded-full bg-navy text-[11px] font-semibold text-gold sm:size-7 sm:text-xs" aria-hidden>
               {i + 1}
             </span>
             <span className="font-serif text-lg font-semibold text-navy sm:text-2xl">{s.word}</span>
