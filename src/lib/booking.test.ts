@@ -37,3 +37,12 @@ test("pincode and mobile checks", () => {
   assert.ok(isMobile("98640 12345"));
   assert.ok(!isMobile("12345 67890"));
 });
+
+test("dealer alert has no address and links to the dealer home; WhatsApp link is ready to send", async () => {
+  const { alertText, placeLabel, whatsappLink } = await import("./dealer-alert.ts");
+  const text = alertText({ place: placeLabel("785001", "Gar-Ali"), note: "Preferred: Tue 24 Nov, 9 AM to 12 PM. Plastic", code: "AB-1", siteUrl: "https://abondhu.com" });
+  assert.match(text, /^New pickup near you: Gar-Ali, 785001\.\nPreferred: Tue 24 Nov/);
+  assert.match(text, /https:\/\/abondhu\.com\/partner/);
+  assert.doesNotMatch(alertText({ place: "785001", note: null, code: "AB-1", siteUrl: "x" }), /\n\n\n/);
+  assert.equal(whatsappLink("+91 98640 12345", "Hi there"), "https://wa.me/919864012345?text=Hi%20there");
+});

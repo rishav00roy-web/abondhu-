@@ -26,6 +26,9 @@ export const LOCALITIES = [
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 
+/** The live site address, used in emails and links. */
+export const SITE_URL = "https://abondhu.com";
+
 /** Pickup and working hours, shown in the FAQ, the booking section and the footer. Change them here only. */
 export const HOURS = "Monday to Saturday, 9 AM to 6 PM";
 

@@ -150,6 +150,8 @@ export function BookPickup() {
         fd.append("file", await shrink(f.photo));
         photoFailed = await authedFetch("/api/pickup/photo", { method: "POST", body: fd }).then(() => false, () => true);
       }
+      // Tell the dealers who cover this pincode. If this fails, admin sees the pickup waiting and calls one.
+      await postJson("/api/pickup/notify", { pickupId: pickup!.id }).catch(() => {});
       setBooked({ code: pickup!.code, photoFailed });
       setF((p) => ({ ...p, scrap: "", other: "", photo: null }));
       await load();

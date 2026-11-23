@@ -5,7 +5,7 @@ import { helpLink, maskPayout, monthStats, rupees, splitPickups, type PickupLite
 
 const p = (id: string, status: PickupLite["status"], extra: Partial<PickupLite> = {}): PickupLite => ({
   id, code: `AB-${id}`, status, pincode: "785001", requested_at: "2026-11-01T10:00:00Z", completed_at: null,
-  total_weight_kg: null, slot_date: null, start_time: null, address: null, note: null, ...extra,
+  total_weight_kg: null, slot_date: null, start_time: null, address: null, note: null, photo: null, mine: true, ...extra,
 });
 
 test("splitPickups keeps active ones soonest first and finished ones newest first", () => {
@@ -19,6 +19,17 @@ test("splitPickups keeps active ones soonest first and finished ones newest firs
   ]);
   assert.deepEqual(upcoming.map((x) => x.id), ["soon", "late"]);
   assert.deepEqual(done.map((x) => x.id), ["new", "old"]);
+});
+
+test("splitPickups lists open pickups in the area to accept, oldest first", () => {
+  const { nearby, upcoming } = splitPickups([
+    p("b", "requested", { mine: false, requested_at: "2026-11-02T10:00:00Z" }),
+    p("a", "requested", { mine: false, requested_at: "2026-11-01T10:00:00Z" }),
+    p("taken", "accepted", { mine: false }),
+    p("own", "accepted"),
+  ]);
+  assert.deepEqual(nearby.map((x) => x.id), ["a", "b"]);
+  assert.deepEqual(upcoming.map((x) => x.id), ["own"]);
 });
 
 test("monthStats counts this month only and reads numeric strings", () => {

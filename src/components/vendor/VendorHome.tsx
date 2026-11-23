@@ -1,10 +1,10 @@
 "use client";
 
 // Home screen for an approved vendor: who they are, their pickups, their area and help.
-// Vendors can add their workers here; other actions (accept, weigh, pay) arrive one by one in later releases.
+// Vendors accept new pickups in their area and add their workers here; weigh and pay arrive in later releases.
 import { motion, MotionConfig } from "framer-motion";
 import {
-  BadgeCheck, CalendarClock, CheckCircle2, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Users, Wallet,
+  BadgeCheck, BellRing, CalendarClock, Check, CheckCircle2, Image as ImageIcon, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Users, Wallet,
 } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase";
@@ -42,8 +42,9 @@ async function load(): Promise<Data> {
     sb.from("vendor_service_areas").select("pincode, pincodes(area_name)").eq("vendor_id", uid),
     sb
       .from("pickups")
-      .select("id, code, status, pincode, requested_at, completed_at, total_weight_kg, customer_note, pickup_slots(slot_date, start_time), addresses(line1, landmark)")
-      .eq("vendor_id", uid) // RLS also shows open pickups in the area; this home lists only the vendor's own
+      .select("id, code, status, vendor_id, pincode, requested_at, completed_at, total_weight_kg, customer_note, pickup_slots(slot_date, start_time), addresses(line1, landmark), pickup_photos(storage_path)")
+      // Own pickups, plus open ones in the vendor's area (RLS shows only those; their address stays hidden until accepted).
+      .or(`vendor_id.eq.${uid},status.eq.requested`)
       .order("requested_at", { ascending: false })
       .limit(200),
     sb.from("vendor_payouts").select("amount, status, paid_at").eq("vendor_id", uid).limit(200),
@@ -72,6 +73,8 @@ async function load(): Promise<Data> {
         completed_at: p.completed_at, total_weight_kg: p.total_weight_kg, note: p.customer_note,
         slot_date: slot?.slot_date ?? null, start_time: slot?.start_time ?? null,
         address: addr ? [addr.line1, addr.landmark].filter(Boolean).join(", ") : null,
+        photo: (p.pickup_photos as { storage_path: string }[] | null)?.[0]?.storage_path ?? null,
+        mine: p.vendor_id === uid,
       };
     }),
     payouts: (pays.data ?? []) as PayoutLite[],
@@ -84,6 +87,8 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
   const [data, setData] = useState<Data | null>(null);
   const [failed, setFailed] = useState(false);
 
+  const [taking, setTaking] = useState<string | null>(null); // id of the pickup being accepted
+  const [notice, setNotice] = useState("");
   const fetchData = useCallback(() => load().then(setData, () => setFailed(true)), []);
   useEffect(() => {
     fetchData();
@@ -103,7 +108,24 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
   }
   if (!data) return <Loader2 className="mx-auto mt-10 size-8 animate-spin text-forest" aria-label={t.wait} />;
 
-  const { upcoming, done } = splitPickups(data.pickups);
+  const { nearby, upcoming, done } = splitPickups(data.pickups);
+  const areaName = (pin: string) => data.areas.find((a) => a.pincode === pin)?.area;
+
+  // First dealer to accept gets it; the database refuses everyone after that.
+  const accept = async (id: string) => {
+    setTaking(id);
+    setNotice("");
+    const { error } = await getSupabase()!.rpc("accept_pickup", { p_id: id });
+    if (error) setNotice(h.taken);
+    await fetchData();
+    setTaking(null);
+  };
+  const openPhoto = async (path: string) => {
+    const w = window.open("about:blank", "_blank");
+    const { data: link } = await getSupabase()!.storage.from("pickup-photos").createSignedUrl(path, 300);
+    if (w && link) w.location.href = link.signedUrl;
+    else w?.close();
+  };
   const stats = monthStats(data.pickups, data.payouts);
   const vehicle = data.vehicle && data.vehicle in t ? t[data.vehicle as "cycle" | "cart" | "auto" | "truck"] : data.vehicle;
   const locale = lang === "as" ? "as-IN" : "en-IN";
@@ -140,6 +162,25 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
           <Stat icon={<Wallet />} value={rupees(stats.paid)} label={h.paid} />
         </motion.div>
 
+        {/* New pickups in the vendor's area, open to every dealer there */}
+        {(nearby.length > 0 || notice) && (
+          <Section icon={<BellRing />} title={h.nearby} count={nearby.length}>
+            <p className="px-1 text-muted">{notice || h.nearbyHint}</p>
+            {nearby.map((p) => (
+              <Card key={p.id} className="flex flex-col gap-3 border-2 border-gold">
+                <p className="flex gap-2 text-xl font-bold text-navy">
+                  <MapPin className="mt-1 size-5 shrink-0 text-gold" />
+                  <span>{areaName(p.pincode) ?? p.pincode}<span className="font-normal text-muted"> · {p.pincode}</span></span>
+                </p>
+                {p.note && <p className="rounded-xl bg-sunk px-3 py-2 text-muted">“{p.note}”</p>}
+                <BigButton onClick={() => accept(p.id)} disabled={taking !== null} className="bg-forest text-white">
+                  {taking === p.id ? <Loader2 className="size-6 animate-spin" /> : <Check className="size-6" />} {h.accept}
+                </BigButton>
+              </Card>
+            ))}
+          </Section>
+        )}
+
         {/* Pickups to do */}
         <Section icon={<CalendarClock />} title={h.pickups} count={upcoming.length}>
           {upcoming.length === 0 ? (
@@ -159,6 +200,11 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
                 </p>
                 {p.note && <p className="rounded-xl bg-sunk px-3 py-2 text-muted">“{p.note}”</p>}
                 <p className="font-mono text-sm text-faint">{p.code}</p>
+                {p.photo && (
+                  <BigButton onClick={() => openPhoto(p.photo!)} className="border-2 border-line bg-white text-navy">
+                    <ImageIcon className="size-6" /> {h.scrapPhoto}
+                  </BigButton>
+                )}
                 {p.address && (
                   <BigButton href={mapsLink(p.address, p.pincode)} className="bg-navy text-white">
                     <Navigation className="size-6" /> {h.directions}
@@ -283,8 +329,8 @@ const Line = ({ k, v }: { k: string; v: string }) => (
   </div>
 );
 
-function BigButton({ href, onClick, className, children }: { href?: string; onClick?: () => void; className: string; children: ReactNode }) {
-  const cls = cn("flex h-16 items-center justify-center gap-2 rounded-2xl px-4 text-lg font-bold transition-transform active:scale-[0.98]", className);
+function BigButton({ href, onClick, disabled, className, children }: { href?: string; onClick?: () => void; disabled?: boolean; className: string; children: ReactNode }) {
+  const cls = cn("flex h-16 items-center justify-center gap-2 rounded-2xl px-4 text-lg font-bold transition-transform active:scale-[0.98] disabled:opacity-60", className);
   if (href) {
     const external = href.startsWith("http");
     return (
@@ -293,7 +339,7 @@ function BigButton({ href, onClick, className, children }: { href?: string; onCl
       </a>
     );
   }
-  return <button type="button" onClick={onClick} className={cls}>{children}</button>;
+  return <button type="button" onClick={onClick} disabled={disabled} className={cls}>{children}</button>;
 }
 
 // ---- dates ----
