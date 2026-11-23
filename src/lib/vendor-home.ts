@@ -16,6 +16,8 @@ export interface PickupLite {
   start_time: string | null; // hh:mm:ss
   address: string | null;
   note: string | null;
+  photo: string | null; // storage path of the customer's scrap photo, if any
+  mine: boolean; // false = an open pickup in the vendor's area, not taken yet
 }
 
 export interface PayoutLite {
@@ -30,14 +32,16 @@ export const HELP_PHONE = "919181330755";
 const ACTIVE: PickupStatus[] = ["assigned", "accepted", "on_the_way", "weighed"];
 const num = (v: number | string | null | undefined) => (v == null ? 0 : Number(v) || 0);
 
-/** Pickups still to do (soonest first) and finished ones (newest first). */
+/** Open pickups nearby to accept (oldest first), the vendor's own still to do (soonest first) and finished (newest first). */
 export function splitPickups(pickups: PickupLite[]) {
   const when = (p: PickupLite) => (p.slot_date ? `${p.slot_date}T${p.start_time ?? "00:00:00"}` : p.requested_at);
-  const upcoming = pickups.filter((p) => ACTIVE.includes(p.status)).sort((a, b) => when(a).localeCompare(when(b)));
-  const done = pickups
+  const nearby = pickups.filter((p) => !p.mine && p.status === "requested").sort((a, b) => a.requested_at.localeCompare(b.requested_at));
+  const mine = pickups.filter((p) => p.mine);
+  const upcoming = mine.filter((p) => ACTIVE.includes(p.status)).sort((a, b) => when(a).localeCompare(when(b)));
+  const done = mine
     .filter((p) => p.status === "completed")
     .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
-  return { upcoming, done };
+  return { nearby, upcoming, done };
 }
 
 /** Pickups finished and kg collected this calendar month (local time), and money paid out so far. */

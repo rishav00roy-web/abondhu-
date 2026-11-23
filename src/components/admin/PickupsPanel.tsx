@@ -1,7 +1,8 @@
 "use client";
 
 // Admin: pickups customers have booked that are not finished yet, newest first.
-// Read-only for now; giving a pickup to a vendor comes in a later release.
+// Every dealer covering the pincode is told about a new pickup; the first to accept takes it.
+// One still waiting after an hour is flagged so the team can call a dealer.
 import { Eye, Phone, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
@@ -21,10 +22,14 @@ interface Row {
 }
 
 const OPEN = ["requested", "assigned", "accepted", "on_the_way", "weighed"];
+const HOUR = 60 * 60 * 1000;
+/** True when nobody has accepted the pickup within an hour of booking. */
+const unclaimed = (p: Row, now: number) => p.status === "requested" && now - new Date(p.requested_at).getTime() > HOUR;
 
 export function PickupsPanel({ version }: { version: number }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState("");
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     const sb = getSupabase();
@@ -53,7 +58,10 @@ export function PickupsPanel({ version }: { version: number }) {
           {rows.map((p) => (
             <li key={p.id} className="grid gap-1 rounded-lg border border-line p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono font-semibold text-navy">{p.code}</span>
+                <span className="flex items-center gap-2">
+                  <span className="font-mono font-semibold text-navy">{p.code}</span>
+                  {unclaimed(p, now) && <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-danger">No dealer yet</span>}
+                </span>
                 <span className="text-xs text-muted">
                   {new Date(p.requested_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
                 </span>
