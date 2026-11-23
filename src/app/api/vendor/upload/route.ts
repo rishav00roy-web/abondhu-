@@ -1,22 +1,17 @@
 import { errorResponse, HttpError, requireEditableVendor, supabaseAdmin } from "@/lib/server/supabase-admin";
+import { photoFrom, PHOTO_EXT } from "@/lib/server/photo";
 import { PHOTO_TYPES, type PhotoType } from "@/lib/vendor";
 
 export const runtime = "nodejs";
-
-const MAX_BYTES = 5 * 1024 * 1024;
 
 /** Vendor uploads one photo. Stored in the private vendor-docs bucket under their own folder. */
 export async function POST(req: Request) {
   try {
     const user = await requireEditableVendor(req);
     const form = await req.formData();
-    const file = form.get("file");
     const docType = String(form.get("doc_type")) as PhotoType;
-
     if (!PHOTO_TYPES.includes(docType)) throw new HttpError(400, "Unknown photo type.");
-    if (!(file instanceof File) || file.size === 0) throw new HttpError(400, "Please choose a photo.");
-    if (file.size > MAX_BYTES) throw new HttpError(400, "Photo is too large (max 5 MB).");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new HttpError(400, "Please upload a photo (JPG or PNG).");
+    const file = photoFrom(form, "file");
 
     const db = supabaseAdmin();
 
@@ -27,8 +22,7 @@ export async function POST(req: Request) {
       await db.from("vendor_documents").delete().in("id", old.map((d) => d.id));
     }
 
-    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const path = `${user.id}/${docType}-${Date.now()}.${ext}`;
+    const path = `${user.id}/${docType}-${Date.now()}.${PHOTO_EXT[file.type]}`;
     const up = await db.storage.from("vendor-docs").upload(path, file, { contentType: file.type, upsert: false });
     if (up.error) throw up.error;
 

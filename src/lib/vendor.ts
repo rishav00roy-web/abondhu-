@@ -6,7 +6,7 @@ export type VendorType = "individual_collector" | "scrap_shop" | "recycler";
 export type Vehicle = "cycle" | "cart" | "auto" | "truck";
 
 /** Photos a vendor can upload during sign-up. */
-export const PHOTO_TYPES = ["selfie", "aadhaar_photo", "shop_photo"] as const;
+export const PHOTO_TYPES = ["selfie", "aadhaar_photo", "aadhaar_back", "shop_photo"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];
 
 /** Workers a vendor sends on pickups. An admin checks each one. */

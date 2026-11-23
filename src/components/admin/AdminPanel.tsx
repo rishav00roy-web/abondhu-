@@ -4,6 +4,7 @@ import { MotionConfig } from "framer-motion";
 import { Check, ExternalLink, Eye, Loader2, LogOut, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase, postJson } from "@/lib/supabase";
+import { openPhoto } from "./open-photo";
 import { useAction } from "@/lib/use-action";
 import { isValid, type VendorStatus } from "@/lib/vendor";
 import { PickupsPanel } from "./PickupsPanel";
@@ -232,12 +233,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       await reload();
     });
 
-  const openDoc = (path: string) =>
-    act(async () => {
-      const w = window.open("about:blank", "_blank");
-      const { url } = await postJson("/api/admin/doc-url", { path });
-      if (w) w.location.href = url;
-    });
+  const openDoc = (path: string) => act(() => openPhoto(path));
 
   const reveal = () =>
     act(async () => {
@@ -255,8 +251,8 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         <Item k="Phone" v={v.profile?.phone} />
         {v.profile?.email && <Item k="Email" v={v.profile.email} />}
-        <Item k="Type / vehicle" v={[v.vendor_type?.replaceAll("_", " "), v.vehicle_type].filter(Boolean).join(" · ")} />
-        <Item k="Shop" v={v.business_name} />
+        <Item k="Type / vehicle" v={[(v.vendor_type === "scrap_shop" ? "scrap dealer" : v.vendor_type?.replaceAll("_", " ")), v.vehicle_type].filter(Boolean).join(" · ")} />
+        <Item k="Business name" v={v.business_name} />
         <Item k="Address" v={v.address ? `${v.address.line1}, ${v.address.pincode}` : null} />
         <Item k="Aadhaar" v={aadhaar ?? (v.kyc[0]?.aadhaar_last4 ? `XXXX XXXX ${v.kyc[0].aadhaar_last4}` : null)} />
         <Item k="Payout" v={pay ? (pay.method === "upi" ? `UPI ${pay.upi_id}` : `${pay.account_holder} · ${pay.account_number} · ${pay.ifsc}`) : null} />
@@ -266,7 +262,7 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
       <div className="mt-4 flex flex-wrap gap-2">
         {v.docs.map((d) => (
           <button key={d.storage_path} onClick={() => openDoc(d.storage_path)} className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm">
-            <Eye className="size-4" /> {d.doc_type.replace("_", " ")}
+            <Eye className="size-4" /> {DOC_LABEL[d.doc_type] ?? d.doc_type.replaceAll("_", " ")}
           </button>
         ))}
         {v.kyc.length > 0 && !aadhaar && (
@@ -296,6 +292,13 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
     </article>
   );
 }
+
+const DOC_LABEL: Record<string, string> = {
+  aadhaar_photo: "Aadhaar front",
+  aadhaar_back: "Aadhaar back",
+  selfie: "Face photo",
+  shop_photo: "Work place",
+};
 
 const Item = ({ k, v }: { k: string; v?: string | null }) => (
   <div>

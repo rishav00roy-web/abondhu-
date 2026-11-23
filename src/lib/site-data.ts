@@ -1,6 +1,6 @@
 export type Unit = "kg" | "pc";
 
-/** What we buy, with sample starting rates for Jorhat. */
+/** What dealers buy, with sample starting rates (Jorhat for now). */
 export const BUY: { id: string; name: string; price: number; unit: Unit; examples: string }[] = [
   { id: "paper", name: "Newspaper and books", price: 12, unit: "kg", examples: "Papers, copies, magazines" },
   { id: "cardboard", name: "Cardboard", price: 10, unit: "kg", examples: "Cartons and boxes" },
@@ -10,7 +10,7 @@ export const BUY: { id: string; name: string; price: number; unit: Unit; example
   { id: "appliance", name: "Fridges, ACs, washers", price: 900, unit: "pc", examples: "Any condition" },
 ];
 
-/** Jorhat only for now. Localities the vans cover every day (mock list). */
+/** Bookings are open in Jorhat only for now. Localities covered every day (mock list). */
 export const LOCALITIES = [
   "Gar-Ali",
   "AT Road",
@@ -26,29 +26,61 @@ export const LOCALITIES = [
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 
-export const FAQS = [
+/** Pickup and working hours, shown in the FAQ, the booking section and the footer. Change them here only. */
+export const HOURS = "Monday to Saturday, 9 AM to 6 PM";
+
+/** Customer questions, shown in the FAQ section and sent to Google as FAQPage data. */
+export const FAQS: { q: string; a: string }[] = [
   {
-    q: "Where does my scrap actually go?",
-    a: "Paper goes to a paper mill, metal to a foundry, plastic to a pelletising unit and appliances to an authorised e-waste recycler. Every partner is licensed, and nothing is burnt, buried or dumped.",
+    q: "Does Abondhu buy my scrap?",
+    a: "No. Abondhu is a free service that connects you with a verified scrap dealer near you. The dealer weighs your scrap in front of you, buys it and pays you directly.",
   },
   {
-    q: "Which areas do you cover?",
-    a: "Jorhat town only for now, every day: Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and the areas around them. If your pincode starts with 785 and you are in town, we come to you.",
+    q: "What scrap do dealers buy?",
+    a: "Newspaper, books and copies, cardboard, iron, steel and cans, plastic bottles and hard plastic, old phones and laptops (working or not), and big appliances such as fridges, ACs and washing machines. If you are not sure about something, send us a photo on WhatsApp.",
   },
   {
-    q: "Is there a minimum quantity?",
-    a: "We ask for about 15 kg on weekdays and nothing on weekends. A heavy item such as a fridge or AC counts on its own.",
+    q: "How do I book a pickup, and is it free?",
+    a: "Book on this site or send us a WhatsApp message on +91 91813 30755 with your address and what you have. Pickup is free, and there is no charge for coming to your door.",
+  },
+  {
+    q: "How is the price decided?",
+    a: "Each kind of scrap has a rate per kilo, or per piece for appliances and electronics. Rates move with the market and vary by city, so the dealer tells you the rate before weighing, and you only sell if you agree.",
   },
   {
     q: "How do I know the weight is right?",
-    a: "Every partner carries a calibrated digital scale. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
+    a: "Every dealer carries a digital scale with a display you can read yourself. Each kind of scrap is weighed separately in front of you, and every reading goes on your receipt.",
+  },
+  {
+    q: "How and when do I get paid?",
+    a: "On the spot, by the dealer, before they leave, in cash or by UPI, whichever you prefer.",
+  },
+  {
+    q: "Is there a minimum quantity?",
+    a: "No, there is no minimum for now. Book a pickup for whatever you have, big or small.",
+  },
+  {
+    q: "Which areas do you cover, and when?",
+    a: `Abondhu is for all of India, and opens city by city as dealers join. Pickups are open in Jorhat now, including Gar-Ali, AT Road, Tarajan, Cinnamara, Rowriah, Na-Ali and nearby areas, ${HOURS}, usually the same or next day. Elsewhere? WhatsApp us and we will tell you when your area opens.`,
+  },
+  {
+    q: "Can I change or cancel my pickup?",
+    a: "Yes. Send us a WhatsApp message on +91 91813 30755 and we will move it to another time or cancel it.",
   },
   {
     q: "What don't you take?",
-    a: "Glass, wet waste, medical waste, and anything hazardous such as paint, leaking batteries or gas cylinders.",
+    a: "Glass, wet or food waste, medical waste, and anything hazardous such as paint, leaking batteries or gas cylinders.",
   },
   {
-    q: "Do you work with shops and tea estates?",
-    a: "Yes. We collect cartons, gunny bags, machinery scrap, drums and old electricals from shops, offices and estates around Jorhat on a fixed schedule, with a weight report and GST invoice.",
+    q: "Where does my scrap go?",
+    a: "Dealers send paper to paper mills, metal to foundries, plastic to recycling units and electronics to authorised e-waste recyclers. Nothing is burnt, buried or dumped.",
+  },
+  {
+    q: "Do you work with shops, offices and tea estates?",
+    a: "Yes. We can match you with a dealer who collects cartons, gunny bags, machinery scrap, drums and old electricals on a regular schedule, with a weight report for every visit. WhatsApp us to set it up.",
+  },
+  {
+    q: "Who runs Abondhu?",
+    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at abondhu.lios@gmail.com.",
   },
 ];

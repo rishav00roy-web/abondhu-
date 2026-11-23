@@ -2,10 +2,11 @@
 
 // Admin: pickups customers have booked that are not finished yet, newest first.
 // Read-only for now; giving a pickup to a vendor comes in a later release.
-import { Phone, Truck } from "lucide-react";
+import { Eye, Phone, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { Panel, Skeleton } from "./AdminHome";
+import { openPhoto } from "./open-photo";
 
 interface Row {
   id: string;
@@ -16,6 +17,7 @@ interface Row {
   requested_at: string;
   customer: { full_name: string | null; phone: string | null } | null;
   address: { line1: string } | null;
+  photos: { storage_path: string }[];
 }
 
 const OPEN = ["requested", "assigned", "accepted", "on_the_way", "weighed"];
@@ -28,7 +30,7 @@ export function PickupsPanel({ version }: { version: number }) {
     const sb = getSupabase();
     if (!sb) return;
     sb.from("pickups")
-      .select("id, code, status, pincode, customer_note, requested_at, customer:profiles!pickups_customer_id_fkey(full_name, phone), address:addresses!pickups_address_id_fkey(line1)")
+      .select("id, code, status, pincode, customer_note, requested_at, customer:profiles!pickups_customer_id_fkey(full_name, phone), address:addresses!pickups_address_id_fkey(line1), photos:pickup_photos(storage_path)")
       .in("status", OPEN)
       .order("requested_at", { ascending: false })
       .limit(50)
@@ -64,6 +66,16 @@ export function PickupsPanel({ version }: { version: number }) {
               )}
               <p className="text-muted">{p.address?.line1 ? `${p.address.line1}, ` : ""}{p.pincode}</p>
               {p.customer_note && <p className="text-ink">{p.customer_note}</p>}
+              {p.photos.map((ph) => (
+                <button
+                  key={ph.storage_path}
+                  type="button"
+                  onClick={() => openPhoto(ph.storage_path, "pickup-photos").catch((e: Error) => setError(e.message))}
+                  className="flex items-center gap-1.5 justify-self-start rounded-full border border-line px-3 py-1.5 text-sm"
+                >
+                  <Eye className="size-4" aria-hidden /> Scrap photo
+                </button>
+              ))}
             </li>
           ))}
         </ul>

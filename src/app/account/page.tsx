@@ -6,7 +6,7 @@ import { Footer } from "@/components/site/Sections";
 
 export const metadata: Metadata = {
   title: "Log in | Abondhu",
-  description: "Log in to sell your scrap with Abondhu in Jorhat.",
+  description: "Log in to book a scrap pickup with Abondhu.",
   robots: { index: false, follow: false },
 };
 

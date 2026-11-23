@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, MAX_STAFF, type StaffStatus } from "@/lib/vendor";
 import type { HomeStrings } from "@/lib/vendor-home-i18n";
 import type { Strings } from "@/lib/vendor-i18n";
-import { shrink } from "./photos";
+import { shrink } from "@/lib/shrink-photo";
 import { Err, Field, input, PhotoPick, Primary } from "./ui";
 
 interface Staff {

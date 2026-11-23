@@ -23,7 +23,7 @@ const ICONS: Record<string, LucideIcon> = {
 const SAMPLE: Record<string, number> = { paper: 14.2, cardboard: 6.5, metal: 9.8, plastic: 3.1, ewaste: 2, appliance: 1 };
 
 /**
- * Six things we buy and what they start at, with the LED weight meter above them.
+ * Six things dealers buy and what they start at, with the LED weight meter above them.
  * Tap an item and it goes on the scale: the digits run up, overshoot a hair and settle, like a real scale.
  */
 export function WhatWeBuy() {
@@ -56,8 +56,8 @@ export function WhatWeBuy() {
   return (
     <section id="rates" className="scroll-mt-20 bg-cream py-20 md:py-28">
       <Container>
-        <SectionHead title="Today's rates in Jorhat" eyebrow="What we buy" center>
-          Starting prices. The digital scale at your door sets the final figure. Tap an item to put it on the scale.
+        <SectionHead title="Today's dealer rates" eyebrow="What dealers buy" center>
+          Starting prices. Rates vary by city, and the dealer&apos;s digital scale at your door sets the final figure. Tap an item to put it on the scale.
         </SectionHead>
 
         <div ref={meter} className="mx-auto mb-6 max-w-[560px]">

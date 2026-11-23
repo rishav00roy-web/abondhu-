@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { FAQS } from "@/lib/site-data";
+import { FAQS, HOURS } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";
@@ -14,8 +14,8 @@ import { Brand, btn, Container, SectionHead, serifTitle } from "./ui";
 
 const TRUST: { icon: LucideIcon; title: string; body: string }[] = [
   { icon: Scale, title: "Weighed in front of you", body: "Calibrated digital scales" },
-  { icon: HandCoins, title: "Paid on the spot", body: "UPI, bank transfer or cash" },
-  { icon: ShieldCheck, title: "Verified partners", body: "ID-checked and in uniform" },
+  { icon: HandCoins, title: "Paid on the spot", body: "By the dealer, in UPI or cash" },
+  { icon: ShieldCheck, title: "Verified dealers", body: "ID-checked by Abondhu" },
   { icon: Recycle, title: "Recycled, not dumped", body: "Licensed recyclers only" },
 ];
 
@@ -42,9 +42,9 @@ export function TrustStrip() {
 }
 
 const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
-  { icon: Truck, title: "We come to you", body: "Book in a minute. Free pickup anywhere in Jorhat town, same or next day." },
+  { icon: Truck, title: "We send a dealer", body: "Book in a minute. We match you with a verified scrap dealer near you. Pickup is free." },
   { icon: Scale, title: "Weighed at your door", body: "Each kind of scrap goes on a digital scale you can read for yourself." },
-  { icon: IndianRupee, title: "Paid on the spot", body: "Cash or UPI before we leave, with a receipt for every item." },
+  { icon: IndianRupee, title: "Paid on the spot", body: "The dealer buys your scrap and pays you in cash or UPI, with a receipt for every item." },
   { icon: Recycle, title: "Recycled, not dumped", body: "Sorted and sent to licensed recyclers, so it comes back as new material." },
 ];
 
@@ -105,17 +105,25 @@ export function HowItWorks() {
   );
 }
 
+/** FAQPage structured data, so Google can show these answers in search. Built from the same list as the section. */
+const FAQ_JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+}).replace(/</g, "\\u003c");
+
 export function Faq() {
   const reduce = useReducedSafe();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section id="faq" className="relative scroll-mt-20 bg-white py-20 md:py-32">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: FAQ_JSON_LD }} />
       <TornEdge className="text-white" />
       <Container className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal className="grid content-start gap-3">
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
-            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, 8am to 8pm.
+            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, {HOURS}.
           </p>
         </Reveal>
         <div className="divide-y divide-navy/10 border-y border-navy/10">
@@ -186,13 +194,13 @@ export function Footer() {
         <div className="grid content-start gap-4">
           <Link href="/" aria-label="Abondhu home" className="justify-self-start"><Brand light /></Link>
           <p className="max-w-[36ch] text-sm font-light leading-relaxed text-white/60">
-            Wealth from waste, in Jorhat. Weighed in front of you, paid on the spot, and never dumped.
+            Wealth from waste, across India. We connect you with verified scrap dealers who weigh in front of you, pay on the spot, and never dump.
           </p>
         </div>
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["/#how", "How it works"], ["/#rates", "Today's rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"]].map(([href, label]) =>
+            {[["/#how", "How it works"], ["/#rates", "Dealer rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"]].map(([href, label]) =>
               href === "/vendor" ? (
                 <VendorLink key={href} className={footLink} />
               ) : (
@@ -205,8 +213,8 @@ export function Footer() {
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Contact</p>
           <div className="grid gap-3 text-sm font-light text-white/70">
             <span>WhatsApp <span className="tabular font-medium text-white">+91 91813 30755</span></span>
-            <span>8am to 8pm, every day</span>
-            <span>Jorhat, Assam</span>
+            <span>{HOURS}</span>
+            <span>Based in Jorhat, Assam</span>
           </div>
         </div>
       </Container>

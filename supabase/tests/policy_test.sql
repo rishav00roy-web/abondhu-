@@ -59,6 +59,8 @@ values ('00000000-0000-0000-0000-0000000000b1', 'v1:Zm9vYmFyYmF6:cXV4', 'hmac-ab
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect_error($$update public.vendors set status = 'submitted' where id = auth.uid()$$, 'cannot send without the Aadhaar back photo');
+insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'aadhaar_back', auth.uid() || '/aadhaar-back.jpg');
 update public.vendors set status = 'submitted', onboarding_step = 6 where id = auth.uid();
 select pg_temp.expect((select application_code like 'ABV-%' from public.vendors where id = auth.uid()), 'submitting gives an application code');
 update public.vendors set business_name = 'changed' where id = auth.uid();
