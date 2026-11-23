@@ -2,6 +2,7 @@
 
 import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Captcha, CAPTCHA_ON } from "@/components/captcha";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
@@ -63,6 +64,8 @@ export function VendorSignup() {
   const { busy, err, run } = useAction();
   const [status, setStatus] = useState<{ status: VendorStatus; code: string | null; reason: string | null } | null>(null);
   const [booting, setBooting] = useState(true);
+  const [captcha, setCaptcha] = useState<string | undefined>();
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
 
@@ -124,8 +127,9 @@ export function VendorSignup() {
       // Already signed in (came back through the email link): no code needed.
       if ((await sb!.auth.getSession()).data.session) return afterLogin();
       const { error } = f.byEmail
-        ? await sb!.auth.signInWithOtp({ email: f.email.trim(), options: { emailRedirectTo: `${location.origin}/partner` } })
-        : await sb!.auth.signInWithOtp({ phone: "+91" + f.phone });
+        ? await sb!.auth.signInWithOtp({ email: f.email.trim(), options: { emailRedirectTo: `${location.origin}/partner`, captchaToken: captcha } })
+        : await sb!.auth.signInWithOtp({ phone: "+91" + f.phone, options: { captchaToken: captcha } });
+      setCaptchaKey((k) => k + 1); // each check works once
       if (error) fail(error.message);
       setScreen(2);
     });
@@ -291,8 +295,9 @@ export function VendorSignup() {
               <Tile on={f.vendorType === "recycler"} onClick={() => set("vendorType", "recycler")} icon={<Recycle />} label={t.recycler} />
             </div>
           </Field>
+          <Captcha key={captchaKey} onToken={setCaptcha} />
           <Err msg={err} />
-          <Primary busy={busy} t={t} onClick={sendOtp}>{t.next}</Primary>
+          <Primary busy={busy} t={t} onClick={sendOtp} disabled={CAPTCHA_ON && !captcha}>{t.next}</Primary>
         </>
       )}
 
@@ -311,7 +316,8 @@ export function VendorSignup() {
             onChange={(e) => set("otp", digitsOnly(e.target.value).slice(0, 6))}
             aria-label="OTP"
           />
-          <button type="button" className="text-center font-semibold text-forest underline" onClick={sendOtp} disabled={busy}>
+          <Captcha key={captchaKey} onToken={setCaptcha} />
+          <button type="button" className="text-center font-semibold text-forest underline" onClick={sendOtp} disabled={busy || (CAPTCHA_ON && !captcha)}>
             {t.resend}
           </button>
           <Err msg={err} />

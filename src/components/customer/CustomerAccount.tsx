@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { ArrowRight, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
+import { Captcha, CAPTCHA_ON } from "@/components/captcha";
 import { btn } from "@/components/site/ui";
 import { getSupabase } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
@@ -67,6 +68,8 @@ function Login() {
   const [value, setValue] = useState("");
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
+  const [captcha, setCaptcha] = useState<string | undefined>();
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const target = by === "phone" ? "+91" + value.replace(/\D/g, "") : value.trim();
 
@@ -84,7 +87,9 @@ function Login() {
     run(async () => {
       if (by === "phone" && !/^\+91[6-9]\d{9}$/.test(target)) throw new Error("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (by === "email" && !/^\S+@\S+\.\S+$/.test(target)) throw new Error("Enter a valid email address.");
-      const { error } = by === "phone" ? await sb.auth.signInWithOtp({ phone: target }) : await sb.auth.signInWithOtp({ email: target });
+      const options = { captchaToken: captcha };
+      const { error } = by === "phone" ? await sb.auth.signInWithOtp({ phone: target, options }) : await sb.auth.signInWithOtp({ email: target, options });
+      setCaptchaKey((k) => k + 1); // each check works once
       if (error) throw new Error(error.message);
       setSent(true);
     });
@@ -150,7 +155,8 @@ function Login() {
               <input className={field} type="email" autoComplete="email" value={value} onChange={(e) => setValue(e.target.value)} placeholder="you@example.com" />
             )}
           </label>
-          <button type="submit" disabled={busy || !value} className={cn(btn.base, btn.primary, "w-full")}>
+          <Captcha key={captchaKey} onToken={setCaptcha} />
+          <button type="submit" disabled={busy || !value || (CAPTCHA_ON && !captcha)} className={cn(btn.base, btn.primary, "w-full")}>
             {busy ? <Loader2 className="size-4 animate-spin" /> : <>Send code <ArrowRight className="size-4" aria-hidden /></>}
           </button>
         </form>

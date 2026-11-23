@@ -210,6 +210,48 @@ select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-00
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
 select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1)$$, 'a blocked customer cannot book');
 
+-- ---------- Holes closed in the 2026-11-13 review ----------
+-- An approved vendor cannot change what the admin checked
+reset role;
+update public.profiles set is_blocked = false where id = '00000000-0000-0000-0000-0000000000b1';
+insert into public.vendor_payout_accounts (vendor_id, method, upi_id)
+  select '00000000-0000-0000-0000-0000000000b1', 'upi', 'vendor@okaxis'
+  where not exists (select 1 from public.vendor_payout_accounts where vendor_id = '00000000-0000-0000-0000-0000000000b1');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1', true);
+select pg_temp.expect((select status from public.vendors where id = auth.uid()) = 'approved', 'vendor V is approved');
+delete from public.vendor_documents where vendor_id = auth.uid();
+select pg_temp.expect((select count(*) from public.vendor_documents where vendor_id = auth.uid()) > 0, 'approved vendor cannot delete their checked photos');
+select pg_temp.expect_error($$insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'selfie', 'x/other-person.jpg')$$, 'approved vendor cannot add a different photo');
+select pg_temp.expect_error($$insert into public.vendor_service_areas (vendor_id, pincode) select auth.uid(), pincode from public.pincodes where pincode <> '785001'$$, 'approved vendor cannot add more areas');
+delete from public.vendor_service_areas where vendor_id = auth.uid();
+select pg_temp.expect((select count(*) from public.vendor_service_areas where vendor_id = auth.uid()) > 0, 'approved vendor cannot remove their areas');
+update public.vendor_payout_accounts set upi_id = 'thief@okaxis' where vendor_id = auth.uid();
+select pg_temp.expect((select upi_id from public.vendor_payout_accounts where vendor_id = auth.uid()) <> 'thief@okaxis', 'approved vendor cannot change their UPI');
+-- A vendor still filling in the form (V2) can change these
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b2', true);
+insert into public.vendor_service_areas (vendor_id, pincode) values (auth.uid(), '785004') on conflict do nothing;
+select pg_temp.expect((select count(*) from public.vendor_service_areas where vendor_id = auth.uid() and pincode = '785004') = 1, 'a vendor filling in the form can pick areas');
+
+-- A typed-in number never blocks the real owner's phone login
+reset role;
+update public.profiles set phone = '+919811111111' where id = '00000000-0000-0000-0000-0000000000c2';
+insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c3', '919811111111');
+select pg_temp.expect((select phone from public.profiles where id = '00000000-0000-0000-0000-0000000000c3') = '+919811111111', 'real owner logs in by phone even after someone typed their number');
+select pg_temp.expect((select phone from public.profiles where id = '00000000-0000-0000-0000-0000000000c2') is null, 'the typed copy of the number is freed');
+
+-- At most 3 pickups waiting per customer
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c3', true);
+insert into public.addresses (id, profile_id, line1, pincode) values ('00000000-0000-0000-0000-0000000000d3', auth.uid(), 'Home lane', '785001');
+insert into public.pickups (id, customer_id, address_id, pincode, town_id) values ('00000000-0000-0000-0000-0000000000a1', auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1);
+insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1);
+insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1)$$, 'a 4th waiting pickup is refused');
+update public.pickups set status = 'cancelled' where id = '00000000-0000-0000-0000-0000000000a1';
+insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1);
+select pg_temp.expect((select count(*) from public.pickups where customer_id = auth.uid() and status = 'requested') = 3, 'after cancelling one, the customer can book again');
+
 reset role;
 rollback;
 \echo ALL POLICY CHECKS PASSED

@@ -3,6 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { Check, ExternalLink, Eye, Loader2, LogOut, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Captcha, CAPTCHA_ON } from "@/components/captcha";
 import { getSupabase, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { isValid, type VendorStatus } from "@/lib/vendor";
@@ -49,6 +50,8 @@ export function AdminPanel() {
   const sb = getSupabase();
   const [state, setState] = useState<"loading" | "login" | "denied" | "ready">("loading");
   const [email, setEmail] = useState("");
+  const [captcha, setCaptcha] = useState<string | undefined>();
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [password, setPassword] = useState("");
   const { busy, err, run: act } = useAction();
   const [loadErr, setLoadErr] = useState("");
@@ -113,13 +116,15 @@ export function AdminPanel() {
       <Page>
         <h1 className="text-2xl font-bold text-navy">Admin login</h1>
         <form className="contents" onSubmit={(e) => { e.preventDefault(); act(async () => {
-          const { error } = await sb.auth.signInWithPassword({ email, password });
+          const { error } = await sb.auth.signInWithPassword({ email, password, options: { captchaToken: captcha } });
+          setCaptchaKey((k) => k + 1); // each check works once
           if (error) throw error;
           await check();
         }); }}>
           <input className={input} type="email" autoComplete="username" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value.trim())} />
           <input className={input} type="password" autoComplete="current-password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <button type="submit" className={btn} disabled={busy || !isValid.email(email) || !password}>Log in</button>
+          <Captcha key={captchaKey} onToken={setCaptcha} />
+          <button type="submit" className={btn} disabled={busy || !isValid.email(email) || !password || (CAPTCHA_ON && !captcha)}>Log in</button>
         </form>
         {err && <p className="text-danger">{err}</p>}
       </Page>
