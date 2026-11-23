@@ -12,6 +12,7 @@ switched on (`towns.is_active`, `pincodes.is_active`).
 | `migrations/20261110090400_harden_functions.sql` | Locks trigger functions out of the public API |
 | `migrations/20261111090000_vendor_staff.sql` | Vendor workers and their encrypted Aadhaar |
 | `migrations/20261112090000_state_guards.sql` | Status rules: pickup totals from items, complete applications only, blocked/suspended checks, vendor role on approval |
+| `migrations/20261124090000_aadhaar_back.sql` | Back photo of the Aadhaar card: new photo type, and an application needs it before it can be sent |
 | `seed.sql` | Towns, Jorhat pincodes and the list of scrap types |
 | `tests/` | Local security checks (`tests/run.sh`) |
 

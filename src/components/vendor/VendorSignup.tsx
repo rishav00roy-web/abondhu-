@@ -25,6 +25,7 @@ interface Form {
   vehicle: Vehicle | null;
   aadhaar: string;
   aadhaarPhoto: File | null;
+  aadhaarBack: File | null;
   selfie: File | null;
   consent: boolean;
   shopPhoto: File | null;
@@ -40,7 +41,7 @@ const SMS_READY = false;
 
 const EMPTY: Form = {
   name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
-  aadhaar: "", aadhaarPhoto: null, selfie: null, consent: false, shopPhoto: null,
+  aadhaar: "", aadhaarPhoto: null, aadhaarBack: null, selfie: null, consent: false, shopPhoto: null,
   payMethod: "upi", upiId: "", holder: "", account: "", ifsc: "",
 };
 
@@ -187,11 +188,15 @@ export function VendorSignup() {
   const saveAadhaar = () =>
     run(async () => {
       if (!isValidAadhaar(f.aadhaar)) fail(t.errAadhaar);
-      if (!f.aadhaarPhoto || !f.selfie) fail(t.errPhotos);
+      if (!f.aadhaarPhoto || !f.aadhaarBack || !f.selfie) fail(t.errPhotos);
       if (!f.consent) fail(t.errConsent);
       await postJson("/api/vendor/aadhaar", { aadhaar: digitsOnly(f.aadhaar), consent: true });
-      // the two photos are independent, so send them together
-      await Promise.all([uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo"), uploadPhoto(f.selfie!, "selfie")]);
+      // the photos are independent, so send them together
+      await Promise.all([
+        uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo"),
+        uploadPhoto(f.aadhaarBack!, "aadhaar_back"),
+        uploadPhoto(f.selfie!, "selfie"),
+      ]);
       await sb!.from("vendors").update({ onboarding_step: 5 }).eq("id", await uid());
       setScreen(5);
     });
@@ -358,6 +363,7 @@ export function VendorSignup() {
             />
           </Field>
           <PhotoPick label={t.aadhaarPhoto} file={f.aadhaarPhoto} onPick={(x) => set("aadhaarPhoto", x)} t={t} />
+          <PhotoPick label={t.aadhaarBack} file={f.aadhaarBack} onPick={(x) => set("aadhaarBack", x)} t={t} />
           <PhotoPick label={t.selfie} file={f.selfie} onPick={(x) => set("selfie", x)} t={t} front />
           <label className="flex items-start gap-3 rounded-xl bg-[#E8F1EE] p-4 text-[15px] leading-relaxed text-forest">
             <input type="checkbox" className="mt-1 size-5 accent-[var(--forest)]" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
