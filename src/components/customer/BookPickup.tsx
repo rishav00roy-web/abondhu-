@@ -101,7 +101,7 @@ export function BookPickup() {
       if (name.length < 2) fail("Please write your name.");
       if (!isMobile(phone)) fail("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (line1.length < 5) fail("Please write your house and street.");
-      if (!isJorhatPin(f.pin)) fail("We only pick up in Jorhat for now. Enter a 6-digit pincode starting with 785.");
+      if (!isJorhatPin(f.pin)) fail("Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();

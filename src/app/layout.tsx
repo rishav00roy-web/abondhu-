@@ -14,9 +14,9 @@ const playfair = localFont({
 });
 const geistMono = localFont({ src: "./fonts/geist-mono-latin-wght-normal.woff2", weight: "100 900", variable: "--font-geist-mono" });
 
-const title = "Abondhu | Wealth from waste, doorstep scrap pickup in Jorhat";
+const title = "Abondhu | Wealth from waste, doorstep scrap pickup across India";
 const description =
-  "Doorstep scrap pickup in Jorhat. Weighed on a digital scale in front of you, paid on the spot, and sent to licensed recyclers.";
+  "Abondhu connects you with a verified scrap dealer near you. The dealer weighs your scrap on a digital scale in front of you, pays you on the spot, and sends it to licensed recyclers.";
 
 // The link preview image is src/app/opengraph-image.jpg (1200 x 630); Next adds its tags.
 // metadataBase makes its URL absolute, which WhatsApp and other apps need.

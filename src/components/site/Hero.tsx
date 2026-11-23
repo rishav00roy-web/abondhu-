@@ -18,7 +18,7 @@ export function Hero() {
         <div className="grid content-start justify-items-start gap-6 sm:gap-7">
           <div className="hero-rise" style={delay(0)}><WasteToWealth /></div>
           <p className="hero-rise max-w-[34ch] text-lg font-light leading-relaxed text-muted sm:text-xl" style={delay(0.08)}>
-            We buy your scrap at your door in Jorhat and pay on the spot.
+            We connect you with a verified scrap dealer near you, who buys your scrap at your door and pays on the spot.
           </p>
           <div className="hero-rise flex w-full flex-col gap-5 pt-1 sm:w-auto sm:flex-row sm:items-center sm:gap-8" style={delay(0.16)}>
             <Link href="/account" className={cn(btn.base, btn.primary)}>
