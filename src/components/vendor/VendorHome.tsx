@@ -92,6 +92,15 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
   const fetchData = useCallback(() => load().then(setData, () => setFailed(true)), []);
   useEffect(() => {
     fetchData();
+    // Dealers leave this screen open. Load again whenever they come back to it,
+    // so new pickups show up and ones another dealer took disappear.
+    const onShow = () => {
+      if (document.visibilityState !== "visible") return;
+      setFailed(false);
+      fetchData();
+    };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
   }, [fetchData]);
   const refresh = () => {
     setFailed(false);
@@ -116,7 +125,8 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
     setTaking(id);
     setNotice("");
     const { error } = await getSupabase()!.rpc("accept_pickup", { p_id: id });
-    if (error) setNotice(h.taken);
+    // Only say "another dealer took it" when that is what happened, not when the internet dropped.
+    if (error) setNotice(error.message.includes("no longer available") ? h.taken : h.loadErr);
     await fetchData();
     setTaking(null);
   };

@@ -212,6 +212,20 @@ select pg_temp.expect_error($$select public.accept_pickup('00000000-0000-0000-00
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c1', true);
 select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1)$$, 'a blocked customer cannot book');
 
+-- ---------- Limits from the 2026-11-24 stress test ----------
+reset role;
+insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c3', '919800000006');
+insert into public.addresses (id, profile_id, label, line1, pincode) values ('00000000-0000-0000-0000-0000000000d3', '00000000-0000-0000-0000-0000000000c3', 'home', 'House 3', '785001');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000c3', true);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id, customer_note) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1, repeat('x', 501))$$, 'a pickup note over 500 letters is refused');
+select pg_temp.expect_error($$update public.profiles set full_name = repeat('n', 201) where id = auth.uid()$$, 'a name over 200 letters is refused');
+insert into public.pickups (customer_id, address_id, pincode, town_id) select auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1 from generate_series(1, 3);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1)$$, 'a 4th open pickup is refused');
+update public.pickups set status = 'cancelled' where customer_id = auth.uid();
+insert into public.pickups (customer_id, address_id, pincode, town_id) select auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1 from generate_series(1, 2);
+select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id) values (auth.uid(), '00000000-0000-0000-0000-0000000000d3', '785001', 1)$$, 'a 6th booking in one day is refused');
+
 reset role;
 rollback;
 \echo ALL POLICY CHECKS PASSED

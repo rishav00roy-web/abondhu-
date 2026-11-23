@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { cleanMobile, isValid, MAX_STAFF, type StaffStatus } from "@/lib/vendor";
 import type { HomeStrings } from "@/lib/vendor-home-i18n";
 import type { Strings } from "@/lib/vendor-i18n";
-import { shrink } from "@/lib/shrink-photo";
 import { Err, Field, input, PhotoPick, Primary } from "./ui";
 
 interface Staff {
@@ -63,8 +62,8 @@ export function StaffSection({ t, h }: { t: Strings; h: HomeStrings }) {
       fd.append("phone", f.phone);
       fd.append("aadhaar", f.aadhaar);
       fd.append("consent", "true");
-      fd.append("aadhaar_photo", await shrink(f.card));
-      fd.append("face_photo", await shrink(f.face));
+      fd.append("aadhaar_photo", f.card); // photos are shrunk when picked (PhotoPick)
+      fd.append("face_photo", f.face);
       await authedFetch("/api/vendor/staff", { method: "POST", body: fd }).catch((e: Error) => {
         throw e.message === "aadhaar_taken" ? new Error(s.errTaken) : e;
       });

@@ -8,9 +8,9 @@ import { ArrowRight, Camera, Check, Loader2, Package, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
 import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, pickupDays, pickupNote, SCRAP_TYPES, slotsFor, takeDraft } from "@/lib/booking";
-import { shrink } from "@/lib/shrink-photo";
+import { readyPhoto } from "@/lib/shrink-photo";
 import { LOCALITIES } from "@/lib/site-data";
-import { authedFetch, getSupabase, postJson } from "@/lib/supabase";
+import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn, EASE_OUT } from "@/lib/utils";
 
@@ -53,7 +53,9 @@ interface Form {
 export function BookPickup() {
   const sb = getSupabase();
   const reduce = useReducedSafe();
-  const days = useMemo(() => pickupDays(), []);
+  // Days and slots follow the clock: past slots drop off when the page has been open a while.
+  const [now, setNow] = useState(() => new Date());
+  const days = useMemo(() => pickupDays(now), [now]);
   const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], slot: slotsFor(days[0])[0], scrap: "", other: "", photo: null });
   const [savedPhone, setSavedPhone] = useState<string | null>(null); // phone already on the profile
   const [lastAddress, setLastAddress] = useState<{ id: string; line1: string; pincode: string } | null>(null);
@@ -61,8 +63,29 @@ export function BookPickup() {
   const [booked, setBooked] = useState<{ code: string; photoFailed: boolean } | null>(null); // the pickup just booked
   const { busy, err, run } = useAction();
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
-  const slots = useMemo(() => slotsFor(f.day), [f.day]);
+  const slots = useMemo(() => slotsFor(f.day, now), [f.day, now]);
   const pickDay = (day: string) => setF((p) => ({ ...p, day, slot: slotsFor(day).includes(p.slot) ? p.slot : slotsFor(day)[0] }));
+
+  /** Re-reads the clock; keeps the chosen day and time if still open, else moves to the first open one. */
+  const refreshTimes = useCallback(() => {
+    const t = new Date();
+    const open = pickupDays(t);
+    setNow(t);
+    setF((p) => {
+      const day = open.includes(p.day) ? p.day : open[0];
+      const daySlots = slotsFor(day, t);
+      const slot = daySlots.includes(p.slot) ? p.slot : daySlots[0];
+      return day === p.day && slot === p.slot ? p : { ...p, day, slot };
+    });
+  }, []);
+
+  useEffect(() => {
+    const onShow = () => {
+      if (document.visibilityState === "visible") refreshTimes();
+    };
+    document.addEventListener("visibilitychange", onShow);
+    return () => document.removeEventListener("visibilitychange", onShow);
+  }, [refreshTimes]);
 
   const load = useCallback(async () => {
     if (!sb) return;
@@ -108,11 +131,16 @@ export function BookPickup() {
       if (!isMobile(phone)) fail("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (line1.length < 5) fail("Please write your house and street.");
       if (!isJorhatPin(f.pin)) fail("Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785.");
-      if (!slots.includes(f.slot)) fail("Please choose a pickup time.");
+      const t = new Date();
+      if (!pickupDays(t).includes(f.day) || !slotsFor(f.day, t).includes(f.slot)) {
+        refreshTimes();
+        fail("That pickup time has just passed. We picked the next open time. Please check it and book again.");
+      }
       const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
-      const { data: pin } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
+      const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
+      if (pinErr) fail(NETWORK_ERR); // a dropped connection must not read as "we don't cover this pincode"
       if (!pin) fail("We don't cover this pincode yet. WhatsApp us and we'll try to help.");
 
       if (!savedPhone) {
@@ -131,7 +159,7 @@ export function BookPickup() {
           .insert({ profile_id: uid, label: "home", line1: fullLine, pincode: f.pin.trim(), is_default: true })
           .select("id")
           .single();
-        if (error) fail("Could not save your address. Please try again.");
+        if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not save your address. Please try again.");
         addressId = data!.id;
       }
 
@@ -140,14 +168,16 @@ export function BookPickup() {
         .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, scrapText) })
         .select("id, code")
         .single();
-      if (error) fail("Could not book the pickup. Please try again.");
+      if (error?.hint === "open_limit") fail("You already have 3 pickups booked. You can book again when one is done.");
+      if (error?.hint === "daily_limit") fail("You have booked 5 pickups today. Please book again tomorrow.");
+      if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not book the pickup. Please try again.");
 
       // The photo is a nice-to-have: the pickup is booked even if it fails to upload.
       let photoFailed = false;
       if (f.photo) {
         const fd = new FormData();
         fd.append("pickup_id", pickup!.id);
-        fd.append("file", await shrink(f.photo));
+        fd.append("file", f.photo); // already shrunk when picked
         photoFailed = await authedFetch("/api/pickup/photo", { method: "POST", body: fd }).then(() => false, () => true);
       }
       // Tell the dealers who cover this pincode. If this fails, admin sees the pickup waiting and calls one.
@@ -204,7 +234,7 @@ export function BookPickup() {
             <h2 className="font-serif text-3xl text-navy">Book a pickup</h2>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field id="bp-name" label="Your name">
-                <input id="bp-name" className={field} autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} />
+                <input id="bp-name" className={field} autoComplete="name" maxLength={100} value={f.name} onChange={(e) => set("name", e.target.value)} />
               </Field>
               <Field id="bp-phone" label="Mobile number">
                 <input
@@ -221,7 +251,7 @@ export function BookPickup() {
                 />
               </Field>
               <Field id="bp-line1" label="House and street" wide>
-                <input id="bp-line1" className={field} autoComplete="street-address" placeholder="House 12, near the Namghar" value={f.line1} onChange={(e) => set("line1", e.target.value)} />
+                <input id="bp-line1" className={field} autoComplete="street-address" placeholder="House 12, near the Namghar" maxLength={200} value={f.line1} onChange={(e) => set("line1", e.target.value)} />
               </Field>
               <Field id="bp-area" label="Area in Jorhat">
                 <select id="bp-area" className={field} value={f.area} onChange={(e) => set("area", e.target.value)}>
@@ -308,6 +338,13 @@ function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | nu
   useEffect(() => () => {
     if (url) URL.revokeObjectURL(url);
   }, [url]);
+  const [bad, setBad] = useState(false);
+  const pick = async (picked: File | undefined) => {
+    if (!picked) return;
+    const ready = await readyPhoto(picked);
+    setBad(!ready);
+    if (ready) onPick(ready);
+  };
   return (
     <div className="grid gap-2 sm:col-span-2">
       <span className={label}>Photo of the scrap (optional)</span>
@@ -322,9 +359,10 @@ function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | nu
       ) : (
         <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-navy/30 bg-white text-[15px] font-medium text-navy transition-colors duration-200 hover:border-navy focus-within:ring-2 focus-within:ring-gold/60">
           <Camera className="size-4" aria-hidden /> Add a photo
-          <input type="file" accept="image/*" className="sr-only" onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
+          <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
       )}
+      {bad && <p role="alert" className="text-sm text-danger">This photo can&apos;t be used. Please take a new photo, or choose a JPG.</p>}
     </div>
   );
 }

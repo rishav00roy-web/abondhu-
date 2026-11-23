@@ -1,10 +1,11 @@
 "use client";
 
 // Building blocks for the vendor screens: big text, big buttons, few words.
-import { ArrowLeft, ArrowRight, Camera, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { readyPhoto } from "@/lib/shrink-photo";
 import { cn } from "@/lib/utils";
 import type { Strings } from "@/lib/vendor-i18n";
 
@@ -56,12 +57,22 @@ export function Shell({ t, onLang, step, onBack, onLogout, children }: {
 
 export const Title = ({ children }: { children: ReactNode }) => <h1 className="text-2xl font-bold leading-snug text-navy">{children}</h1>;
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[17px] font-semibold text-ink">{label}</span>
+/**
+ * A labelled field. Wraps its input in a <label> so screen readers read the name out.
+ * Use `group` for a set of buttons or a photo picker (they can't sit inside a label).
+ */
+export function Field({ label, group, children }: { label: string; group?: boolean; children: ReactNode }) {
+  const text = <span className="text-[17px] font-semibold text-ink">{label}</span>;
+  return group ? (
+    <div role="group" aria-label={label} className="flex flex-col gap-2">
+      {text}
       {children}
     </div>
+  ) : (
+    <label className="flex flex-col gap-2">
+      {text}
+      {children}
+    </label>
   );
 }
 
@@ -72,13 +83,19 @@ export function Tile({ on, onClick, icon, label, row }: { on: boolean; onClick: 
       onClick={onClick}
       aria-pressed={on}
       className={cn(
-        "flex min-h-14 items-center gap-2 rounded-xl border-2 bg-white px-3 py-3 font-semibold transition-colors [&_svg]:size-6 [&_svg]:text-navy",
+        "relative flex min-h-14 items-center gap-2 rounded-xl border-2 bg-white px-3 py-3 font-semibold transition-colors [&_svg]:size-6 [&_svg]:text-navy",
         row ? "justify-start" : "flex-col justify-center text-center",
-        on ? "border-gold bg-[#FFF9E6]" : "border-line",
+        on ? "border-gold bg-[#FFF9E6] forced-colors:border-[Highlight] forced-colors:outline forced-colors:outline-2 forced-colors:outline-[Highlight]" : "border-line",
       )}
     >
       {icon && <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sand">{icon}</span>}
       {label}
+      {/* A tick, not just a colour, shows which one is chosen: works in high-contrast mode too */}
+      {on && (
+        <span className="absolute right-1.5 top-1.5 grid size-5 place-items-center rounded-full bg-forest text-white [&_svg]:!size-3.5 [&_svg]:!text-white" aria-hidden>
+          <Check strokeWidth={3} />
+        </span>
+      )}
     </button>
   );
 }
@@ -88,8 +105,15 @@ export function PhotoPick({ label, file, onPick, t, front }: { label: string; fi
   useEffect(() => () => {
     if (url) URL.revokeObjectURL(url);
   }, [url]);
+  const [bad, setBad] = useState(false);
+  const pick = async (picked: File | undefined) => {
+    if (!picked) return;
+    const ready = await readyPhoto(picked);
+    setBad(!ready);
+    if (ready) onPick(ready);
+  };
   return (
-    <Field label={label}>
+    <Field label={label} group>
       <label className={cn("relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed bg-white font-semibold text-navy", file ? "border-forest" : "border-gold")}>
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -102,9 +126,10 @@ export function PhotoPick({ label, file, onPick, t, front }: { label: string; fi
           accept="image/*"
           capture={front ? "user" : "environment"}
           className="sr-only"
-          onChange={(e) => onPick(e.target.files?.[0] ?? null)}
+          onChange={(e) => pick(e.target.files?.[0])}
         />
       </label>
+      {bad && <Err msg={t.errPhotoType} />}
     </Field>
   );
 }
