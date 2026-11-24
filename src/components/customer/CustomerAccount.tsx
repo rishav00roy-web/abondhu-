@@ -5,6 +5,7 @@ import { ArrowRight, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 import { btn } from "@/components/site/ui";
+import { isMobile } from "@/lib/booking";
 import { getSupabase } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { BookPickup } from "./BookPickup";
@@ -82,7 +83,7 @@ function Login() {
   const sendCode = (e: FormEvent) => {
     e.preventDefault();
     run(async () => {
-      if (by === "phone" && !/^\+91[6-9]\d{9}$/.test(target)) throw new Error("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
+      if (by === "phone" && !isMobile(value)) throw new Error("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (by === "email" && !/^\S+@\S+\.\S+$/.test(target)) throw new Error("Enter a valid email address.");
       const { error } = by === "phone" ? await sb.auth.signInWithOtp({ phone: target }) : await sb.auth.signInWithOtp({ email: target });
       if (error) throw new Error(error.message);
