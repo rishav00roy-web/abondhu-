@@ -68,7 +68,7 @@ export function homeMarkdown(): string {
     "",
     "## How it works",
     "",
-    "1. Book a free pickup on abondhu.com or on WhatsApp, with your area, pincode, a day and your mobile number.",
+    `1. Book a free pickup on ${SITE_URL} or on WhatsApp, with your area, pincode, a day and your mobile number.`,
     "2. A verified scrap dealer near you accepts it and comes at the time you chose.",
     "3. The dealer weighs each kind of scrap in front of you, tells you the rate, and pays you on the spot if you agree.",
     "",
