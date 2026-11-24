@@ -9,7 +9,7 @@ Environment Variables, Production), then redeploy:
 
 | Name | Value |
 | --- | --- |
-| `SMTP_USER` | the Gmail address that sends (for now abondhu.lios@gmail.com or the one used for login codes) |
+| `SMTP_USER` | the Gmail address that sends (now noreply@abondhu.com on Hostinger; set SMTP_HOST=smtp.hostinger.com) |
 | `SMTP_PASS` | a Gmail **app password** for that address (Google Account > Security > App passwords), not the normal password |
 
 Optional: `SMTP_HOST` (default `smtp.gmail.com`) for a domain mailbox later.
