@@ -84,6 +84,6 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Who runs Abondhu?",
-    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at hello@abondhu.com.",
+    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at support@abondhu.com.",
   },
 ];
