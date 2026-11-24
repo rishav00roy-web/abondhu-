@@ -52,8 +52,8 @@ export default function PrivacyPage() {
       <section>
         <h2>How we keep it safe</h2>
         <ul>
-          <li>Every account can only read its own data. Photos and documents are kept in private storage.</li>
-          <li>A dealer&apos;s Aadhaar details are stored encrypted. Only admins can open them, and every view is logged.</li>
+          <li>Each person can only see their own account and pickups, apart from what dealers and admins need, as set out above. Photos and documents are kept in private storage.</li>
+          <li>A dealer&apos;s Aadhaar number is stored encrypted, and their Aadhaar card photos are kept in private storage. Only admins can open them, and every view of the number is logged.</li>
           <li>Connections to the site are encrypted (HTTPS).</li>
         </ul>
       </section>
