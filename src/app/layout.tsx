@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 // Fonts are bundled with the site (src/app/fonts), so builds never depend on Google Fonts being reachable.
@@ -21,9 +22,10 @@ const description =
 // The link preview image is src/app/opengraph-image.jpg (1200 x 630); Next adds its tags.
 // metadataBase makes its URL absolute, which WhatsApp and other apps need.
 export const metadata: Metadata = {
-  metadataBase: new URL("https://abondhu.com"),
+  metadataBase: new URL(SITE_URL),
   title,
   description,
+  applicationName: "Abondhu",
   icons: { icon: "/abondhu-mark.png" },
   openGraph: { type: "website", siteName: "Abondhu", locale: "en_IN", title, description },
   twitter: { card: "summary_large_image", title, description },
