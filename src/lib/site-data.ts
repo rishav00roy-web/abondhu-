@@ -29,6 +29,13 @@ export const PIN_RE = /^785\d{3}$/;
 /** The live site address, used in emails and links. */
 export const SITE_URL = "https://abondhu.com";
 
+/** Who runs Abondhu and how to reach them. Used on the site, in structured data and in the agent files. */
+export const COMPANY = "Lios Lab Private Limited";
+export const CONTACT_EMAIL = "support@abondhu.com";
+export const PHONE = "+91 91813 30755";
+export const PHONE_E164 = "+919181330755";
+export const WHATSAPP_URL = "https://wa.me/919181330755";
+
 /** Pickup and working hours, shown in the FAQ, the booking section and the footer. Change them here only. */
 export const HOURS = "Monday to Saturday, 9 AM to 6 PM";
 
@@ -84,6 +91,6 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Who runs Abondhu?",
-    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at abondhu.lios@gmail.com.",
+    a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at support@abondhu.com.",
   },
 ];

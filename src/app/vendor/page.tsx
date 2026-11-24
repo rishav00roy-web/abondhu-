@@ -10,6 +10,7 @@ import { VendorSignupCard } from "@/components/site/VendorSignupCard";
 export const metadata: Metadata = {
   title: "Become a vendor | Abondhu",
   description: "Scrap collectors in Jorhat: get pickups booked on your route, a calibrated scale, daily UPI payouts and a verified Abondhu badge.",
+  alternates: { canonical: "/vendor" },
 };
 
 const STEPS = [

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, HandCoins, IndianRupee, Plus, Recycle, Scale, ShieldCheck, Truck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
-import { FAQS, HOURS } from "@/lib/site-data";
+import { CONTACT_EMAIL, FAQS, HOURS, PHONE, PHONE_E164, WHATSAPP_URL } from "@/lib/site-data";
 import { cn, EASE_OUT } from "@/lib/utils";
 import { TornEdge } from "./TornEdge";
 import { Reveal, SPRING, SPRING_FAST, Stagger, StaggerItem } from "./motion";
@@ -123,7 +123,9 @@ export function Faq() {
         <Reveal className="grid content-start gap-3">
           <h2 className={serifTitle}>Questions</h2>
           <p id="contact" className="font-light leading-relaxed text-muted">
-            Anything else? WhatsApp us on <span className="tabular font-medium text-ink">+91 91813 30755</span>, {HOURS}.
+            Anything else? WhatsApp us on{" "}
+            <a href={WHATSAPP_URL} className="tabular font-medium text-ink underline-offset-4 hover:underline">{PHONE}</a> or email{" "}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-ink underline-offset-4 hover:underline">{CONTACT_EMAIL}</a>, {HOURS}.
           </p>
         </Reveal>
         <div className="divide-y divide-navy/10 border-y border-navy/10">
@@ -200,7 +202,7 @@ export function Footer() {
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["/#how", "How it works"], ["/#rates", "Dealer rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"]].map(([href, label]) =>
+            {[["/#how", "How it works"], ["/#rates", "Dealer rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"], ["/about", "About us"], ["/about#contact", "Contact"]].map(([href, label]) =>
               href === "/vendor" ? (
                 <VendorLink key={href} className={footLink} />
               ) : (
@@ -212,7 +214,9 @@ export function Footer() {
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Contact</p>
           <div className="grid gap-3 text-sm font-light text-white/70">
-            <span>WhatsApp <span className="tabular font-medium text-white">+91 91813 30755</span></span>
+            <span>WhatsApp <a href={WHATSAPP_URL} className="tabular font-medium text-white hover:underline">{PHONE}</a></span>
+            <span>Call <a href={`tel:${PHONE_E164}`} className="tabular font-medium text-white hover:underline">{PHONE}</a></span>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-white hover:underline">{CONTACT_EMAIL}</a>
             <span>{HOURS}</span>
             <span>Based in Jorhat, Assam</span>
           </div>
@@ -222,6 +226,10 @@ export function Footer() {
         <Container className="flex flex-col items-center justify-between gap-3 py-6 text-xs font-light text-white/60 sm:flex-row">
           <span>© 2026 Abondhu. All rights reserved.</span>
           <span>Rates and figures are placeholders.</span>
+          <span className="flex gap-5">
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link href="/terms" className="hover:text-white">Terms</Link>
+          </span>
         </Container>
       </div>
     </footer>

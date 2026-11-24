@@ -34,13 +34,17 @@ export function BookingBar() {
   const phoneOk = (v: string) => /^[6-9]\d{9}$/.test(v.replace(/\s/g, ""));
 
   /** On submit, point at the first field that needs fixing and put the cursor in it. */
-  function submit(e: FormEvent) {
+  function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Read the fields from the form itself, so it also works when a browser agent fills them in (WebMCP).
+    const f = new FormData(e.currentTarget);
+    const pin = String(f.get("pincode") ?? "");
+    const phone = String(f.get("phone") ?? "");
     const bad = !pinOk(pin) ? "pin" : !phoneOk(phone) ? "phone" : null;
     setError(bad);
     if (bad) return document.getElementById(bad)?.focus();
     // Carry what they typed over the login step; the booking form picks it up.
-    saveDraft({ area, pin: pin.trim(), phone: phone.replace(/\s/g, ""), day: days[day] });
+    saveDraft({ area: String(f.get("area") ?? area), pin: pin.trim(), phone: phone.replace(/\s/g, ""), day: days[Number(f.get("day") ?? day)] ?? days[0] });
     setSending(true); // the next page can take a moment on a slow phone connection
     router.push("/account");
   }
@@ -69,12 +73,17 @@ export function BookingBar() {
           </p>
         </Reveal>
 
-        <Reveal delay={0.08} className="min-w-0"><form noValidate onSubmit={submit}>
+        <Reveal delay={0.08} className="min-w-0"><form
+              noValidate
+              onSubmit={submit}
+              toolname="book_scrap_pickup"
+              tooldescription="Start booking a free doorstep scrap pickup with a verified dealer in Jorhat, Assam. After submitting, the person logs in to confirm the booking."
+            >
               <div className="grid gap-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <label htmlFor="area" className={label}>Area in Jorhat</label>
-                    <select id="area" className={field} value={area} onChange={(e) => setArea(e.target.value)}>
+                    <select id="area" name="area" toolparamdescription="Locality in Jorhat" className={field} value={area} onChange={(e) => setArea(e.target.value)}>
                       {LOCALITIES.map((a) => (
                         <option key={a} value={a}>{a}</option>
                       ))}
@@ -83,7 +92,7 @@ export function BookingBar() {
                   </div>
                   <div className="grid gap-2">
                     <label htmlFor="day" className={label}>Pickup day</label>
-                    <select id="day" className={field} value={day} onChange={(e) => setDay(Number(e.target.value))}>
+                    <select id="day" name="day" toolparamdescription="Pickup day (Monday to Saturday)" className={field} value={day} onChange={(e) => setDay(Number(e.target.value))}>
                       {days.map((d, i) => (
                         <option key={d} value={i}>{dayLabel(d)}</option>
                       ))}
@@ -93,6 +102,8 @@ export function BookingBar() {
                     <label htmlFor="pin" className={label}>Pincode</label>
                     <input
                       id="pin"
+                      name="pincode"
+                      toolparamdescription="6-digit Jorhat pincode, starting with 785"
                       inputMode="numeric"
                       maxLength={6}
                       placeholder="785001"
@@ -112,6 +123,8 @@ export function BookingBar() {
                     <label htmlFor="phone" className={label}>Mobile number</label>
                     <input
                       id="phone"
+                      name="phone"
+                      toolparamdescription="10-digit Indian mobile number"
                       type="tel"
                       inputMode="tel"
                       maxLength={11}
