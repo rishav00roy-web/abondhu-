@@ -1,7 +1,7 @@
 // Run with `npm test` (Node's built-in test runner reads TypeScript directly).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { dayLabel, isJorhatPin, isMobile, pickupDays, pickupNote, slotsFor } from "./booking.ts";
+import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, scrapLine, slotsFor } from "./booking.ts";
 
 const now = new Date(2026, 10, 10, 21, 0); // Tue 10 Nov 2026, 9 pm
 
@@ -45,4 +45,21 @@ test("dealer alert has no address and links to the dealer home; WhatsApp link is
   assert.match(text, /https:\/\/abondhu\.com\/partner/);
   assert.doesNotMatch(alertText({ place: "785001", note: null, code: "AB-1", siteUrl: "x" }), /\n\n\n/);
   assert.equal(whatsappLink("+91 98640 12345", "Hi there"), "https://wa.me/919864012345?text=Hi%20there");
+});
+
+test("rough weight: only sensible kilos count, and the estimate is weight times rate", () => {
+  assert.equal(parseKg("20"), 20);
+  assert.equal(parseKg(" 2.5 "), 2.5);
+  assert.equal(parseKg("2,5"), 2.5);
+  for (const bad of ["", "0", "-3", "abc", "1e3", "2001", "12.345"]) assert.equal(parseKg(bad), null, bad);
+  assert.equal(estimatePrice(20, 12), 240);
+  assert.equal(estimatePrice(2.5, 28), 70);
+  assert.equal(estimatePrice(0.3, 10), 3);
+});
+
+test("scrapLine adds the rough weight to the note only when given", () => {
+  assert.equal(scrapLine("Plastic", 20), "Plastic. About 20 kg");
+  assert.equal(scrapLine("", 4.5), "About 4.5 kg");
+  assert.equal(scrapLine("Plastic", null), "Plastic");
+  assert.equal(pickupNote("2026-11-12", "9 AM to 12 PM", scrapLine("Plastic", 20), now), "Preferred: Thu 12 Nov, 9 AM to 12 PM. Plastic. About 20 kg");
 });
