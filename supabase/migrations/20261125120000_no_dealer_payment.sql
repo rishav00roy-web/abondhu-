@@ -2,7 +2,6 @@
 -- the customer directly. So dealers no longer give UPI or bank details, and
 -- sending an application no longer needs a vendor_payout_accounts row.
 -- Same guard as 20261124090000_aadhaar_back.sql, minus the payout check.
--- The vendor_payout_accounts table stays (unused) so nothing else breaks.
 create or replace function public.vendors_guard() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
@@ -30,3 +29,13 @@ begin
   return new;
 end $$;
 revoke execute on function public.vendors_guard() from public, anon, authenticated;
+
+-- Abondhu takes no money from customers and pays no dealers, so the payment
+-- tables (never used, no real data) and their types go too.
+drop table if exists public.vendor_payouts;
+drop table if exists public.vendor_payout_accounts;
+drop table if exists public.customer_payments;
+drop type if exists public.payout_status;
+drop type if exists public.payout_method;
+drop type if exists public.payment_status;
+drop type if exists public.payment_method;
