@@ -4,13 +4,13 @@
 // Vendors accept new pickups in their area and add their workers here; weigh and pay arrive in later releases.
 import { motion, MotionConfig } from "framer-motion";
 import {
-  BadgeCheck, BellRing, CalendarClock, Check, CheckCircle2, Image as ImageIcon, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Users, Wallet,
+  BadgeCheck, BellRing, CalendarClock, Check, CheckCircle2, Image as ImageIcon, Loader2, MapPin, MessageCircle, Navigation, Package, Phone, Scale, Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import {
-  HELP_PHONE, helpLink, maskPayout, mapsLink, monthStats, rupees, splitPickups, type PayoutLite, type PickupLite,
+  HELP_PHONE, helpLink, mapsLink, monthStats, splitPickups, type PickupLite,
 } from "@/lib/vendor-home";
 import { homeStrings, type HomeStrings } from "@/lib/vendor-home-i18n";
 import type { Lang, Strings } from "@/lib/vendor-i18n";
@@ -25,8 +25,6 @@ interface Data {
   vehicle: string | null;
   areas: { pincode: string; area: string | null }[];
   pickups: PickupLite[];
-  payouts: PayoutLite[];
-  payTo: string | null;
 }
 
 // Supabase returns an embedded row as an object (or, without generated types, maybe an array).
@@ -36,7 +34,7 @@ async function load(): Promise<Data> {
   const sb = getSupabase()!;
   const uid = (await sb.auth.getSession()).data.session?.user.id;
   if (!uid) throw new Error("signed out");
-  const [prof, vend, areas, picks, pays, acct] = await Promise.all([
+  const [prof, vend, areas, picks] = await Promise.all([
     sb.from("profiles").select("full_name, phone").eq("id", uid).single(),
     sb.from("vendors").select("application_code, business_name, vehicle_type, addresses(line1, pincode)").eq("id", uid).single(),
     sb.from("vendor_service_areas").select("pincode, pincodes(area_name)").eq("vendor_id", uid),
@@ -47,10 +45,8 @@ async function load(): Promise<Data> {
       .or(`vendor_id.eq.${uid},status.eq.requested`)
       .order("requested_at", { ascending: false })
       .limit(200),
-    sb.from("vendor_payouts").select("amount, status, paid_at").eq("vendor_id", uid).limit(200),
-    sb.from("vendor_payout_accounts").select("method, upi_id, account_number").eq("vendor_id", uid).limit(1).maybeSingle(),
   ]);
-  const failed = [prof, vend, areas, picks, pays, acct].find((r) => r.error);
+  const failed = [prof, vend, areas, picks].find((r) => r.error);
   if (failed?.error) throw new Error(failed.error.message);
 
   const shop = one<{ line1: string; pincode: string }>(vend.data?.addresses);
@@ -77,8 +73,6 @@ async function load(): Promise<Data> {
         mine: p.vendor_id === uid,
       };
     }),
-    payouts: (pays.data ?? []) as PayoutLite[],
-    payTo: maskPayout(acct.data),
   };
 }
 
@@ -136,7 +130,7 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
     if (w && link) w.location.href = link.signedUrl;
     else w?.close();
   };
-  const stats = monthStats(data.pickups, data.payouts);
+  const stats = monthStats(data.pickups);
   const vehicle = data.vehicle && data.vehicle in t ? t[data.vehicle as "cycle" | "cart" | "auto" | "truck"] : data.vehicle;
   const locale = lang === "as" ? "as-IN" : "en-IN";
 
@@ -166,10 +160,9 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
         </Card>
 
         {/* This month */}
-        <motion.div variants={rise} className="grid grid-cols-3 gap-3">
+        <motion.div variants={rise} className="grid grid-cols-2 gap-3">
           <Stat icon={<CheckCircle2 />} value={String(stats.count)} label={h.doneMonth} />
           <Stat icon={<Scale />} value={String(stats.kg)} label={h.kgMonth} />
-          <Stat icon={<Wallet />} value={rupees(stats.paid)} label={h.paid} />
         </motion.div>
 
         {/* New pickups in the vendor's area, open to every dealer there */}
@@ -271,7 +264,6 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
             {data.phone && <Line k={h.phone} v={data.phone.replace(/^\+91/, "+91 ")} />}
             {vehicle && <Line k={h.vehicle} v={vehicle} />}
             {data.shopAddress && <Line k={h.shop} v={data.shopAddress} />}
-            {data.payTo && <Line k={h.payTo} v={data.payTo} />}
           </Card>
         </Section>
 

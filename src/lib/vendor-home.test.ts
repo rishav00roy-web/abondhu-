@@ -1,7 +1,7 @@
 // Run with `npm test` (Node's built-in test runner reads TypeScript directly).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { helpLink, maskPayout, monthStats, rupees, splitPickups, type PickupLite } from "./vendor-home.ts";
+import { helpLink, monthStats, splitPickups, type PickupLite } from "./vendor-home.ts";
 
 const p = (id: string, status: PickupLite["status"], extra: Partial<PickupLite> = {}): PickupLite => ({
   id, code: `AB-${id}`, status, pincode: "785001", requested_at: "2026-11-01T10:00:00Z", completed_at: null,
@@ -41,21 +41,13 @@ test("monthStats counts this month only and reads numeric strings", () => {
       p("c", "completed", { completed_at: new Date(2026, 9, 30).toISOString(), total_weight_kg: 99 }),
       p("d", "accepted"),
     ],
-    [{ amount: "500.40", status: "paid", paid_at: null }, { amount: 300, status: "pending", paid_at: null }],
     now,
   );
-  assert.deepEqual(s, { count: 2, kg: 19.5, paid: 500 });
+  assert.deepEqual(s, { count: 2, kg: 19.5 });
 });
 
 test("monthStats handles a brand new vendor", () => {
-  assert.deepEqual(monthStats([], []), { count: 0, kg: 0, paid: 0 });
-});
-
-test("money and payout masking", () => {
-  assert.equal(rupees(125000), "₹1,25,000");
-  assert.equal(maskPayout({ method: "bank", upi_id: null, account_number: "123456789012" }), "•••• 9012");
-  assert.equal(maskPayout({ method: "upi", upi_id: "ram@okaxis", account_number: null }), "ram@okaxis");
-  assert.equal(maskPayout(null), null);
+  assert.deepEqual(monthStats([]), { count: 0, kg: 0 });
 });
 
 test("helpLink names the vendor", () => {

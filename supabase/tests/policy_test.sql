@@ -40,7 +40,6 @@ select pg_temp.expect_error($$update public.profiles set role = 'admin' where id
 insert into public.vendors (id, business_name, vendor_type) values (auth.uid(), 'Jorhat Kabadi', 'scrap_shop');
 insert into public.vendor_service_areas values (auth.uid(), '785001');
 insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'selfie', auth.uid() || '/selfie.jpg');
-insert into public.vendor_payout_accounts (vendor_id, method, upi_id) values (auth.uid(), 'upi', 'vendor1@okaxis');
 
 select pg_temp.expect_error($$insert into public.vendor_service_areas values (auth.uid(), '110001')$$, 'pincode outside Assam rejected');
 select pg_temp.expect_error($$update public.vendors set status = 'approved' where id = auth.uid()$$, 'vendor cannot approve themselves');
@@ -62,6 +61,8 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b1
 select pg_temp.expect_error($$update public.vendors set status = 'submitted' where id = auth.uid()$$, 'cannot send without the Aadhaar back photo');
 insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'aadhaar_back', auth.uid() || '/aadhaar-back.jpg');
 update public.vendors set status = 'submitted', onboarding_step = 6 where id = auth.uid();
+-- Payment details are not needed to submit (dealers pay customers, not Abondhu). An old row stays private:
+insert into public.vendor_payout_accounts (vendor_id, method, upi_id) values (auth.uid(), 'upi', 'vendor1@okaxis');
 select pg_temp.expect((select application_code like 'ABV-%' from public.vendors where id = auth.uid()), 'submitting gives an application code');
 update public.vendors set business_name = 'changed' where id = auth.uid();
 select pg_temp.expect((select business_name from public.vendors where id = auth.uid()) = 'Jorhat Kabadi', 'submitted application is locked for editing');

@@ -20,12 +20,6 @@ export interface PickupLite {
   mine: boolean; // false = an open pickup in the vendor's area, not taken yet
 }
 
-export interface PayoutLite {
-  amount: number | string;
-  status: "pending" | "processing" | "paid" | "failed";
-  paid_at: string | null;
-}
-
 /** Abondhu's help line. Placeholder until the real WhatsApp number is in. */
 export const HELP_PHONE = "919181330755";
 
@@ -44,8 +38,8 @@ export function splitPickups(pickups: PickupLite[]) {
   return { nearby, upcoming, done };
 }
 
-/** Pickups finished and kg collected this calendar month (local time), and money paid out so far. */
-export function monthStats(pickups: PickupLite[], payouts: PayoutLite[], now = new Date()) {
+/** Pickups finished and kg collected this calendar month (local time). */
+export function monthStats(pickups: PickupLite[], now = new Date()) {
   const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   let count = 0;
   let kg = 0;
@@ -54,19 +48,9 @@ export function monthStats(pickups: PickupLite[], payouts: PayoutLite[], now = n
     count += 1;
     kg += num(p.total_weight_kg);
   }
-  const paid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + num(p.amount), 0);
-  return { count, kg: Math.round(kg * 10) / 10, paid: Math.round(paid) };
+  return { count, kg: Math.round(kg * 10) / 10 };
 }
 
-/** "₹1,250" in the Indian number style. */
-export const rupees = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-
-/** Only the last 4 characters of an account number, UPI id kept as typed. */
-export function maskPayout(acct: { method: "upi" | "bank"; upi_id: string | null; account_number: string | null } | null) {
-  if (!acct) return null;
-  if (acct.method === "upi") return acct.upi_id;
-  return acct.account_number ? "•••• " + acct.account_number.slice(-4) : null;
-}
 
 /** WhatsApp link to Abondhu help with a short message that names the vendor. */
 export function helpLink(name: string | null, code: string | null) {

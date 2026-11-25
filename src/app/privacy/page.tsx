@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <ul>
           <li><b>Login details:</b> your phone number or email address. If you log in with Google, we receive your name, email address and Google account ID from Google. We never see your Google password.</li>
           <li><b>Pickup details:</b> your name, mobile number, pickup address, pincode, the kind of scrap, an optional photo of it, your chosen day and time, and any note you add.</li>
-          <li><b>For dealers only:</b> shop or area, the pincodes they cover, photos, payout details and Aadhaar card photos for identity checks.</li>
+          <li><b>For dealers only:</b> shop or area, the pincodes they cover, photos and Aadhaar card photos for identity checks.</li>
         </ul>
       </section>
 
