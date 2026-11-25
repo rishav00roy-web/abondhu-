@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { btn } from "./ui";
 
-const KEEP_READY = ["Your mobile phone", "Your Aadhaar card", "Your UPI ID or bank details"];
+const KEEP_READY = ["Your mobile phone", "Your Aadhaar card (front and back)"];
 
 /** Sends vendors to the real sign-up at /partner. */
 export function VendorSignupCard() {

@@ -33,7 +33,6 @@ interface VendorRow {
   address: { line1: string; pincode: string } | null;
   kyc: { aadhaar_last4: string | null; status: string }[];
   docs: { doc_type: string; storage_path: string }[];
-  payout: { method: string; upi_id: string | null; account_number: string | null; ifsc: string | null; account_holder: string | null }[];
   staff: { full_name: string; status: string }[];
 }
 
@@ -42,7 +41,6 @@ const SELECT = `id, application_code, business_name, vendor_type, vehicle_type, 
   address:addresses!vendors_address_id_fkey(line1, pincode),
   kyc:vendor_kyc(aadhaar_last4, status),
   docs:vendor_documents(doc_type, storage_path),
-  payout:vendor_payout_accounts(method, upi_id, account_number, ifsc, account_holder),
   staff:vendor_staff(full_name, status)`;
 
 /** Admin: log in, see the home overview and applications, approve or reject. */
@@ -212,7 +210,6 @@ export function AdminPanel() {
 function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act: (fn: () => Promise<void>) => Promise<void>; reload: () => Promise<void> }) {
   const sb = getSupabase()!;
   const [aadhaar, setAadhaar] = useState<string | null>(null);
-  const pay = v.payout[0];
 
   const setStatus = (status: "approved" | "rejected" | "suspended") =>
     act(async () => {
@@ -255,7 +252,6 @@ function VendorCard({ v, busy, act, reload }: { v: VendorRow; busy: boolean; act
         <Item k="Business name" v={v.business_name} />
         <Item k="Address" v={v.address ? `${v.address.line1}, ${v.address.pincode}` : null} />
         <Item k="Aadhaar" v={aadhaar ?? (v.kyc[0]?.aadhaar_last4 ? `XXXX XXXX ${v.kyc[0].aadhaar_last4}` : null)} />
-        <Item k="Payout" v={pay ? (pay.method === "upi" ? `UPI ${pay.upi_id}` : `${pay.account_holder} · ${pay.account_number} · ${pay.ifsc}`) : null} />
         {v.staff.length > 0 && <Item k="Workers" v={v.staff.map((p) => `${p.full_name} (${p.status})`).join(", ")} />}
         {v.rejection_reason && <Item k={v.status === "suspended" ? "Suspended because" : v.status === "rejected" ? "Rejected because" : "Last reason given"} v={v.rejection_reason} />}
       </dl>

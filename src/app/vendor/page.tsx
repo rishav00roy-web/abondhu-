@@ -9,7 +9,7 @@ import { VendorSignupCard } from "@/components/site/VendorSignupCard";
 
 export const metadata: Metadata = {
   title: "Become a vendor | Abondhu",
-  description: "Scrap collectors in Jorhat: get pickups booked on your route, a calibrated scale, daily UPI payouts and a verified Abondhu badge.",
+  description: "Scrap collectors in Jorhat: get pickups booked on your route, a calibrated scale and a verified Abondhu badge.",
   alternates: { canonical: "/vendor" },
 };
 
@@ -34,14 +34,14 @@ export default function VendorPage() {
               </h1>
               <p className="max-w-[46ch] text-[17px] font-light leading-relaxed text-ink/75">
                 Households across Jorhat book pickups with Abondhu every day. We pass them to verified local vendors who
-                know the lanes. You keep your trade and gain steady work, fair tools and daily pay.
+                know the lanes. You keep your trade and gain steady work and fair tools.
               </p>
               <p className="max-w-[46ch] text-[15px] leading-relaxed text-ink/75">
                 <span className="font-semibold text-navy">Who can join:</span> anyone 18 or older who already buys or collects scrap
-                in Jorhat town, on foot, by cart, auto or truck, with an Aadhaar card and a phone with UPI.
+                in Jorhat town, on foot, by cart, auto or truck, with an Aadhaar card and a mobile phone.
               </p>
               <ul className="grid gap-3 text-[15px] text-navy">
-                {["No fee to join", "Paid every evening by UPI", "Choose the days and areas you work"].map((t) => (
+                {["No fee to join", "Choose the days and areas you work"].map((t) => (
                   <li key={t} className="flex items-center gap-3">
                     <span className="text-forest" aria-hidden>❖</span>
                     {t}

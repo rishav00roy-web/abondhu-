@@ -40,7 +40,6 @@ select pg_temp.expect_error($$update public.profiles set role = 'admin' where id
 insert into public.vendors (id, business_name, vendor_type) values (auth.uid(), 'Jorhat Kabadi', 'scrap_shop');
 insert into public.vendor_service_areas values (auth.uid(), '785001');
 insert into public.vendor_documents (vendor_id, doc_type, storage_path) values (auth.uid(), 'selfie', auth.uid() || '/selfie.jpg');
-insert into public.vendor_payout_accounts (vendor_id, method, upi_id) values (auth.uid(), 'upi', 'vendor1@okaxis');
 
 select pg_temp.expect_error($$insert into public.vendor_service_areas values (auth.uid(), '110001')$$, 'pincode outside Assam rejected');
 select pg_temp.expect_error($$update public.vendors set status = 'approved' where id = auth.uid()$$, 'vendor cannot approve themselves');
@@ -82,7 +81,6 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000b2', true);
 select pg_temp.expect((select count(*) from public.vendors) = 0, 'another user sees no vendor applications');
 select pg_temp.expect((select count(*) from public.vendor_kyc) = 0, 'another user sees no KYC');
-select pg_temp.expect((select count(*) from public.vendor_payout_accounts) = 0, 'another user sees no payout details');
 select pg_temp.expect((select count(*) from public.audit_log) = 0, 'non-admin cannot read the audit log');
 select pg_temp.expect((select count(*) from public.materials) = 14, 'anyone can read materials');
 
@@ -130,7 +128,6 @@ insert into public.ratings (pickup_id, rated_by, stars) values ('00000000-0000-0
 select pg_temp.expect_error($$update public.pickups set total_amount = 99999 where id = '00000000-0000-0000-0000-0000000000e1'$$, 'customer cannot change the money on their pickup');
 select pg_temp.expect_error($$insert into public.pickups (customer_id, address_id, pincode, town_id, total_amount) select auth.uid(), '00000000-0000-0000-0000-0000000000d1', '785001', 1, 5000$$, 'customer cannot book with a total filled in');
 select pg_temp.expect((select count(*) from public.pickup_status_history where pickup_id = '00000000-0000-0000-0000-0000000000e1') = 5, 'every status change is recorded');
-select pg_temp.expect((select count(*) from public.vendor_payout_accounts) = 0, 'customer cannot see vendor bank or UPI details');
 
 -- ---------- Aadhaar vault ----------
 reset role;

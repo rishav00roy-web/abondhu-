@@ -30,11 +30,6 @@ interface Form {
   selfie: File | null;
   consent: boolean;
   shopPhoto: File | null;
-  payMethod: "upi" | "bank";
-  upiId: string;
-  holder: string;
-  account: string;
-  ifsc: string;
 }
 
 // SMS codes stay off until MSG91 (DLT sender ID + template) is live. Then set true.
@@ -43,10 +38,9 @@ const SMS_READY = false;
 const EMPTY: Form = {
   name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
   aadhaar: "", aadhaarPhoto: null, aadhaarBack: null, selfie: null, consent: false, shopPhoto: null,
-  payMethod: "upi", upiId: "", holder: "", account: "", ifsc: "",
 };
 
-// Screens: 1 about, 2 otp, 3 shop, 4 aadhaar, 5 payment, 6 review, 7 status
+// Screens: 1 about, 2 otp, 3 shop, 4 aadhaar, 5 work-place photo, 6 review, 7 status
 type Screen = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export function VendorSignup() {
@@ -82,14 +76,13 @@ export function VendorSignup() {
     const { data: s } = await sb.auth.getSession();
     const uid = s.session?.user.id;
     if (!uid) return;
-    const [{ data: p }, { data: v }, { data: pay }] = await Promise.all([
+    const [{ data: p }, { data: v }] = await Promise.all([
       sb.from("profiles").select("full_name, phone, email").eq("id", uid).single(),
       sb
         .from("vendors")
         .select("status, onboarding_step, application_code, rejection_reason, vendor_type, business_name, vehicle_type, addresses(line1, pincode)")
         .eq("id", uid)
         .maybeSingle(),
-      sb.from("vendor_payout_accounts").select("method, upi_id, account_holder, account_number, ifsc").eq("vendor_id", uid).maybeSingle(),
     ]);
     // What they already saved, so coming back (or fixing a rejected application) never means typing it all again.
     const shop = (Array.isArray(v?.addresses) ? v.addresses[0] : v?.addresses) as { line1: string; pincode: string } | null | undefined;
@@ -105,9 +98,6 @@ export function VendorSignup() {
       address: prev.address || shop?.line1 || "",
       pincode: prev.pincode || shop?.pincode || "",
       vehicle: prev.vehicle ?? (v?.vehicle_type as Vehicle | null) ?? null,
-      ...(pay && !prev.upiId && !prev.account
-        ? { payMethod: pay.method, upiId: pay.upi_id ?? "", holder: pay.account_holder ?? "", account: pay.account_number ?? "", ifsc: pay.ifsc ?? "" }
-        : {}),
     }));
     if (!v) {
       setScreen(1);
@@ -218,24 +208,10 @@ export function VendorSignup() {
       setScreen(5);
     });
 
-  const savePayment = () =>
+  // Abondhu never pays dealers (they buy from the customer and pay them), so no payment details here.
+  const savePhoto = () =>
     run(async () => {
       const id = await uid();
-      let row: Record<string, string>;
-      if (f.payMethod === "upi") {
-        if (!isValid.upi(f.upiId)) fail(t.errUpi);
-        row = { method: "upi", upi_id: f.upiId };
-      } else {
-        if (!isValid.account(f.account) || !isValid.ifsc(f.ifsc) || f.holder.trim().length < 2) fail(t.errBank);
-        row = { method: "bank", account_holder: f.holder.trim(), account_number: f.account, ifsc: f.ifsc };
-      }
-      // Edit the saved account in place, so a failed save never leaves the vendor with none.
-      const blank = { upi_id: null, account_holder: null, account_number: null, ifsc: null, is_verified: false };
-      const { data: saved } = await sb!.from("vendor_payout_accounts").select("id").eq("vendor_id", id).maybeSingle();
-      const { error } = saved
-        ? await sb!.from("vendor_payout_accounts").update({ ...blank, ...row }).eq("id", saved.id)
-        : await sb!.from("vendor_payout_accounts").insert({ vendor_id: id, ...row });
-      if (error) fail(t.errBank);
       if (f.shopPhoto) await uploadPhoto(f.shopPhoto, "shop_photo");
       await sb!.from("vendors").update({ onboarding_step: 6 }).eq("id", id);
       setScreen(6);
@@ -397,33 +373,10 @@ export function VendorSignup() {
 
       {screen === 5 && (
         <>
-          <Title>{t.payTitle}</Title>
+          <Title>{t.photoTitle}</Title>
           <PhotoPick label={t.shopPhoto} file={f.shopPhoto} onPick={(x) => set("shopPhoto", x)} t={t} />
-          <Field label={t.payWhere} group>
-            <div className="grid grid-cols-2 gap-3">
-              <Tile row on={f.payMethod === "upi"} onClick={() => set("payMethod", "upi")} label={t.upi} />
-              <Tile row on={f.payMethod === "bank"} onClick={() => set("payMethod", "bank")} label={t.bank} />
-            </div>
-          </Field>
-          {f.payMethod === "upi" ? (
-            <Field label={t.upiId}>
-              <input className={input} value={f.upiId} onChange={(e) => set("upiId", e.target.value.trim())} autoCapitalize="none" placeholder="name@okaxis" />
-            </Field>
-          ) : (
-            <>
-              <Field label={t.holder}>
-                <input className={input} value={f.holder} onChange={(e) => set("holder", e.target.value)} maxLength={100} />
-              </Field>
-              <Field label={t.account}>
-                <input className={input} inputMode="numeric" value={f.account} onChange={(e) => set("account", digitsOnly(e.target.value).slice(0, 18))} />
-              </Field>
-              <Field label={t.ifsc}>
-                <input className={input} value={f.ifsc} onChange={(e) => set("ifsc", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))} />
-              </Field>
-            </>
-          )}
           <Err msg={errMsg} />
-          <Primary busy={busy} t={t} onClick={savePayment}>{t.next}</Primary>
+          <Primary busy={busy} t={t} onClick={savePhoto}>{t.next}</Primary>
         </>
       )}
 
@@ -437,7 +390,6 @@ export function VendorSignup() {
             {f.email && <Row k={t.email} v={f.email} />}
             {f.address && <Row k={t.address} v={`${f.address}, ${f.pincode}`} />}
             {f.aadhaar && <Row k={t.aadhaarNo} v={maskAadhaar(f.aadhaar)} />}
-            {(f.upiId || f.account) && <Row k={t.payWhere} v={f.payMethod === "upi" ? f.upiId : `${t.bank} …${f.account.slice(-4)}`} />}
           </dl>
           <Err msg={errMsg} />
           <Primary busy={busy} t={t} onClick={submit}>{t.send}</Primary>

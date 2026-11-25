@@ -32,7 +32,4 @@ export function cleanMobile(input: string): string {
 export const isValid = {
   mobile: (s: string) => /^[6-9]\d{9}$/.test(s),
   email: (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s),
-  upi: (s: string) => /^[A-Za-z0-9.\-_]{2,}@[A-Za-z]{2,}$/.test(s),
-  account: (s: string) => /^[0-9]{9,18}$/.test(s),
-  ifsc: (s: string) => /^[A-Z]{4}0[A-Z0-9]{6}$/.test(s),
 };
