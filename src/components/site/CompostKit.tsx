@@ -18,14 +18,23 @@ export function CompostKit() {
   return (
     <section id="compost" className="scroll-mt-20 bg-cream py-20 md:py-28">
       <Container className="grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-20">
-        <Reveal className="relative overflow-hidden border border-navy/10 bg-white">
+        <Reveal className="relative lg:mb-10 lg:mr-10">
           <Image
-            src="/compost-kit.jpg"
+            src="/compost-kit.webp"
             alt="Abondhu compost kit: green compost bucket with a tap, strainer, box and user guide"
-            width={1254}
-            height={1254}
+            width={1200}
+            height={1200}
             sizes="(min-width: 1024px) 45vw, 100vw"
-            className="h-auto w-full"
+            className="h-auto w-full border border-navy/10"
+          />
+          {/* In use: sits on the empty corner of the product shot */}
+          <Image
+            src="/compost-in-use.webp"
+            alt="Peels going into the compost bucket in a home kitchen"
+            width={800}
+            height={800}
+            sizes="(min-width: 1024px) 16vw, 34vw"
+            className="absolute bottom-3 right-3 h-auto w-[34%] border-4 border-white shadow-xl shadow-navy/20 lg:-bottom-10 lg:-right-10 lg:w-[38%]"
           />
         </Reveal>
 
