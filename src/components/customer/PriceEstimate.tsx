@@ -28,6 +28,8 @@ export function PriceEstimate({ scrap, kgText }: { scrap: string; kgText: string
   const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
   const [tried, setTried] = useState(false);
   const showing = printed?.scrap === scrap && printed.kgText === kgText;
+  // Inputs changed: drop the old slip, so changing back doesn't bring it back without printing again.
+  if (printed && !showing) setPrinted(null);
 
   useEffect(() => {
     if (!showing || stage === "complete") return;
