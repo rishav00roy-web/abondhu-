@@ -202,7 +202,7 @@ export function Footer() {
         <div>
           <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/60">Explore</p>
           <nav className="grid gap-1 text-sm font-light text-white/70">
-            {[["/#how", "How it works"], ["/#rates", "Dealer rates"], ["/#book", "Book a pickup"], ["/vendor", ""], ["/#faq", "Questions"], ["/about", "About us"], ["/about#contact", "Contact"]].map(([href, label]) =>
+            {[["/#how", "How it works"], ["/#rates", "Dealer rates"], ["/#book", "Book a pickup"], ["/#compost", "Compost kit"], ["/vendor", ""], ["/#faq", "Questions"], ["/about", "About us"], ["/about#contact", "Contact"]].map(([href, label]) =>
               href === "/vendor" ? (
                 <VendorLink key={href} className={footLink} />
               ) : (

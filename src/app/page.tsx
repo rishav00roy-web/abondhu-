@@ -1,6 +1,7 @@
 import { MotionConfig } from "framer-motion";
 import type { Metadata } from "next";
 import { BookingBar } from "@/components/site/BookingBar";
+import { CompostKit } from "@/components/site/CompostKit";
 import { Hero } from "@/components/site/Hero";
 import { Nav } from "@/components/site/Nav";
 import { VendorCta } from "@/components/site/VendorCta";
@@ -21,6 +22,7 @@ export default function Home() {
         <HowItWorks />
         <WhatWeBuy />
         <BookingBar />
+        <CompostKit />
         <VendorCta />
         <Faq />
         <Closing />
