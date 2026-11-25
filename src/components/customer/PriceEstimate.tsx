@@ -1,17 +1,15 @@
 "use client";
 
-// "Get price estimate" for the booking form: rough weight x the sample dealer rate, printed as a receipt.
+// Price estimate for the booking form, shown once a weight is typed: estimated weight x the sample dealer rate, printed as a receipt.
 // Abondhu does not buy scrap; the dealer weighs it at the door and sets the real price.
-import { Calculator } from "lucide-react";
 import { useEffect, useState } from "react";
-import { btn } from "@/components/site/ui";
 import { estimatePrice, KG_RATE_ID, parseKg, type SCRAP_TYPES } from "@/lib/booking";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { BUY } from "@/lib/site-data";
-import { cn, inr } from "@/lib/utils";
+import { inr } from "@/lib/utils";
 import { PRINT_SECONDS, ReceiptPrinter, type ReceiptPrinterStage } from "./ReceiptPrinter";
 
-const REAL_PRICE = "The real price is given when the dealer comes and weighs your scrap.";
+const REAL_PRICE = "This is only an estimate. The real weight and price are set when the scrap dealer arrives and weighs your scrap.";
 
 /** Sample rate per kg for a scrap kind, or null when it isn't priced by the kilo. */
 function rateFor(scrap: string) {
@@ -26,7 +24,6 @@ export function PriceEstimate({ scrap, kgText }: { scrap: string; kgText: string
   // What was printed, so the slip disappears as soon as the scrap or weight changes.
   const [printed, setPrinted] = useState<{ scrap: string; kgText: string } | null>(null);
   const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
-  const [tried, setTried] = useState(false);
   const showing = printed?.scrap === scrap && printed.kgText === kgText;
   // Inputs changed: drop the old slip, so changing back doesn't bring it back without printing again.
   if (printed && !showing) setPrinted(null);
@@ -37,31 +34,29 @@ export function PriceEstimate({ scrap, kgText }: { scrap: string; kgText: string
     return () => clearTimeout(t);
   }, [showing, stage]);
 
-  const start = () => {
-    setTried(true);
-    if (!kg || !rate) return;
-    setStage(reduce ? "complete" : "processing");
-    setPrinted({ scrap, kgText });
-  };
+  // Prints by itself a moment after the weight is typed (the pause lets them finish typing).
+  useEffect(() => {
+    if (!kg || !rate || showing) return;
+    const t = setTimeout(() => {
+      setStage(reduce ? "complete" : "processing");
+      setPrinted({ scrap, kgText });
+    }, 700);
+    return () => clearTimeout(t);
+  }, [kg, rate, showing, scrap, kgText, reduce]);
 
-  const hint = !tried
+  const hint = !kgText.trim()
     ? null
     : !scrap
-      ? "Choose what scrap it is first."
+      ? "Choose what scrap it is to see a price estimate."
       : !rate
         ? "We can estimate paper, cardboard, plastic and iron. For this kind, the dealer tells you the price at your door."
         : !kg
-          ? "Write the rough weight in kg, like 15."
+          ? "Write the weight in kg, like 15."
           : null;
 
   return (
     <div className="grid gap-4 sm:col-span-2">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button type="button" onClick={start} className={cn(btn.base, btn.quiet, "h-12 px-6")}>
-          <Calculator className="size-4" aria-hidden /> Get price estimate
-        </button>
-        {hint && !showing && <p role="alert" className="text-sm text-muted">{hint}</p>}
-      </div>
+      {hint && <p role="status" className="text-sm text-muted">{hint}</p>}
 
       {showing && kg && rate && (
         <ReceiptPrinter.Root stage={stage} className="justify-self-start">
@@ -86,7 +81,7 @@ export function PriceEstimate({ scrap, kgText }: { scrap: string; kgText: string
                 <span className="text-2xl font-bold">{inr(estimatePrice(kg, rate.price))}</span>
               </div>
               <hr className="my-4 border-dashed border-navy/25" />
-              <p className="text-center text-[11px] leading-relaxed text-muted">Sample rate. Rates change with the market and the city.</p>
+              <p className="text-center text-[11px] leading-relaxed text-muted">Estimate only, at a sample rate. The dealer weighs it and sets the real price.</p>
             </ReceiptPrinter.Paper>
           </ReceiptPrinter.Output>
         </ReceiptPrinter.Root>
