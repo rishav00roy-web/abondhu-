@@ -48,7 +48,7 @@ interface Form {
   slot: string;
   scrap: string; // one of SCRAP_TYPES, or "" when not chosen
   other: string; // what it is, when scrap is "Other"
-  kg: string; // rough weight as typed (optional), for the price estimate and the dealer
+  kg: string; // estimated weight as typed, for the price estimate and the dealer
   photo: File | null;
 }
 
@@ -133,15 +133,17 @@ export function BookPickup() {
       if (!isMobile(phone)) fail("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (line1.length < 5) fail("Please write your house and street.");
       if (!isJorhatPin(f.pin)) fail("Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785.");
-      if (!f.photo) fail("Please add a photo of the scrap, so the dealer knows what to bring.");
       const t = new Date();
       if (!pickupDays(t).includes(f.day) || !slotsFor(f.day, t).includes(f.slot)) {
         refreshTimes();
         fail("That pickup time has just passed. We picked the next open time. Please check it and book again.");
       }
+      // Every field is needed: what it is, about how much, and a photo, so the dealer knows what to bring.
+      if (!f.scrap) fail("Please choose what scrap it is.");
       const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
-      const kg = parseKg(f.kg);
-      if (f.kg.trim() && !kg) fail("Write the estimated weight in kg, like 15, or leave it empty.");
+      if (scrapText.length < 2) fail("Please write what the scrap is.");
+      const kg = parseKg(f.kg) ?? fail("Write the estimated weight in kg, like 15.");
+      if (!f.photo) fail("Please add a photo of the scrap.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
@@ -277,7 +279,7 @@ export function BookPickup() {
                   {slots.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
-              <Field id="bp-scrap" label="What scrap? (optional)">
+              <Field id="bp-scrap" label="What scrap?">
                 <select id="bp-scrap" className={field} value={f.scrap} onChange={(e) => set("scrap", e.target.value)}>
                   <option value="">Choose a kind</option>
                   {SCRAP_TYPES.map((t) => <option key={t}>{t}</option>)}
@@ -288,7 +290,7 @@ export function BookPickup() {
                   <input id="bp-other" className={field} placeholder="An old cooler, gunny bags" maxLength={300} value={f.other} onChange={(e) => set("other", e.target.value)} />
                 </Field>
               )}
-              <Field id="bp-kg" label="Estimated weight in kg (optional)">
+              <Field id="bp-kg" label="Estimated weight in kg">
                 <input
                   id="bp-kg"
                   className={field}
