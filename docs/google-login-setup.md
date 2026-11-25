@@ -33,3 +33,17 @@ You should land back on the account page saying "Hello, <your name>".
 
 If Google says `redirect_uri_mismatch`, the redirect URI in step 1.3 has a typo.
 If you land on the home page instead of the account page, the Redirect URL in step 2.3 is missing.
+
+## Update 2026-11: Google window now says "abondhu.com"
+
+The login page uses Google's own sign-in button (Google Identity Services) and hands the result to Supabase
+(`signInWithIdToken`), so the Google window opens on abondhu.com instead of the Supabase address.
+If Google's script cannot load, the page falls back to the old redirect button automatically.
+
+Needed in Google Cloud (project "seo-tools", client "Web client 1"):
+- Authorised JavaScript origins: `https://abondhu.com` and `https://www.abondhu.com` (add `http://localhost:3000` for local testing).
+- Branding: app name `Abondhu`, logo, home page `https://abondhu.com`, privacy `https://abondhu.com/privacy`,
+  terms `https://abondhu.com/terms`, authorised domain `abondhu.com`. Then Audience > Publish app.
+
+The client ID lives in `src/lib/site-data.ts` (`GOOGLE_CLIENT_ID`; it is public). If the Google client is ever
+replaced, change it there, or set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` on the host and rebuild.
