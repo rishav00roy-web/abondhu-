@@ -133,6 +133,7 @@ export function BookPickup() {
       if (!isMobile(phone)) fail("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (line1.length < 5) fail("Please write your house and street.");
       if (!isJorhatPin(f.pin)) fail("Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785.");
+      if (!f.photo) fail("Please add a photo of the scrap, so the dealer knows what to bring.");
       const t = new Date();
       if (!pickupDays(t).includes(f.day) || !slotsFor(f.day, t).includes(f.slot)) {
         refreshTimes();
@@ -176,7 +177,7 @@ export function BookPickup() {
       if (error?.hint === "daily_limit") fail("You have booked 5 pickups today. Please book again tomorrow.");
       if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not book the pickup. Please try again.");
 
-      // The photo is a nice-to-have: the pickup is booked even if it fails to upload.
+      // The photo is required on the form, but if only its upload fails the pickup still stands.
       let photoFailed = false;
       if (f.photo) {
         const fd = new FormData();
@@ -348,7 +349,7 @@ function Field({ id, label: text, wide, children }: { id: string; label: string;
   );
 }
 
-/** Optional photo of the scrap, so the dealer knows what to bring. Camera or gallery. */
+/** Photo of the scrap (needed to book), so the dealer knows what to bring. Camera or gallery. */
 function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | null) => void }) {
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => {
@@ -363,7 +364,7 @@ function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | nu
   };
   return (
     <div className="grid gap-2 sm:col-span-2">
-      <span className={label}>Photo of the scrap (optional)</span>
+      <span className={label}>Photo of the scrap</span>
       {url ? (
         <div className="flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
