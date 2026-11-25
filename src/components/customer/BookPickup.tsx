@@ -140,7 +140,7 @@ export function BookPickup() {
       }
       const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
       const kg = parseKg(f.kg);
-      if (f.kg.trim() && !kg) fail("Write the rough weight in kg, like 15, or leave it empty.");
+      if (f.kg.trim() && !kg) fail("Write the estimated weight in kg, like 15, or leave it empty.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
@@ -287,7 +287,7 @@ export function BookPickup() {
                   <input id="bp-other" className={field} placeholder="An old cooler, gunny bags" maxLength={300} value={f.other} onChange={(e) => set("other", e.target.value)} />
                 </Field>
               )}
-              <Field id="bp-kg" label="Rough weight in kg (optional)">
+              <Field id="bp-kg" label="Estimated weight in kg (optional)">
                 <input
                   id="bp-kg"
                   className={field}
