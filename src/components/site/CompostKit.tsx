@@ -8,12 +8,12 @@ import { btn, Container, Eyebrow } from "./ui";
 const STEPS = [
   { title: "Separate", body: "Keep peels and food scraps apart from plastic, glass and metal." },
   { title: "Add and balance", body: "Put them in the bucket with some dry leaves or paper. Keep it moist, not wet." },
-  { title: "Use", body: "Let it mature as the guide says, then feed it to your kitchen or flower garden." },
+  { title: "Use or sell", body: "Feed it to your plants. Made more than you need? Abondhu buys the extra." },
 ];
 
 const ASK_URL = `${WHATSAPP_URL}?text=${encodeURIComponent("Hi Abondhu, I want to know about the compost kit.")}`;
 
-/** Kitchen waste stays home: the Abondhu compost kit. Scrap goes to dealers, peels go to the soil. */
+/** Abondhu sells the compost kit; people compost at home and Abondhu buys back their surplus compost. */
 export function CompostKit() {
   return (
     <section id="compost" className="scroll-mt-20 bg-cream py-20 md:py-28">
@@ -42,11 +42,12 @@ export function CompostKit() {
           <Reveal className="grid gap-5">
             <Eyebrow>Abondhu compost kit</Eyebrow>
             <h2 className="font-serif text-[clamp(34px,4.2vw,52px)] leading-[1.08] text-navy">
-              Recycle the scrap. <span className="italic text-forest">Compost the rest.</span>
+              Make your own compost. <span className="italic text-forest">We buy the extra.</span>
             </h2>
             <p className="max-w-[46ch] text-[17px] font-light leading-relaxed text-muted">
-              Your scrap goes to a dealer. Your kitchen waste can stay home and turn into free fertiliser for your
-              plants. The kit has a compost bucket with a tap, a strainer and a simple user guide.
+              Buy the Abondhu compost kit and turn kitchen peels and food scraps into compost at home. Use it for your
+              plants, and sell us whatever you don&apos;t need. The kit has a compost bucket with a tap, a strainer and a
+              simple user guide.
             </p>
           </Reveal>
 
@@ -62,9 +63,9 @@ export function CompostKit() {
 
           <Reveal delay={0.1} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <a href={ASK_URL} target="_blank" rel="noopener noreferrer" className={cn(btn.base, btn.primary)}>
-              Ask about the kit <ArrowRight className="size-4" aria-hidden />
+              Get the kit <ArrowRight className="size-4" aria-hidden />
             </a>
-            <span className="text-sm font-light text-muted">Price and delivery on WhatsApp.</span>
+            <span className="text-sm font-light text-muted">Price, delivery and buy-back on WhatsApp.</span>
           </Reveal>
         </div>
       </Container>
