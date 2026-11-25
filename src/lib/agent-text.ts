@@ -84,7 +84,7 @@ export function homeMarkdown(): string {
     "",
     "## Compost kit",
     "",
-    `The Abondhu compost kit (bucket with a tap, strainer and user guide) turns kitchen waste into fertiliser at home. Ask on WhatsApp (${PHONE}) for price and delivery.`,
+    `The Abondhu compost kit (bucket with a tap, strainer and user guide) lets you turn kitchen waste into compost at home. Abondhu sells the kit and buys back any compost you don't need. Ask on WhatsApp (${PHONE}) for price, delivery and buy-back.`,
     "",
     "## Questions",
     "",
