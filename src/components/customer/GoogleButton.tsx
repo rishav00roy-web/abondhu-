@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
-import { GOOGLE_CLIENT_ID } from "@/lib/site-data";
+import { GOOGLE_CLIENT_ID, USE_GOOGLE_BUTTON } from "@/lib/site-data";
 
 /* Minimal typing for the bits of Google Identity Services we use. */
 interface Gsi {
@@ -51,10 +51,10 @@ async function makeNonce() {
  */
 export function GoogleButton({ fallback, onError }: { fallback: React.ReactNode; onError: (msg: string) => void }) {
   const box = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<"loading" | "ready" | "failed">(GOOGLE_CLIENT_ID ? "loading" : "failed");
+  const [state, setState] = useState<"loading" | "ready" | "failed">(USE_GOOGLE_BUTTON ? "loading" : "failed");
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) return;
+    if (!USE_GOOGLE_BUTTON) return;
     let live = true;
     (async () => {
       const ok = await loadGsi();
