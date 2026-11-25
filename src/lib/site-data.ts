@@ -94,3 +94,10 @@ export const FAQS: { q: string; a: string }[] = [
     a: "Abondhu is run by Lios Lab Private Limited, a company registered in Jorhat. You can reach us on WhatsApp at +91 91813 30755 or by email at support@abondhu.com.",
   },
 ];
+
+/**
+ * Google sign-in client ID (public, not a secret: Google shows it in every sign-in link).
+ * Same "Web client 1" that Supabase's Google provider uses, in Google Cloud project "seo-tools".
+ */
+export const GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "417401986327-s0i1ihi3k14lirdft6uuanipihrne27j.apps.googleusercontent.com";
