@@ -3,11 +3,12 @@
 import type { Session } from "@supabase/supabase-js";
 import { ArrowRight, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { btn } from "@/components/site/ui";
 import { getSupabase } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { BookPickup } from "./BookPickup";
+import { GoogleButton } from "./GoogleButton";
 import { cn } from "@/lib/utils";
 
 const field =
@@ -63,6 +64,8 @@ export function CustomerAccount() {
 function Login() {
   const sb = getSupabase()!;
   const { busy, err, run } = useAction();
+  const [googleErr, setGoogleErr] = useState("");
+  const onGoogleError = useCallback((msg: string) => setGoogleErr(msg), []);
   const [by, setBy] = useState<"phone" | "email">("phone");
   const [value, setValue] = useState("");
   const [sent, setSent] = useState(false);
@@ -81,6 +84,7 @@ function Login() {
 
   const sendCode = (e: FormEvent) => {
     e.preventDefault();
+    setGoogleErr("");
     run(async () => {
       if (by === "phone" && !/^\+91[6-9]\d{9}$/.test(target)) throw new Error("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (by === "email" && !/^\S+@\S+\.\S+$/.test(target)) throw new Error("Enter a valid email address.");
@@ -108,14 +112,19 @@ function Login() {
         <p className="text-muted">New here? Logging in creates your account.</p>
       </div>
 
-      <button
-        type="button"
-        onClick={google}
-        disabled={busy}
-        className="flex h-12 items-center justify-center gap-3 rounded-sm border border-navy/20 bg-white text-[15px] font-semibold text-ink transition-colors hover:border-navy hover:bg-navy/5 disabled:opacity-50"
-      >
-        <GoogleMark /> Continue with Google
-      </button>
+      <GoogleButton
+        onError={onGoogleError}
+        fallback={
+          <button
+            type="button"
+            onClick={google}
+            disabled={busy}
+            className="flex h-12 items-center justify-center gap-3 rounded-sm border border-navy/20 bg-white text-[15px] font-semibold text-ink transition-colors hover:border-navy hover:bg-navy/5 disabled:opacity-50"
+          >
+            <GoogleMark /> Continue with Google
+          </button>
+        }
+      />
 
       <div className="flex items-center gap-3 text-xs uppercase tracking-[0.15em] text-faint">
         <span className="h-px flex-1 bg-navy/10" />
@@ -170,6 +179,7 @@ function Login() {
         </form>
       )}
 
+      {googleErr && !err && <p role="alert" className="rounded-sm bg-red-50 p-3 text-sm text-danger">{googleErr}</p>}
       {err && <p role="alert" className="rounded-sm bg-red-50 p-3 text-sm text-danger">{err}</p>}
     </div>
   );

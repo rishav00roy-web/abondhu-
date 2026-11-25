@@ -33,6 +33,32 @@ export const SCRAP_TYPES = [
 ] as const;
 export const OTHER_SCRAP = "Other";
 
+/**
+ * Scrap kinds that dealers price by the kilo, mapped to their sample rate in site-data's BUY list.
+ * Only these get a price estimate: pieces (phones, appliances) and mixed loads are priced at the door.
+ */
+export const KG_RATE_ID: Partial<Record<(typeof SCRAP_TYPES)[number], string>> = {
+  "Newspaper and books": "paper",
+  "Cardboard and cartons": "cardboard",
+  Plastic: "plastic",
+  "Iron and steel": "metal",
+};
+
+/** The rough weight a customer typed, in kg: a number above 0 and up to 2000, else null. */
+export function parseKg(s: string): number | null {
+  const t = s.trim().replace(",", ".");
+  if (!/^\d{1,4}(\.\d{1,2})?$/.test(t)) return null;
+  const kg = Number(t);
+  return kg > 0 && kg <= 2000 ? kg : null;
+}
+
+/** Estimated price in whole rupees: weight times the sample rate per kg. */
+export const estimatePrice = (kg: number, ratePerKg: number) => Math.round(kg * ratePerKg);
+
+/** What goes after the day and time in the note: the scrap, then the rough weight if given. */
+export const scrapLine = (scrap: string, kg: number | null) =>
+  [scrap.trim(), kg ? `About ${kg} kg` : ""].filter(Boolean).join(". ");
+
 const isoDay = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 

@@ -7,11 +7,12 @@ import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, Camera, Check, Loader2, Package, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
-import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, pickupDays, pickupNote, SCRAP_TYPES, slotsFor, takeDraft } from "@/lib/booking";
+import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, parseKg, pickupDays, pickupNote, SCRAP_TYPES, scrapLine, slotsFor, takeDraft } from "@/lib/booking";
 import { readyPhoto } from "@/lib/shrink-photo";
 import { LOCALITIES } from "@/lib/site-data";
 import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
+import { PriceEstimate } from "./PriceEstimate";
 import { cn, EASE_OUT } from "@/lib/utils";
 
 const field =
@@ -47,6 +48,7 @@ interface Form {
   slot: string;
   scrap: string; // one of SCRAP_TYPES, or "" when not chosen
   other: string; // what it is, when scrap is "Other"
+  kg: string; // rough weight as typed (optional), for the price estimate and the dealer
   photo: File | null;
 }
 
@@ -56,7 +58,7 @@ export function BookPickup() {
   // Days and slots follow the clock: past slots drop off when the page has been open a while.
   const [now, setNow] = useState(() => new Date());
   const days = useMemo(() => pickupDays(now), [now]);
-  const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], slot: slotsFor(days[0])[0], scrap: "", other: "", photo: null });
+  const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], slot: slotsFor(days[0])[0], scrap: "", other: "", kg: "", photo: null });
   const [savedPhone, setSavedPhone] = useState<string | null>(null); // phone already on the profile
   const [lastAddress, setLastAddress] = useState<{ id: string; line1: string; pincode: string } | null>(null);
   const [pickups, setPickups] = useState<MyPickup[] | null>(null);
@@ -137,6 +139,8 @@ export function BookPickup() {
         fail("That pickup time has just passed. We picked the next open time. Please check it and book again.");
       }
       const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
+      const kg = parseKg(f.kg);
+      if (f.kg.trim() && !kg) fail("Write the rough weight in kg, like 15, or leave it empty.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
@@ -165,7 +169,7 @@ export function BookPickup() {
 
       const { data: pickup, error } = await sb!
         .from("pickups")
-        .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, scrapText) })
+        .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, scrapLine(scrapText, kg)) })
         .select("id, code")
         .single();
       if (error?.hint === "open_limit") fail("You already have 3 pickups booked. You can book again when one is done.");
@@ -183,7 +187,7 @@ export function BookPickup() {
       // Tell the dealers who cover this pincode. If this fails, admin sees the pickup waiting and calls one.
       await postJson("/api/pickup/notify", { pickupId: pickup!.id }).catch(() => {});
       setBooked({ code: pickup!.code, photoFailed });
-      setF((p) => ({ ...p, scrap: "", other: "", photo: null }));
+      setF((p) => ({ ...p, scrap: "", other: "", kg: "", photo: null }));
       await load();
     });
 
@@ -283,6 +287,18 @@ export function BookPickup() {
                   <input id="bp-other" className={field} placeholder="An old cooler, gunny bags" maxLength={300} value={f.other} onChange={(e) => set("other", e.target.value)} />
                 </Field>
               )}
+              <Field id="bp-kg" label="Rough weight in kg (optional)">
+                <input
+                  id="bp-kg"
+                  className={field}
+                  inputMode="decimal"
+                  placeholder="15"
+                  maxLength={7}
+                  value={f.kg}
+                  onChange={(e) => set("kg", e.target.value.replace(/[^\d.,]/g, ""))}
+                />
+              </Field>
+              <PriceEstimate scrap={f.scrap} kgText={f.kg} />
               <ScrapPhoto file={f.photo} onPick={(x) => set("photo", x)} />
             </div>
             {err && <p role="alert" className="rounded-sm bg-red-50 p-3 text-sm text-danger">{err}</p>}
