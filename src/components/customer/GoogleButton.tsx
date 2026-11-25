@@ -61,12 +61,14 @@ export function GoogleButton({ fallback, onError }: { fallback: React.ReactNode;
       if (!live) return;
       if (!ok || !box.current) return setState("failed");
       const { raw, hashed } = await makeNonce();
+      if (!live || !box.current) return;
       const g = window.google!.accounts.id;
       g.initialize({
         client_id: GOOGLE_CLIENT_ID,
         nonce: hashed,
         use_fedcm_for_button: true,
         callback: async ({ credential }) => {
+          onError("");
           const { error } = await getSupabase()!.auth.signInWithIdToken({ provider: "google", token: credential, nonce: raw });
           if (error) onError("Google sign-in did not work. Please try again, or get a code below.");
         },

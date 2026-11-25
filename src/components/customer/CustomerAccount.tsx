@@ -84,6 +84,7 @@ function Login() {
 
   const sendCode = (e: FormEvent) => {
     e.preventDefault();
+    setGoogleErr("");
     run(async () => {
       if (by === "phone" && !/^\+91[6-9]\d{9}$/.test(target)) throw new Error("Enter a 10-digit mobile number starting with 6, 7, 8 or 9.");
       if (by === "email" && !/^\S+@\S+\.\S+$/.test(target)) throw new Error("Enter a valid email address.");
