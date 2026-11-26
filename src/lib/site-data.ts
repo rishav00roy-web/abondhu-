@@ -101,10 +101,3 @@ export const FAQS: { q: string; a: string }[] = [
  */
 export const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "417401986327-s0i1ihi3k14lirdft6uuanipihrne27j.apps.googleusercontent.com";
-
-/**
- * On/off switch for Google's own button (shows abondhu.com in the Google window).
- * Off = the old Supabase redirect button. Turn on only after Google accepts https://abondhu.com
- * as a JavaScript origin on this client, or Google shows "Error 400: origin_mismatch".
- */
-export const USE_GOOGLE_BUTTON = false;
