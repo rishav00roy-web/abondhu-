@@ -4,10 +4,10 @@
 // their pickups. Expects the browser Supabase client to already have a session.
 import { AnimatePresence, motion } from "framer-motion";
 import { useReducedSafe } from "@/lib/use-reduced";
-import { ArrowRight, Camera, Check, Loader2, Package, X } from "lucide-react";
+import { ArrowRight, Camera, Check, Loader2, Package, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
-import { dayLabel, isJorhatPin, isMobile, OTHER_SCRAP, parseKg, pickupDays, pickupNote, SCRAP_TYPES, scrapLine, slotsFor, takeDraft } from "@/lib/booking";
+import { dayLabel, isJorhatPin, isMobile, itemsLine, MAX_ITEMS, OTHER_MAX, OTHER_SCRAP, pickupDays, pickupNote, readItems, SCRAP_TYPES, type ScrapItem, slotsFor, takeDraft, totalKg } from "@/lib/booking";
 import { readyPhoto } from "@/lib/shrink-photo";
 import { LOCALITIES } from "@/lib/site-data";
 import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
@@ -46,11 +46,14 @@ interface Form {
   pin: string;
   day: string;
   slot: string;
-  scrap: string; // one of SCRAP_TYPES, or "" when not chosen
-  other: string; // what it is, when scrap is "Other"
-  kg: string; // estimated weight as typed, for the price estimate and the dealer
+  items: Row[]; // what scrap and about how many kg, one row per kind
   photo: File | null;
 }
+
+/** An item row as typed. `id` only keeps React's keys steady when rows are removed. */
+type Row = ScrapItem & { id: number };
+let nextRowId = 1;
+const emptyRow = (): Row => ({ id: nextRowId++, scrap: "", other: "", kg: "" });
 
 export function BookPickup() {
   const sb = getSupabase();
@@ -58,7 +61,7 @@ export function BookPickup() {
   // Days and slots follow the clock: past slots drop off when the page has been open a while.
   const [now, setNow] = useState(() => new Date());
   const days = useMemo(() => pickupDays(now), [now]);
-  const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], slot: slotsFor(days[0])[0], scrap: "", other: "", kg: "", photo: null });
+  const [f, setF] = useState<Form>({ name: "", phone: "", area: LOCALITIES[0], line1: "", pin: "", day: days[0], slot: slotsFor(days[0])[0], items: [emptyRow()], photo: null });
   const [savedPhone, setSavedPhone] = useState<string | null>(null); // phone already on the profile
   const [lastAddress, setLastAddress] = useState<{ id: string; line1: string; pincode: string } | null>(null);
   const [pickups, setPickups] = useState<MyPickup[] | null>(null);
@@ -66,6 +69,11 @@ export function BookPickup() {
   const { busy, err, run } = useAction();
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
   const slots = useMemo(() => slotsFor(f.day, now), [f.day, now]);
+  const setItem = (id: number, patch: Partial<ScrapItem>) => setF((p) => ({ ...p, items: p.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }));
+  const addItem = () => setF((p) => (p.items.length < MAX_ITEMS ? { ...p, items: [...p.items, emptyRow()] } : p));
+  const removeItem = (id: number) => setF((p) => (p.items.length > 1 ? { ...p, items: p.items.filter((it) => it.id !== id) } : p));
+  // The estimate only needs what was typed, without the row ids.
+  const typedItems = useMemo(() => f.items.map(({ scrap, other, kg }) => ({ scrap, other, kg })), [f.items]);
   const pickDay = (day: string) => setF((p) => ({ ...p, day, slot: slotsFor(day).includes(p.slot) ? p.slot : slotsFor(day)[0] }));
 
   /** Re-reads the clock; keeps the chosen day and time if still open, else moves to the first open one. */
@@ -138,11 +146,10 @@ export function BookPickup() {
         refreshTimes();
         fail("That pickup time has just passed. We picked the next open time. Please check it and book again.");
       }
-      // Every field is needed: what it is, about how much, and a photo, so the dealer knows what to bring.
-      if (!f.scrap) fail("Please choose what scrap it is.");
-      const scrapText = f.scrap === OTHER_SCRAP ? f.other.trim() : f.scrap;
-      if (scrapText.length < 2) fail("Please write what the scrap is.");
-      const kg = parseKg(f.kg) ?? fail("Write the estimated weight in kg, like 15.");
+      // Every field is needed: each item and about how much, and a photo, so the dealer knows what to bring.
+      const checked = readItems(typedItems);
+      if ("error" in checked) fail(checked.error);
+      const items = "items" in checked ? checked.items : [];
       if (!f.photo) fail("Please add a photo of the scrap.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
@@ -172,7 +179,7 @@ export function BookPickup() {
 
       const { data: pickup, error } = await sb!
         .from("pickups")
-        .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, scrapLine(scrapText, kg)) })
+        .insert({ customer_id: uid, address_id: addressId, pincode: f.pin.trim(), town_id: pin!.town_id, customer_note: pickupNote(f.day, f.slot, itemsLine(items)), estimated_weight_kg: totalKg(items) })
         .select("id, code")
         .single();
       if (error?.hint === "open_limit") fail("You already have 3 pickups booked. You can book again when one is done.");
@@ -190,7 +197,7 @@ export function BookPickup() {
       // Tell the dealers who cover this pincode. If this fails, admin sees the pickup waiting and calls one.
       await postJson("/api/pickup/notify", { pickupId: pickup!.id }).catch(() => {});
       setBooked({ code: pickup!.code, photoFailed });
-      setF((p) => ({ ...p, scrap: "", other: "", kg: "", photo: null }));
+      setF((p) => ({ ...p, items: [emptyRow()], photo: null }));
       await load();
     });
 
@@ -279,29 +286,8 @@ export function BookPickup() {
                   {slots.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
-              <Field id="bp-scrap" label="What scrap?">
-                <select id="bp-scrap" className={field} value={f.scrap} onChange={(e) => set("scrap", e.target.value)}>
-                  <option value="">Choose a kind</option>
-                  {SCRAP_TYPES.map((t) => <option key={t}>{t}</option>)}
-                </select>
-              </Field>
-              {f.scrap === OTHER_SCRAP && (
-                <Field id="bp-other" label="What is it?">
-                  <input id="bp-other" className={field} placeholder="An old cooler, gunny bags" maxLength={300} value={f.other} onChange={(e) => set("other", e.target.value)} />
-                </Field>
-              )}
-              <Field id="bp-kg" label="Estimated weight in kg">
-                <input
-                  id="bp-kg"
-                  className={field}
-                  inputMode="decimal"
-                  placeholder="15"
-                  maxLength={7}
-                  value={f.kg}
-                  onChange={(e) => set("kg", e.target.value.replace(/[^\d.,]/g, ""))}
-                />
-              </Field>
-              <PriceEstimate scrap={f.scrap} kgText={f.kg} />
+              <ScrapItems items={f.items} onChange={setItem} onAdd={addItem} onRemove={removeItem} />
+              <PriceEstimate items={typedItems} />
               <ScrapPhoto file={f.photo} onPick={(x) => set("photo", x)} />
             </div>
             {err && <p role="alert" className="rounded-sm bg-red-50 p-3 text-sm text-danger">{err}</p>}
@@ -339,6 +325,53 @@ export function BookPickup() {
         )}
       </section>
     </div>
+  );
+}
+
+/** One row per kind of scrap: what it is and about how many kg. "Add more" adds a row; X removes one. */
+function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChange: (id: number, patch: Partial<ScrapItem>) => void; onAdd: () => void; onRemove: (id: number) => void }) {
+  return (
+    <fieldset className="grid gap-3 sm:col-span-2">
+      <legend className={cn(label, "mb-1")}>What scrap, and about how many kg?</legend>
+      {items.map((it, i) => {
+        const n = items.length > 1 ? ` ${i + 1}` : "";
+        return (
+          <div key={it.id} className="grid grid-cols-[1fr_3rem] gap-2 sm:grid-cols-[1fr_8rem_3rem]">
+            <select aria-label={`Item${n}: what scrap`} className={cn(field, "col-span-2 sm:col-span-1")} value={it.scrap} onChange={(e) => onChange(it.id, { scrap: e.target.value })}>
+              <option value="">Choose a kind</option>
+              {SCRAP_TYPES.map((t) => <option key={t}>{t}</option>)}
+            </select>
+            <div className="relative">
+              <input
+                aria-label={`Item${n}: estimated weight in kg`}
+                className={cn(field, "pr-10")}
+                inputMode="decimal"
+                placeholder="15"
+                maxLength={7}
+                value={it.kg}
+                onChange={(e) => onChange(it.id, { kg: e.target.value.replace(/[^\d.,]/g, "") })}
+              />
+              <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3.5 grid place-items-center text-sm text-muted">kg</span>
+            </div>
+            {items.length > 1 ? (
+              <button type="button" onClick={() => onRemove(it.id)} aria-label={`Remove item${n}`} className="grid h-12 place-items-center rounded-sm border border-navy/15 text-muted transition-colors duration-200 hover:border-navy hover:text-navy focus:outline-none focus:ring-2 focus:ring-gold/60">
+                <X className="size-4" aria-hidden />
+              </button>
+            ) : (
+              <span aria-hidden />
+            )}
+            {it.scrap === OTHER_SCRAP && (
+              <input aria-label={`Item${n}: what is it?`} className={cn(field, "col-span-2 sm:col-span-3")} placeholder="What is it? Like an old cooler" maxLength={OTHER_MAX} value={it.other} onChange={(e) => onChange(it.id, { other: e.target.value })} />
+            )}
+          </div>
+        );
+      })}
+      {items.length < MAX_ITEMS && (
+        <button type="button" onClick={onAdd} className={cn(btn.base, btn.quiet, "justify-self-start")}>
+          <Plus className="size-4" aria-hidden /> Add more
+        </button>
+      )}
+    </fieldset>
   );
 }
 

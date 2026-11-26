@@ -55,9 +55,50 @@ export function parseKg(s: string): number | null {
 /** Estimated price in whole rupees: weight times the sample rate per kg. */
 export const estimatePrice = (kg: number, ratePerKg: number) => Math.round(kg * ratePerKg);
 
-/** What goes after the day and time in the note: the scrap, then the estimated weight. */
-export const scrapLine = (scrap: string, kg: number | null) =>
-  [scrap.trim(), kg ? `About ${kg} kg` : ""].filter(Boolean).join(". ");
+/** Most item rows a booking can have, so the note stays short for the dealer. */
+export const MAX_ITEMS = 6;
+/** Longest "Other" description per item. */
+export const OTHER_MAX = 50;
+
+/** One row of the booking form as typed: the kind of scrap, what it is when "Other", and the estimated kg. */
+export interface ScrapItem {
+  scrap: string;
+  other: string;
+  kg: string;
+}
+/** A filled-in row: `scrap` is the kind picked, `name` what the dealer reads. */
+export interface ReadyItem {
+  scrap: string;
+  name: string;
+  kg: number;
+}
+
+/** Checks one row. Every part is needed, so the dealer knows what to bring. */
+export function readItem(it: ScrapItem): ReadyItem | { error: string } {
+  if (!it.scrap) return { error: "choose what scrap it is" };
+  const name = (it.scrap === OTHER_SCRAP ? it.other : it.scrap).trim().replace(/\s+/g, " ").slice(0, OTHER_MAX);
+  if (name.length < 2) return { error: "write what the scrap is" };
+  const kg = parseKg(it.kg);
+  if (!kg) return { error: "write the estimated weight in kg, like 15" };
+  return { scrap: it.scrap, name, kg };
+}
+
+/** Checks every row: the filled-in items, or the first problem ("Item 2: ..." when there are several rows). */
+export function readItems(items: ScrapItem[]): { items: ReadyItem[] } | { error: string } {
+  const ready: ReadyItem[] = [];
+  for (const [i, it] of items.entries()) {
+    const r = readItem(it);
+    if ("error" in r) return { error: items.length > 1 ? `Item ${i + 1}: ${r.error}.` : `Please ${r.error}.` };
+    ready.push(r);
+  }
+  return ready.length ? { items: ready } : { error: "Please add what scrap it is." };
+}
+
+/** What goes after the day and time in the note: each item with its estimated weight. */
+export const itemsLine = (items: ReadyItem[]) => items.map((i) => `${i.name}, about ${i.kg} kg`).join("; ");
+
+/** Total estimated weight in kg, to two decimals. */
+export const totalKg = (items: ReadyItem[]) => Math.round(items.reduce((sum, i) => sum + i.kg, 0) * 100) / 100;
 
 const isoDay = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -92,7 +133,7 @@ export function dayLabel(iso: string, now = new Date()): string {
  * at a glance (the team confirms by phone), then what scrap it is.
  */
 export function pickupNote(dayIso: string, slot: string, scrap: string, now = new Date()): string {
-  const what = scrap.trim().replace(/\s+/g, " ").slice(0, 300);
+  const what = scrap.trim().replace(/\s+/g, " ").slice(0, 440);
   const day = dayLabel(dayIso, now).replace(/^(Today|Tomorrow), /, "");
   return `Preferred: ${day}, ${slot}.${what ? " " + what : ""}`;
 }
