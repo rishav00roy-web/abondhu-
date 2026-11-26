@@ -4,7 +4,7 @@ import { animate, useInView, useMotionValue, useMotionValueEvent } from "framer-
 import { Laptop, Milk, Newspaper, Package, Refrigerator, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Scale3D } from "@/components/scale/Scale3D";
-import { BUY } from "@/lib/site-data";
+import { BUY, maskRate, SHOW_RATES } from "@/lib/site-data";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { cn, inr } from "@/lib/utils";
 import { Stagger, StaggerItem } from "./motion";
@@ -64,8 +64,9 @@ export function WhatWeBuy() {
           <Scale3D
             weight={shown}
             unit={item.unit}
-            rate={item.price}
-            amount={shown * item.price}
+            rate={SHOW_RATES ? item.price : maskRate(item.price)}
+            amount={SHOW_RATES ? shown * item.price : maskRate(shown * item.price)}
+            hideMoney={!SHOW_RATES}
             label={`${item.name} · sample reading`}
             stable={stable}
           />
@@ -91,8 +92,15 @@ export function WhatWeBuy() {
                   </span>
                   <span className="text-[15px] font-semibold leading-snug text-navy">{b.name}</span>
                   <span className="font-mono text-lg text-forest tabular">
-                    {inr(b.price)}
-                    <span className="text-sm text-faint">/{b.unit}</span>
+                    {SHOW_RATES ? (
+                      inr(b.price)
+                    ) : (
+                      <>
+                        <span aria-hidden className="inline-block select-none blur-[5px]">{inr(maskRate(b.price))}</span>
+                        <span className="sr-only">Rate coming soon</span>
+                      </>
+                    )}
+                    <span className="text-sm text-faint" aria-hidden={!SHOW_RATES}>/{b.unit}</span>
                   </span>
                   <span className="text-[13px] font-light text-muted">{b.examples}</span>
                 </button>

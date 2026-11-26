@@ -1,5 +1,11 @@
 export type Unit = "kg" | "pc";
 
+/** Home page rates (cards and scale) stay blurred until real dealer rates are confirmed. Set true to show them. */
+export const SHOW_RATES = false;
+
+/** Same-width stand-in for a hidden rate, so the real number never reaches the page: 12 → 88, 250 → 888. */
+export const maskRate = (n: number) => Number(String(Math.round(n)).replace(/\d/g, "8"));
+
 /** What dealers buy, with sample starting rates (Jorhat for now). */
 export const BUY: { id: string; name: string; price: number; unit: Unit; examples: string }[] = [
   { id: "paper", name: "Newspaper and books", price: 12, unit: "kg", examples: "Papers, copies, magazines" },
