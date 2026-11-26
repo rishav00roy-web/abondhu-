@@ -1,7 +1,7 @@
 // Run with `npm test` (Node's built-in test runner reads TypeScript directly).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, scrapLine, slotsFor } from "./booking.ts";
+import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, readItems, slotsFor, totalKg, itemsLine } from "./booking.ts";
 
 const now = new Date(2026, 10, 10, 21, 0); // Tue 10 Nov 2026, 9 pm
 
@@ -28,7 +28,7 @@ test("pickupNote puts the day and time first and keeps the scrap text tidy", () 
   assert.equal(pickupNote("2026-11-12", "9 AM to 12 PM", "  old   newspapers\n2 coolers ", now), "Preferred: Thu 12 Nov, 9 AM to 12 PM. old newspapers 2 coolers");
   assert.equal(pickupNote("2026-11-11", "3 PM to 6 PM", "", now), "Preferred: Wed 11 Nov, 3 PM to 6 PM.");
   const head = "Preferred: Thu 12 Nov, 9 AM to 12 PM. ";
-  assert.equal(pickupNote("2026-11-12", "9 AM to 12 PM", "x".repeat(500), now).length, head.length + 300);
+  assert.equal(pickupNote("2026-11-12", "9 AM to 12 PM", "x".repeat(500), now).length, head.length + 440);
 });
 
 test("pincode and mobile checks", () => {
@@ -57,9 +57,28 @@ test("estimated weight: only sensible kilos count, and the estimate is weight ti
   assert.equal(estimatePrice(0.3, 10), 3);
 });
 
-test("scrapLine adds the estimated weight after the scrap", () => {
-  assert.equal(scrapLine("Plastic", 20), "Plastic. About 20 kg");
-  assert.equal(scrapLine("", 4.5), "About 4.5 kg");
-  assert.equal(scrapLine("Plastic", null), "Plastic");
-  assert.equal(pickupNote("2026-11-12", "9 AM to 12 PM", scrapLine("Plastic", 20), now), "Preferred: Thu 12 Nov, 9 AM to 12 PM. Plastic. About 20 kg");
+test("each item row needs a kind, a name for Other, and a weight", () => {
+  const ok = readItems([
+    { scrap: "Newspaper and books", other: "", kg: "1" },
+    { scrap: "Other", other: "  old   cooler ", kg: "2,5" },
+  ]);
+  assert.ok("items" in ok);
+  assert.deepEqual(ok.items, [
+    { scrap: "Newspaper and books", name: "Newspaper and books", kg: 1 },
+    { scrap: "Other", name: "old cooler", kg: 2.5 },
+  ]);
+  assert.equal(itemsLine(ok.items), "Newspaper and books, about 1 kg; old cooler, about 2.5 kg");
+  assert.equal(totalKg(ok.items), 3.5);
+  assert.equal(totalKg([{ scrap: "x", name: "x", kg: 0.1 }, { scrap: "x", name: "x", kg: 0.2 }]), 0.3);
+  assert.deepEqual(readItems([{ scrap: "", other: "", kg: "1" }]), { error: "Please choose what scrap it is." });
+  assert.deepEqual(readItems([{ scrap: "Plastic", other: "", kg: "1" }, { scrap: "Plastic", other: "", kg: "" }]), { error: "Item 2: write the estimated weight in kg, like 15." });
+  assert.deepEqual(readItems([{ scrap: "Other", other: " a ", kg: "1" }]), { error: "Please write what the scrap is." });
+  assert.ok("error" in readItems([]));
+});
+
+test("the note fits six long items under the 500-character limit", () => {
+  const long = { scrap: "Old appliances (fridge, AC, cooler, washing machine)", other: "", kg: "1999.99" };
+  const r = readItems(Array(6).fill(long));
+  assert.ok("items" in r);
+  assert.ok(pickupNote("2026-11-12", "12 PM to 3 PM", itemsLine(r.items), now).length <= 500);
 });

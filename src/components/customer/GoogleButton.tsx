@@ -66,7 +66,6 @@ export function GoogleButton({ fallback, onError }: { fallback: React.ReactNode;
       g.initialize({
         client_id: GOOGLE_CLIENT_ID,
         nonce: hashed,
-        use_fedcm_for_button: true,
         callback: async ({ credential }) => {
           onError("");
           const { error } = await getSupabase()!.auth.signInWithIdToken({ provider: "google", token: credential, nonce: raw });
