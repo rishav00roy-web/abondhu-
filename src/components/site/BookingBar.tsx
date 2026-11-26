@@ -62,7 +62,7 @@ export function BookingBar() {
       ? "Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785."
       : error === "phone"
         ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."
-        : "No charge for pickup. Next, log in with Google or your phone to confirm.";
+        : "No charge for pickup. Next, log in with Google or email to confirm.";
 
   return (
     <section id="book" className="scroll-mt-20 bg-white py-16 md:py-28">
