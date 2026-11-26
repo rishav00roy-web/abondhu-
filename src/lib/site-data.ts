@@ -25,6 +25,7 @@ export const AREA_PINS: Record<string, readonly string[]> = {
   "Gar-Ali": ["785001"],
   "AT Road": ["785001"],
   Tarajan: ["785001", "785006"],
+  Pulibor: ["785006"],
   Cinnamara: ["785008"],
   Rowriah: ["785005"],
   "Na-Ali": ["785001", "785008"],
