@@ -75,6 +75,12 @@
   }
 }
 
+/* Example text in empty boxes stays faint, so it never looks like something already filled in */
+::placeholder {
+  color: rgb(26 32 44 / 0.3);
+  opacity: 1;
+}
+
 html {
   scroll-behavior: smooth;
   scrollbar-color: var(--line) transparent;

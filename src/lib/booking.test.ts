@@ -47,7 +47,7 @@ test("dealer alert has no address and links to the dealer home; WhatsApp link is
   assert.equal(whatsappLink("+91 98640 12345", "Hi there"), "https://wa.me/919864012345?text=Hi%20there");
 });
 
-test("rough weight: only sensible kilos count, and the estimate is weight times rate", () => {
+test("estimated weight: only sensible kilos count, and the estimate is weight times rate", () => {
   assert.equal(parseKg("20"), 20);
   assert.equal(parseKg(" 2.5 "), 2.5);
   assert.equal(parseKg("2,5"), 2.5);
@@ -57,7 +57,7 @@ test("rough weight: only sensible kilos count, and the estimate is weight times 
   assert.equal(estimatePrice(0.3, 10), 3);
 });
 
-test("scrapLine adds the rough weight to the note only when given", () => {
+test("scrapLine adds the estimated weight after the scrap", () => {
   assert.equal(scrapLine("Plastic", 20), "Plastic. About 20 kg");
   assert.equal(scrapLine("", 4.5), "About 4.5 kg");
   assert.equal(scrapLine("Plastic", null), "Plastic");

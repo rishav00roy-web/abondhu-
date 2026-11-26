@@ -44,7 +44,7 @@ export const KG_RATE_ID: Partial<Record<(typeof SCRAP_TYPES)[number], string>> =
   "Iron and steel": "metal",
 };
 
-/** The rough weight a customer typed, in kg: a number above 0 and up to 2000, else null. */
+/** The estimated weight a customer typed, in kg: a number above 0 and up to 2000, else null. */
 export function parseKg(s: string): number | null {
   const t = s.trim().replace(",", ".");
   if (!/^\d{1,4}(\.\d{1,2})?$/.test(t)) return null;
@@ -55,7 +55,7 @@ export function parseKg(s: string): number | null {
 /** Estimated price in whole rupees: weight times the sample rate per kg. */
 export const estimatePrice = (kg: number, ratePerKg: number) => Math.round(kg * ratePerKg);
 
-/** What goes after the day and time in the note: the scrap, then the rough weight if given. */
+/** What goes after the day and time in the note: the scrap, then the estimated weight. */
 export const scrapLine = (scrap: string, kg: number | null) =>
   [scrap.trim(), kg ? `About ${kg} kg` : ""].filter(Boolean).join(". ");
 
