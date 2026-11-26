@@ -15,6 +15,7 @@ import {
 import { homeStrings, type HomeStrings } from "@/lib/vendor-home-i18n";
 import type { Lang, Strings } from "@/lib/vendor-i18n";
 import { StaffSection } from "./StaffSection";
+import { photoWhich, sortPhotos } from "@/lib/booking";
 
 interface Data {
   name: string | null;
@@ -26,6 +27,12 @@ interface Data {
   areas: { pincode: string; area: string | null }[];
   pickups: PickupLite[];
 }
+
+/** "Photo of item 2", "Photo of all the scrap", or plain "Photo of the scrap" for older bookings. */
+const photoLabel = (path: string, h: { scrapPhoto: string; itemPhoto: string; allPhoto: string }) => {
+  const w = photoWhich(path);
+  return w === "all" ? h.allPhoto : w ? `${h.itemPhoto} ${w}` : h.scrapPhoto;
+};
 
 // Supabase returns an embedded row as an object (or, without generated types, maybe an array).
 const one = <T,>(v: unknown): T | null => ((Array.isArray(v) ? v[0] : v) ?? null) as T | null;
@@ -69,7 +76,7 @@ async function load(): Promise<Data> {
         completed_at: p.completed_at, total_weight_kg: p.total_weight_kg, note: p.customer_note,
         slot_date: slot?.slot_date ?? null, start_time: slot?.start_time ?? null,
         address: addr ? [addr.line1, addr.landmark].filter(Boolean).join(", ") : null,
-        photo: (p.pickup_photos as { storage_path: string }[] | null)?.[0]?.storage_path ?? null,
+        photos: sortPhotos(((p.pickup_photos as { storage_path: string }[] | null) ?? []).map((ph) => ph.storage_path)),
         mine: p.vendor_id === uid,
       };
     }),
@@ -203,11 +210,11 @@ export function VendorHome({ t, lang }: { t: Strings; lang: Lang }) {
                 </p>
                 {p.note && <p className="rounded-xl bg-sunk px-3 py-2 text-muted">“{p.note}”</p>}
                 <p className="font-mono text-sm text-faint">{p.code}</p>
-                {p.photo && (
-                  <BigButton onClick={() => openPhoto(p.photo!)} className="border-2 border-line bg-white text-navy">
-                    <ImageIcon className="size-6" /> {h.scrapPhoto}
+                {p.photos.map((path) => (
+                  <BigButton key={path} onClick={() => openPhoto(path)} className="border-2 border-line bg-white text-navy">
+                    <ImageIcon className="size-6" /> {photoLabel(path, h)}
                   </BigButton>
-                )}
+                ))}
                 {p.address && (
                   <BigButton href={mapsLink(p.address, p.pincode)} className="bg-navy text-white">
                     <Navigation className="size-6" /> {h.directions}

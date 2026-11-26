@@ -16,7 +16,7 @@ export interface PickupLite {
   start_time: string | null; // hh:mm:ss
   address: string | null;
   note: string | null;
-  photo: string | null; // storage path of the customer's scrap photo, if any
+  photos: string[]; // storage paths of the customer's scrap photos: one per item, then one of everything
   mine: boolean; // false = an open pickup in the vendor's area, not taken yet
 }
 

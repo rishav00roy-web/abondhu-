@@ -1,7 +1,7 @@
 // Run with `npm test` (Node's built-in test runner reads TypeScript directly).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, readItems, slotsFor, totalKg, itemsLine } from "./booking.ts";
+import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, photoName, photoWhich, readItems, sortPhotos, slotsFor, totalKg, itemsLine } from "./booking.ts";
 
 const now = new Date(2026, 10, 10, 21, 0); // Tue 10 Nov 2026, 9 pm
 
@@ -81,4 +81,12 @@ test("the note fits six long items under the 500-character limit", () => {
   const r = readItems(Array(6).fill(long));
   assert.ok("items" in r);
   assert.ok(pickupNote("2026-11-12", "12 PM to 3 PM", itemsLine(r.items), now).length <= 500);
+});
+
+test("scrap photos are named per item and listed item by item, the photo of everything last", () => {
+  assert.equal(photoName(2, 1700000000000, "jpg"), "scrap-2-1700000000000.jpg");
+  assert.equal(photoWhich("p1/scrap-2-1700000000000.jpg"), 2);
+  assert.equal(photoWhich("p1/scrap-all-1700000000000.webp"), "all");
+  assert.equal(photoWhich("p1/scrap-1700000000000.jpg"), null); // older single photo
+  assert.deepEqual(sortPhotos(["p/scrap-all-1.jpg", "p/scrap-3-1.jpg", "p/scrap-1-1.jpg"]), ["p/scrap-1-1.jpg", "p/scrap-3-1.jpg", "p/scrap-all-1.jpg"]);
 });

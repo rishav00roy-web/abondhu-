@@ -1,7 +1,7 @@
 "use client";
 
 // Itemised price estimate for the booking form: each item's estimated weight x the sample dealer rate,
-// printed as a receipt when the customer taps "Generate estimate bill".
+// printed as a receipt when the customer taps "Generate estimated bill".
 // Abondhu does not buy scrap; the dealer weighs it at the door and sets the real price.
 import { ReceiptText } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -59,7 +59,7 @@ export function PriceEstimate({ items }: { items: ScrapItem[] }) {
   return (
     <div className="grid gap-4 sm:col-span-2">
       <button type="button" onClick={generate} className={cn(btn.base, btn.quiet, "justify-self-start")}>
-        <ReceiptText className="size-4" aria-hidden /> Generate estimate bill
+        <ReceiptText className="size-4" aria-hidden /> Generate estimated bill
       </button>
       {problem && <p role="alert" className="text-sm text-danger">{problem}</p>}
 

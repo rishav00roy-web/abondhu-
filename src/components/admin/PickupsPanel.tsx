@@ -11,6 +11,7 @@ import { SITE_URL } from "@/lib/site-data";
 import { getSupabase } from "@/lib/supabase";
 import { Panel, Skeleton } from "./AdminHome";
 import { openPhoto } from "./open-photo";
+import { photoWhich, sortPhotos } from "@/lib/booking";
 
 interface Row {
   id: string;
@@ -97,14 +98,14 @@ export function PickupsPanel({ version }: { version: number }) {
               )}
               <p className="text-muted">{p.address?.line1 ? `${p.address.line1}, ` : ""}{p.pincode}</p>
               {p.customer_note && <p className="text-ink">{p.customer_note}</p>}
-              {p.photos.map((ph) => (
+              {sortPhotos(p.photos.map((ph) => ph.storage_path)).map((path) => (
                 <button
-                  key={ph.storage_path}
+                  key={path}
                   type="button"
-                  onClick={() => openPhoto(ph.storage_path, "pickup-photos").catch((e: Error) => setError(e.message))}
+                  onClick={() => openPhoto(path, "pickup-photos").catch((e: Error) => setError(e.message))}
                   className="flex items-center gap-1.5 justify-self-start rounded-full border border-line px-3 py-1.5 text-sm"
                 >
-                  <Eye className="size-4" aria-hidden /> Scrap photo
+                  <Eye className="size-4" aria-hidden /> {photoWhich(path) === "all" ? "All scrap" : photoWhich(path) ? `Item ${photoWhich(path)} photo` : "Scrap photo"}
                 </button>
               ))}
               {p.status === "requested" && <DealerWhatsApp pickup={p} dealers={dealers.filter((d) => d.pincodes.includes(p.pincode))} />}
