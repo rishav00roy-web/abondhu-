@@ -13,6 +13,7 @@ export function ScaleDisplay({
   amount,
   label,
   stable = true,
+  hideMoney = false,
   className = "",
 }: {
   weight: number;
@@ -21,14 +22,21 @@ export function ScaleDisplay({
   amount: number;
   label: string;
   stable?: boolean;
+  /** Blur the rate and amount readouts (rates not public yet). */
+  hideMoney?: boolean;
   className?: string;
 }) {
   const w = unit === "kg" ? weight.toFixed(2) : String(Math.round(weight));
   const unitLabel = unit === "kg" ? "kg" : "pcs";
+  const money = hideMoney ? "blur-[3px]" : "";
   return (
     <figure
       className={`scale-head select-none p-3 text-[#c9ccc8] sm:p-4 ${className}`}
-      aria-label={`Scale reads ${w} ${unitLabel} of ${label}: ${rate} rupees per ${unit === "kg" ? "kg" : "piece"}, ${inr.format(amount)} rupees`}
+      aria-label={
+        hideMoney
+          ? `Scale reads ${w} ${unitLabel} of ${label}. Rates coming soon.`
+          : `Scale reads ${w} ${unitLabel} of ${label}: ${rate} rupees per ${unit === "kg" ? "kg" : "piece"}, ${inr.format(amount)} rupees`
+      }
     >
       <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 sm:text-[11px]">
         <span>Abondhu · Jorhat</span>
@@ -44,11 +52,11 @@ export function ScaleDisplay({
       <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="scale-glass flex items-end justify-between gap-2 px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">₹/{unit === "kg" ? "kg" : "pc"}</span>
-          <Segments text={String(rate)} cells={4} className="h-6 w-auto sm:h-7" />
+          <Segments text={String(rate)} cells={4} className={`h-6 w-auto sm:h-7 ${money}`} />
         </div>
         <div className="scale-glass flex items-end justify-between gap-2 px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/55">₹</span>
-          <Segments text={String(Math.round(amount))} cells={5} className="h-6 w-auto sm:h-7" />
+          <Segments text={String(Math.round(amount))} cells={5} className={`h-6 w-auto sm:h-7 ${money}`} />
         </div>
       </div>
       <figcaption className="mt-2 truncate px-1 text-xs font-medium text-white/70">{label}</figcaption>
