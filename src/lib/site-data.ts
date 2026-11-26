@@ -10,19 +10,51 @@ export const BUY: { id: string; name: string; price: number; unit: Unit; example
   { id: "appliance", name: "Fridges, ACs, washers", price: 900, unit: "pc", examples: "Any condition" },
 ];
 
-/** Bookings are open in Jorhat only for now. Localities covered every day (mock list). */
-export const LOCALITIES = [
-  "Gar-Ali",
-  "AT Road",
-  "Tarajan",
-  "Cinnamara",
-  "Rowriah",
-  "Na-Ali",
-  "Bongal Pukhuri",
-  "Kenduguri",
-  "Lichubari",
-  "Malow Ali",
-];
+/**
+ * Bookings are open in Jorhat only for now. Each locality with the pincodes its addresses use
+ * (India Post offices plus local addresses). Picking an area turns the pincode box into a list of these.
+ * Every pincode here must also be active in the `pincodes` table, or booking refuses it.
+ */
+export const AREA_PINS: Record<string, readonly string[]> = {
+  "Gar-Ali": ["785001"],
+  "AT Road": ["785001"],
+  Tarajan: ["785001", "785006"],
+  Cinnamara: ["785008"],
+  Rowriah: ["785005"],
+  "Na-Ali": ["785001", "785008"],
+  "Bongal Pukhuri": ["785001"],
+  Kenduguri: ["785001", "785010"],
+  Lichubari: ["785008"],
+  "Malow Ali": ["785001"],
+};
+export const LOCALITIES = Object.keys(AREA_PINS);
+/** Last choice in the area list: the pincode is typed instead of picked. */
+export const OTHER_AREA = "Elsewhere in Jorhat";
+
+/** Pincode after the area changes: kept if the new area uses it, else the area's first. Typed areas keep it. */
+export const pinForArea = (area: string, pin: string) => {
+  const pins = AREA_PINS[area];
+  return !pins || pins.includes(pin) ? pin : pins[0];
+};
+
+/** The area a saved address line names. Booking adds it at the end (", Malow Ali"), so the last one named wins. */
+export function areaInLine(line: string): string | undefined {
+  const text = line.toLowerCase();
+  let best: { area: string; at: number } | undefined;
+  for (const area of LOCALITIES) {
+    const at = text.lastIndexOf(area.toLowerCase());
+    if (at >= 0 && (!best || at > best.at)) best = { area, at };
+  }
+  return best?.area;
+}
+
+/** A saved area and pincode (older bookings may not match): the pincode is kept, moving to "Elsewhere" if needed. */
+export function matchAreaPin(area: string, pin: string): { area: string; pin: string } {
+  const pins = AREA_PINS[area];
+  if (!pins) return { area, pin };
+  if (!pin) return { area, pin: pins[0] };
+  return pins.includes(pin) ? { area, pin } : { area: OTHER_AREA, pin };
+}
 /** Jorhat pincodes start with 785. */
 export const PIN_RE = /^785\d{3}$/;
 

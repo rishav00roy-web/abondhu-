@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
 import { dayLabel, isJorhatPin, isMobile, itemsLine, MAX_ITEMS, OTHER_MAX, OTHER_SCRAP, pickupDays, pickupNote, readItems, SCRAP_TYPES, type ScrapItem, slotsFor, takeDraft, totalKg } from "@/lib/booking";
 import { readyPhoto } from "@/lib/shrink-photo";
-import { LOCALITIES } from "@/lib/site-data";
+import { AREA_PINS, areaInLine, LOCALITIES, matchAreaPin, OTHER_AREA, pinForArea } from "@/lib/site-data";
 import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { PriceEstimate } from "./PriceEstimate";
@@ -18,7 +18,6 @@ import { cn, EASE_OUT } from "@/lib/utils";
 const field =
   "h-12 w-full rounded-sm border border-navy/15 bg-white px-3.5 text-base text-ink transition-colors duration-200 placeholder:text-faint hover:border-navy/40 focus:border-navy focus:outline-none focus:ring-2 focus:ring-gold/60 sm:text-[15px]";
 const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
-const OTHER_AREA = "Elsewhere in Jorhat";
 
 const STATUS: Record<string, string> = {
   requested: "Booked",
@@ -75,6 +74,8 @@ export function BookPickup() {
   // The estimate only needs what was typed, without the row ids.
   const typedItems = useMemo(() => f.items.map(({ scrap, other, kg }) => ({ scrap, other, kg })), [f.items]);
   const pickDay = (day: string) => setF((p) => ({ ...p, day, slot: slotsFor(day).includes(p.slot) ? p.slot : slotsFor(day)[0] }));
+  const pickArea = (area: string) => setF((p) => ({ ...p, area, pin: pinForArea(area, p.pin) }));
+  const areaPins = AREA_PINS[f.area]; // undefined for "Elsewhere": the pincode is typed
 
   /** Re-reads the clock; keeps the chosen day and time if still open, else moves to the first open one. */
   const refreshTimes = useCallback(() => {
@@ -111,15 +112,19 @@ export function BookPickup() {
     setSavedPhone(phone);
     setLastAddress(addr.data ?? null);
     setPickups((picks.data as MyPickup[]) ?? []);
-    setF((p) => ({
-      ...p,
-      name: p.name || prof.data?.full_name || "",
-      phone: phone ?? (draft.phone || p.phone),
-      area: draft.area && (LOCALITIES.includes(draft.area) || draft.area === OTHER_AREA) ? draft.area : p.area,
-      line1: p.line1 || addr.data?.line1 || "",
-      pin: draft.pin || p.pin || addr.data?.pincode || "",
-      ...(draft.day && days.includes(draft.day) ? { day: draft.day, slot: slotsFor(draft.day)[0] } : {}),
-    }));
+    const savedLine = addr.data?.line1 ?? "";
+    setF((p) => {
+      // A repeat booking opens on the area of the last address.
+      const area = draft.area && (LOCALITIES.includes(draft.area) || draft.area === OTHER_AREA) ? draft.area : (areaInLine(savedLine) ?? p.area);
+      return {
+        ...p,
+        name: p.name || prof.data?.full_name || "",
+        phone: phone ?? (draft.phone || p.phone),
+        ...matchAreaPin(area, draft.pin || p.pin || addr.data?.pincode || ""),
+        line1: p.line1 || savedLine,
+        ...(draft.day && days.includes(draft.day) ? { day: draft.day, slot: slotsFor(draft.day)[0] } : {}),
+      };
+    });
   }, [sb, days]);
 
   useEffect(() => {
@@ -275,13 +280,19 @@ export function BookPickup() {
                 <input id="bp-line1" className={field} autoComplete="street-address" placeholder="House 12, near the Namghar" maxLength={200} value={f.line1} onChange={(e) => set("line1", e.target.value)} />
               </Field>
               <Field id="bp-area" label="Area in Jorhat">
-                <select id="bp-area" className={field} value={f.area} onChange={(e) => set("area", e.target.value)}>
+                <select id="bp-area" className={field} value={f.area} onChange={(e) => pickArea(e.target.value)}>
                   {LOCALITIES.map((a) => <option key={a}>{a}</option>)}
                   <option>{OTHER_AREA}</option>
                 </select>
               </Field>
               <Field id="bp-pin" label="Pincode">
-                <input id="bp-pin" className={field} inputMode="numeric" autoComplete="postal-code" placeholder="785001" maxLength={6} value={f.pin} onChange={(e) => set("pin", e.target.value.replace(/\D/g, ""))} />
+                {areaPins ? (
+                  <select id="bp-pin" className={field} autoComplete="postal-code" value={f.pin} onChange={(e) => set("pin", e.target.value)}>
+                    {areaPins.map((p) => <option key={p}>{p}</option>)}
+                  </select>
+                ) : (
+                  <input id="bp-pin" className={field} inputMode="numeric" autoComplete="postal-code" placeholder="785001" maxLength={6} value={f.pin} onChange={(e) => set("pin", e.target.value.replace(/\D/g, ""))} />
+                )}
               </Field>
               <Field id="bp-day" label="Pickup day">
                 <select id="bp-day" className={field} value={f.day} onChange={(e) => pickDay(e.target.value)}>
