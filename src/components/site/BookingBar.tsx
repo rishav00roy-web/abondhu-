@@ -4,7 +4,7 @@ import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { dayLabel, pickupDays, saveDraft } from "@/lib/booking";
-import { LOCALITIES, HOURS, PIN_RE } from "@/lib/site-data";
+import { AREA_PINS, HOURS, LOCALITIES, OTHER_AREA, PIN_RE, pinForArea } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./motion";
 import { btn, Container, serifTitle } from "./ui";
@@ -22,7 +22,8 @@ const label = "text-[11px] font-bold uppercase tracking-[0.15em] text-navy";
 export function BookingBar() {
   const router = useRouter();
   const [area, setArea] = useState(LOCALITIES[0]);
-  const [pin, setPin] = useState("");
+  const [pin, setPin] = useState(AREA_PINS[LOCALITIES[0]][0]);
+  const areaPins = AREA_PINS[area]; // undefined for "Elsewhere": the pincode is typed
   const [phone, setPhone] = useState("");
   const [day, setDay] = useState(0);
   const [error, setError] = useState<"pin" | "phone" | null>(null);
@@ -61,7 +62,7 @@ export function BookingBar() {
       ? "Pickups are open in Jorhat for now. Enter a 6-digit pincode starting with 785."
       : error === "phone"
         ? "Enter a 10-digit mobile number starting with 6, 7, 8 or 9."
-        : "No charge for pickup. Next, log in with Google or your phone to confirm.";
+        : "No charge for pickup. Next, log in with Google or email to confirm.";
 
   return (
     <section id="book" className="scroll-mt-20 bg-white py-16 md:py-28">
@@ -83,11 +84,23 @@ export function BookingBar() {
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <label htmlFor="area" className={label}>Area in Jorhat</label>
-                    <select id="area" name="area" toolparamdescription="Locality in Jorhat" className={field} value={area} onChange={(e) => setArea(e.target.value)}>
+                    <select
+                      id="area"
+                      name="area"
+                      toolparamdescription="Locality in Jorhat"
+                      className={field}
+                      value={area}
+                      onChange={(e) => {
+                        const next = pinForArea(e.target.value, pin);
+                        setArea(e.target.value);
+                        setPin(next);
+                        if (error === "pin" && pinOk(next)) setError(null);
+                      }}
+                    >
                       {LOCALITIES.map((a) => (
                         <option key={a} value={a}>{a}</option>
                       ))}
-                      <option value="Elsewhere in Jorhat">Elsewhere in Jorhat</option>
+                      <option value={OTHER_AREA}>{OTHER_AREA}</option>
                     </select>
                   </div>
                   <div className="grid gap-2">
@@ -100,24 +113,40 @@ export function BookingBar() {
                   </div>
                   <div className="grid gap-2">
                     <label htmlFor="pin" className={label}>Pincode</label>
-                    <input
-                      id="pin"
-                      name="pincode"
-                      toolparamdescription="6-digit Jorhat pincode, starting with 785"
-                      inputMode="numeric"
-                      maxLength={6}
-                      placeholder="785001"
-                      autoComplete="postal-code"
-                      value={pin}
-                      onChange={(e) => {
-                        setPin(e.target.value);
-                        if (error === "pin" && pinOk(e.target.value)) setError(null);
-                      }}
-                      onBlur={(e) => check("pin", e.target.value)}
-                      aria-invalid={error === "pin"}
-                      aria-describedby="book-msg"
-                      className={field}
-                    />
+                    {areaPins ? (
+                      <select
+                        id="pin"
+                        name="pincode"
+                        toolparamdescription="Pincode in the chosen area"
+                        autoComplete="postal-code"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value)}
+                        className={field}
+                      >
+                        {areaPins.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id="pin"
+                        name="pincode"
+                        toolparamdescription="6-digit Jorhat pincode, starting with 785"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="785001"
+                        autoComplete="postal-code"
+                        value={pin}
+                        onChange={(e) => {
+                          setPin(e.target.value);
+                          if (error === "pin" && pinOk(e.target.value)) setError(null);
+                        }}
+                        onBlur={(e) => check("pin", e.target.value)}
+                        aria-invalid={error === "pin"}
+                        aria-describedby="book-msg"
+                        className={field}
+                      />
+                    )}
                   </div>
                   <div className="grid gap-2">
                     <label htmlFor="phone" className={label}>Mobile number</label>

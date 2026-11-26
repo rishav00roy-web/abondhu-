@@ -1,6 +1,7 @@
 // Run with `npm test` (Node's built-in test runner reads TypeScript directly).
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { AREA_PINS, areaInLine, matchAreaPin, OTHER_AREA, pinForArea } from "./site-data.ts";
 import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, photoName, photoWhich, readItems, sortPhotos, slotsFor, totalKg, itemsLine } from "./booking.ts";
 
 const now = new Date(2026, 10, 10, 21, 0); // Tue 10 Nov 2026, 9 pm
@@ -89,4 +90,21 @@ test("scrap photos are named per item and listed item by item, the photo of ever
   assert.equal(photoWhich("p1/scrap-all-1700000000000.webp"), "all");
   assert.equal(photoWhich("p1/scrap-1700000000000.jpg"), null); // older single photo
   assert.deepEqual(sortPhotos(["p/scrap-all-1.jpg", "p/scrap-3-1.jpg", "p/scrap-1-1.jpg"]), ["p/scrap-1-1.jpg", "p/scrap-3-1.jpg", "p/scrap-all-1.jpg"]);
+});
+
+test("area pincodes: the pincode follows the area, and saved addresses reopen on their area", () => {
+  // Every listed pincode is a Jorhat one that supabase/seed.sql makes active.
+  const seeded = ["785001", "785004", "785005", "785006", "785007", "785008", "785010", "785014"];
+  for (const pins of Object.values(AREA_PINS)) for (const p of pins) assert.ok(seeded.includes(p), p);
+
+  assert.equal(pinForArea("Tarajan", "785001"), "785001"); // Tarajan uses it too: kept
+  assert.equal(pinForArea("Rowriah", "785001"), "785005"); // not used there: the area's first
+  assert.equal(pinForArea(OTHER_AREA, "785014"), "785014"); // typed: kept
+
+  assert.equal(areaInLine("House 4, near AT Road, Malow Ali"), "Malow Ali");
+  assert.equal(areaInLine("House 4, Bamun Gaon"), undefined);
+
+  assert.deepEqual(matchAreaPin("Gar-Ali", ""), { area: "Gar-Ali", pin: "785001" });
+  assert.deepEqual(matchAreaPin("Kenduguri", "785010"), { area: "Kenduguri", pin: "785010" });
+  assert.deepEqual(matchAreaPin("Gar-Ali", "785014"), { area: OTHER_AREA, pin: "785014" });
 });
