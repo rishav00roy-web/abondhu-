@@ -94,6 +94,27 @@ export function readItems(items: ScrapItem[]): { items: ReadyItem[] } | { error:
   return ready.length ? { items: ready } : { error: "Please add what scrap it is." };
 }
 
+/**
+ * Scrap photos are saved as "<pickup>/scrap-<item>-<time>.<ext>" (item 1, 2, ...) or "<pickup>/scrap-all-<time>.<ext>"
+ * for the optional photo of everything. Older bookings have one "scrap-<time>" photo.
+ */
+export const photoName = (which: number | "all", time: number, ext: string) => `scrap-${which}-${time}.${ext}`;
+
+/** Which photo a stored path is: the item number, "all", or null for an older single photo. */
+export function photoWhich(path: string): number | "all" | null {
+  const m = /\/scrap-(all|\d)-\d+\.\w+$/.exec(path);
+  return !m ? null : m[1] === "all" ? "all" : Number(m[1]);
+}
+
+/** Item photos first in item order, then the photo of everything. */
+export const sortPhotos = (paths: string[]) => {
+  const rank = (p: string) => {
+    const w = photoWhich(p);
+    return w === "all" ? 99 : (w ?? 0);
+  };
+  return [...paths].sort((a, b) => rank(a) - rank(b));
+};
+
 /** What goes after the day and time in the note: each item with its estimated weight. */
 export const itemsLine = (items: ReadyItem[]) => items.map((i) => `${i.name}, about ${i.kg} kg`).join("; ");
 

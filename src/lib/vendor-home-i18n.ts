@@ -34,6 +34,8 @@ const en = {
   accept: "Accept",
   taken: "Another dealer took this one.",
   scrapPhoto: "Photo of the scrap",
+  itemPhoto: "Photo of item",
+  allPhoto: "Photo of all the scrap",
   staff: {
     title: "Your workers",
     emptyHint: "Add the people who go on pickups for you. We check each one before they can work.",
@@ -94,6 +96,8 @@ const as: typeof en = {
   accept: "গ্ৰহণ কৰক",
   taken: "আন এজন ডিলাৰে এইটো লৈ গ'ল।",
   scrapPhoto: "স্ক্ৰেপৰ ফটো",
+  itemPhoto: "বস্তুৰ ফটো",
+  allPhoto: "সকলো স্ক্ৰেপৰ ফটো",
   staff: {
     title: "আপোনাৰ কৰ্মচাৰী",
     emptyHint: "আপোনাৰ হৈ পিকআপলৈ যোৱা লোকসকলক যোগ কৰক। কাম কৰাৰ আগতে আমি প্ৰত্যেককে পৰীক্ষা কৰোঁ।",

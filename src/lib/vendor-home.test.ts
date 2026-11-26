@@ -5,7 +5,7 @@ import { helpLink, monthStats, splitPickups, type PickupLite } from "./vendor-ho
 
 const p = (id: string, status: PickupLite["status"], extra: Partial<PickupLite> = {}): PickupLite => ({
   id, code: `AB-${id}`, status, pincode: "785001", requested_at: "2026-11-01T10:00:00Z", completed_at: null,
-  total_weight_kg: null, slot_date: null, start_time: null, address: null, note: null, photo: null, mine: true, ...extra,
+  total_weight_kg: null, slot_date: null, start_time: null, address: null, note: null, photos: [], mine: true, ...extra,
 });
 
 test("splitPickups keeps active ones soonest first and finished ones newest first", () => {

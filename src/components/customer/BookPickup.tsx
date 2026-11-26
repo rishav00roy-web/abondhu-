@@ -47,13 +47,13 @@ interface Form {
   day: string;
   slot: string;
   items: Row[]; // what scrap and about how many kg, one row per kind
-  photo: File | null;
+  photo: File | null; // optional photo of all the scrap together
 }
 
 /** An item row as typed. `id` only keeps React's keys steady when rows are removed. */
-type Row = ScrapItem & { id: number };
+type Row = ScrapItem & { id: number; photo: File | null };
 let nextRowId = 1;
-const emptyRow = (): Row => ({ id: nextRowId++, scrap: "", other: "", kg: "" });
+const emptyRow = (): Row => ({ id: nextRowId++, scrap: "", other: "", kg: "", photo: null });
 
 export function BookPickup() {
   const sb = getSupabase();
@@ -69,7 +69,7 @@ export function BookPickup() {
   const { busy, err, run } = useAction();
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((p) => ({ ...p, [k]: v }));
   const slots = useMemo(() => slotsFor(f.day, now), [f.day, now]);
-  const setItem = (id: number, patch: Partial<ScrapItem>) => setF((p) => ({ ...p, items: p.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }));
+  const setItem = (id: number, patch: Partial<Omit<Row, "id">>) => setF((p) => ({ ...p, items: p.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }));
   const addItem = () => setF((p) => (p.items.length < MAX_ITEMS ? { ...p, items: [...p.items, emptyRow()] } : p));
   const removeItem = (id: number) => setF((p) => (p.items.length > 1 ? { ...p, items: p.items.filter((it) => it.id !== id) } : p));
   // The estimate only needs what was typed, without the row ids.
@@ -150,7 +150,9 @@ export function BookPickup() {
       const checked = readItems(typedItems);
       if ("error" in checked) fail(checked.error);
       const items = "items" in checked ? checked.items : [];
-      if (!f.photo) fail("Please add a photo of the scrap.");
+      // A photo of each item is needed; the photo of everything together is optional.
+      const noPhoto = f.items.findIndex((it) => !it.photo);
+      if (noPhoto >= 0) fail(f.items.length > 1 ? `Item ${noPhoto + 1}: please add a photo.` : "Please add a photo of the scrap.");
 
       const uid = (await sb!.auth.getSession()).data.session?.user.id ?? fail("Please log in again.");
       const { data: pin, error: pinErr } = await sb!.from("pincodes").select("town_id").eq("pincode", f.pin.trim()).eq("is_active", true).maybeSingle();
@@ -186,14 +188,19 @@ export function BookPickup() {
       if (error?.hint === "daily_limit") fail("You have booked 5 pickups today. Please book again tomorrow.");
       if (error) fail(isNetworkError(error.message) ? NETWORK_ERR : "Could not book the pickup. Please try again.");
 
-      // The photo is required on the form, but if only its upload fails the pickup still stands.
-      let photoFailed = false;
-      if (f.photo) {
-        const fd = new FormData();
-        fd.append("pickup_id", pickup!.id);
-        fd.append("file", f.photo); // already shrunk when picked
-        photoFailed = await authedFetch("/api/pickup/photo", { method: "POST", body: fd }).then(() => false, () => true);
-      }
+      // Photos go up after the pickup is saved; if only an upload fails, the pickup still stands.
+      const uploads: [string, File][] = f.items.map((it, i) => [String(i + 1), it.photo!]);
+      if (f.photo) uploads.push(["all", f.photo]);
+      const results = await Promise.all(
+        uploads.map(([item, file]) => {
+          const fd = new FormData();
+          fd.append("pickup_id", pickup!.id);
+          fd.append("item", item);
+          fd.append("file", file); // already shrunk when picked
+          return authedFetch("/api/pickup/photo", { method: "POST", body: fd }).then(() => true, () => false);
+        }),
+      );
+      const photoFailed = results.includes(false);
       // Tell the dealers who cover this pincode. If this fails, admin sees the pickup waiting and calls one.
       await postJson("/api/pickup/notify", { pickupId: pickup!.id }).catch(() => {});
       setBooked({ code: pickup!.code, photoFailed });
@@ -228,7 +235,7 @@ export function BookPickup() {
               Your booking number is <b className="font-mono text-navy">{booked.code}</b>. We&apos;ll call you to confirm the time.
             </p>
             {booked.photoFailed && (
-              <p className="max-w-[52ch] text-sm text-muted">Your photo didn&apos;t upload. That&apos;s fine: you can show the scrap when the dealer comes.</p>
+              <p className="max-w-[52ch] text-sm text-muted">A photo didn&apos;t upload. That&apos;s fine: you can show the scrap when the dealer comes.</p>
             )}
             <button type="button" onClick={() => setBooked(null)} className={cn(btn.base, btn.quiet, "justify-self-start")}>
               Book another pickup
@@ -288,7 +295,7 @@ export function BookPickup() {
               </Field>
               <ScrapItems items={f.items} onChange={setItem} onAdd={addItem} onRemove={removeItem} />
               <PriceEstimate items={typedItems} />
-              <ScrapPhoto file={f.photo} onPick={(x) => set("photo", x)} />
+              <AllScrapPhoto file={f.photo} onPick={(x) => set("photo", x)} />
             </div>
             {err && <p role="alert" className="rounded-sm bg-red-50 p-3 text-sm text-danger">{err}</p>}
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -328,16 +335,16 @@ export function BookPickup() {
   );
 }
 
-/** One row per kind of scrap: what it is and about how many kg. "Add more" adds a row; X removes one. */
-function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChange: (id: number, patch: Partial<ScrapItem>) => void; onAdd: () => void; onRemove: (id: number) => void }) {
+/** One row per kind of scrap: what it is, about how many kg, and a photo. "Add more" adds a row; X removes one. */
+function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChange: (id: number, patch: Partial<Omit<Row, "id">>) => void; onAdd: () => void; onRemove: (id: number) => void }) {
   return (
     <fieldset className="grid gap-3 sm:col-span-2">
       <legend className={cn(label, "mb-1")}>What scrap, and about how many kg?</legend>
       {items.map((it, i) => {
         const n = items.length > 1 ? ` ${i + 1}` : "";
         return (
-          <div key={it.id} className="grid grid-cols-[1fr_3rem] gap-2 sm:grid-cols-[1fr_8rem_3rem]">
-            <select aria-label={`Item${n}: what scrap`} className={cn(field, "col-span-2 sm:col-span-1")} value={it.scrap} onChange={(e) => onChange(it.id, { scrap: e.target.value })}>
+          <div key={it.id} className="grid grid-cols-[1fr_1fr_3rem] gap-2 sm:grid-cols-[1fr_7rem_9rem_3rem]">
+            <select aria-label={`Item${n}: what scrap`} className={cn(field, "col-span-3 sm:col-span-1")} value={it.scrap} onChange={(e) => onChange(it.id, { scrap: e.target.value })}>
               <option value="">Choose a kind</option>
               {SCRAP_TYPES.map((t) => <option key={t}>{t}</option>)}
             </select>
@@ -353,6 +360,7 @@ function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChan
               />
               <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3.5 grid place-items-center text-sm text-muted">kg</span>
             </div>
+            <RowPhoto n={n} file={it.photo} onPick={(photo) => onChange(it.id, { photo })} />
             {items.length > 1 ? (
               <button type="button" onClick={() => onRemove(it.id)} aria-label={`Remove item${n}`} className="grid h-12 place-items-center rounded-sm border border-navy/15 text-muted transition-colors duration-200 hover:border-navy hover:text-navy focus:outline-none focus:ring-2 focus:ring-gold/60">
                 <X className="size-4" aria-hidden />
@@ -361,7 +369,7 @@ function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChan
               <span aria-hidden />
             )}
             {it.scrap === OTHER_SCRAP && (
-              <input aria-label={`Item${n}: what is it?`} className={cn(field, "col-span-2 sm:col-span-3")} placeholder="What is it? Like an old cooler" maxLength={OTHER_MAX} value={it.other} onChange={(e) => onChange(it.id, { other: e.target.value })} />
+              <input aria-label={`Item${n}: what is it?`} className={cn(field, "col-span-3 sm:col-span-4")} placeholder="What is it? Like an old cooler" maxLength={OTHER_MAX} value={it.other} onChange={(e) => onChange(it.id, { other: e.target.value })} />
             )}
           </div>
         );
@@ -384,12 +392,57 @@ function Field({ id, label: text, wide, children }: { id: string; label: string;
   );
 }
 
-/** Photo of the scrap (needed to book), so the dealer knows what to bring. Camera or gallery. */
-function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | null) => void }) {
+/** A picked photo as a preview link that is freed when it changes. */
+function usePreview(file: File | null) {
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => {
     if (url) URL.revokeObjectURL(url);
   }, [url]);
+  return url;
+}
+
+const BAD_PHOTO = "This photo can't be used. Please take a new photo, or choose a JPG.";
+
+/** "Add pic" for one item row (needed to book). Camera or gallery; tap again to change it. */
+function RowPhoto({ n, file, onPick }: { n: string; file: File | null; onPick: (f: File) => void }) {
+  const url = usePreview(file);
+  const [bad, setBad] = useState(false);
+  const pick = async (picked: File | undefined) => {
+    if (!picked) return;
+    const ready = await readyPhoto(picked);
+    setBad(!ready);
+    if (ready) onPick(ready);
+  };
+  return (
+    <>
+    <label
+      className={cn(
+        "flex h-12 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-sm border bg-white px-2 text-[15px] font-medium text-navy transition-colors duration-200 hover:border-navy focus-within:ring-2 focus-within:ring-gold/60",
+        file ? "border-forest/50" : "border-dashed border-navy/30",
+        bad && "border-danger text-danger",
+      )}
+    >
+      {url ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt="" className="size-8 shrink-0 rounded-sm object-cover" />
+          <span className="truncate">Change</span>
+        </>
+      ) : (
+        <>
+          <Camera className="size-4 shrink-0" aria-hidden /> <span className="truncate">{bad ? "Try again" : "Add pic"}</span>
+        </>
+      )}
+      <input type="file" accept="image/*" aria-label={`Item${n}: photo`} className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+    </label>
+    {bad && <p role="alert" className="order-last col-span-3 text-sm text-danger sm:col-span-4">{BAD_PHOTO}</p>}
+    </>
+  );
+}
+
+/** Optional photo of all the scrap together. Camera or gallery. */
+function AllScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | null) => void }) {
+  const url = usePreview(file);
   const [bad, setBad] = useState(false);
   const pick = async (picked: File | undefined) => {
     if (!picked) return;
@@ -399,11 +452,11 @@ function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | nu
   };
   return (
     <div className="grid gap-2 sm:col-span-2">
-      <span className={label}>Photo of the scrap</span>
+      <span className={label}>Photo of all the scrap (optional)</span>
       {url ? (
         <div className="flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt="Your scrap photo" className="size-20 rounded-sm border border-line object-cover" />
+          <img src={url} alt="Your photo of all the scrap" className="size-20 rounded-sm border border-line object-cover" />
           <button type="button" onClick={() => onPick(null)} className={cn(btn.base, btn.quiet)}>
             <X className="size-4" aria-hidden /> Remove
           </button>
@@ -414,7 +467,7 @@ function ScrapPhoto({ file, onPick }: { file: File | null; onPick: (f: File | nu
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
       )}
-      {bad && <p role="alert" className="text-sm text-danger">This photo can&apos;t be used. Please take a new photo, or choose a JPG.</p>}
+      {bad && <p role="alert" className="text-sm text-danger">{BAD_PHOTO}</p>}
     </div>
   );
 }
