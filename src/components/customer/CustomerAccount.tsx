@@ -5,6 +5,7 @@ import { ArrowRight, Loader2, LogOut } from "lucide-react";
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { btn } from "@/components/site/ui";
+import { SMS_READY } from "@/lib/sms";
 import { getSupabase } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { BookPickup } from "./BookPickup";
@@ -25,7 +26,7 @@ interface Profile {
 
 /**
  * Customer login and account page.
- * Signed out: Google, or a 6-digit code by phone or email.
+ * Signed out: Google, or a 6-digit code by email (phone shows "Coming soon" until SMS_READY).
  * Signed in: customers book a pickup and see their pickups. Vendors and admins get a link to their own dashboards.
  */
 export function CustomerAccount() {
@@ -66,7 +67,7 @@ function Login() {
   const { busy, err, run } = useAction();
   const [googleErr, setGoogleErr] = useState("");
   const onGoogleError = useCallback((msg: string) => setGoogleErr(msg), []);
-  const [by, setBy] = useState<"phone" | "email">("phone");
+  const [by, setBy] = useState<"phone" | "email">(SMS_READY ? "phone" : "email");
   const [value, setValue] = useState("");
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
@@ -135,17 +136,29 @@ function Login() {
       {!sent ? (
         <form onSubmit={sendCode} className="grid gap-4">
           <div className="grid grid-cols-2 gap-2" role="group" aria-label="Get the code by">
-            {(["phone", "email"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                aria-pressed={by === k}
-                onClick={() => { setBy(k); setValue(""); }}
-                className={cn("h-11 rounded-sm border text-sm font-semibold", by === k ? "border-navy bg-navy text-white" : "border-navy/15 text-navy")}
-              >
-                {k === "phone" ? "Phone" : "Email"}
-              </button>
-            ))}
+            {(["phone", "email"] as const).map((k) => {
+              const soon = k === "phone" && !SMS_READY;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={by === k}
+                  disabled={soon}
+                  onClick={() => { setBy(k); setValue(""); }}
+                  className={cn(
+                    "flex min-h-11 flex-wrap items-center justify-center gap-x-2 gap-y-0.5 rounded-sm border px-2 py-1 text-sm font-semibold",
+                    soon
+                      ? "cursor-not-allowed border-navy/10 bg-sunk text-faint"
+                      : by === k
+                        ? "border-navy bg-navy text-white"
+                        : "border-navy/15 text-navy",
+                  )}
+                >
+                  {k === "phone" ? "Phone" : "Email"}
+                  {soon && <span className="rounded-full bg-sand px-2 py-0.5 text-[11px] font-bold text-navy">Coming soon</span>}
+                </button>
+              );
+            })}
           </div>
           <label className="grid gap-2">
             <span className={label}>{by === "phone" ? "Mobile number" : "Email"}</span>

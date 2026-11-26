@@ -60,10 +60,10 @@ default to about 300, so ~100 vendors plus customers aren't blocked.
 4. If a code doesn't arrive: **Edge Functions > send-sms > Logs** says whether
    MSG91 refused it (the reason is shown, never the phone or code), then MSG91 > **Logs**.
 
-## 6. Show SMS to vendors
+## 6. Show SMS to customers and vendors
 
-Vendor sign-up still shows SMS as "Coming soon". Once step 5 works, set
-`SMS_READY = true` in `src/components/vendor/VendorSignup.tsx` (Claude can do this).
+The customer login and vendor sign-up still show Phone as "Coming soon". Once step 5 works, set
+`SMS_READY = true` in `src/lib/sms.ts` (Claude can do this). That one switch turns phone codes on for both.
 
 ## Running the checks
 

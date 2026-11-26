@@ -3,6 +3,7 @@
 import { Bike, Car, Check, Loader2, Recycle, ShoppingCart, Store, Truck, User, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { digitsOnly, formatAadhaar, isValidAadhaar, maskAadhaar } from "@/lib/aadhaar";
+import { SMS_READY } from "@/lib/sms";
 import { getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
@@ -31,9 +32,6 @@ interface Form {
   consent: boolean;
   shopPhoto: File | null;
 }
-
-// SMS codes stay off until MSG91 (DLT sender ID + template) is live. Then set true.
-const SMS_READY = false;
 
 const EMPTY: Form = {
   name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
