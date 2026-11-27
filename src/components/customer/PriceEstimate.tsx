@@ -58,7 +58,8 @@ export function PriceEstimate({ items }: { items: ScrapItem[] }) {
 
   return (
     <div className="grid gap-4 sm:col-span-2">
-      <button type="button" onClick={generate} className={cn(btn.base, btn.quiet, "justify-self-start")}>
+      {/* may wrap to two lines on small phones instead of spilling out of the card */}
+      <button type="button" onClick={generate} className={cn(btn.base.replace("whitespace-nowrap", "text-center"), btn.quiet, "justify-self-start")}>
         <ReceiptText className="size-4" aria-hidden /> Generate estimated bill
       </button>
       {problem && <p role="alert" className="text-sm text-danger">{problem}</p>}

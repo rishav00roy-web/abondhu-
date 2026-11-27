@@ -29,9 +29,9 @@ export function CookieNote() {
   };
 
   return (
-    <div role="region" aria-label="Cookies" className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-xl items-center gap-3 rounded-lg bg-midnight px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))] text-sm text-white shadow-lg">
+    <div role="region" aria-label="Cookies" className="fixed inset-x-3 bottom-[calc(12px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-xl items-center gap-3 rounded-lg bg-midnight px-4 py-3 text-sm text-white shadow-lg">
       <p className="flex-1 leading-snug">
-        We only use cookies needed to keep you logged in and the site working.{" "}
+        We only use cookies that keep you logged in.{" "}
         <Link href="/privacy" className="text-gold underline">Privacy</Link>
       </p>
       <button type="button" onClick={ok} className="min-h-11 shrink-0 rounded-md bg-gold px-5 font-bold text-midnight focus:outline-none focus-visible:ring-2 focus-visible:ring-white">

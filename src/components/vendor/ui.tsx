@@ -25,13 +25,13 @@ export function Shell({ t, onLang, step, onBack, onLogout, children }: {
               <ArrowLeft className="size-6" />
             </button>
           ) : null}
-          <Link href="/" className="flex items-center gap-2 font-serif text-xl">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-serif text-xl">
             <Image src="/abondhu-mark.png" alt="" width={32} height={24} className="h-6 w-auto rounded bg-white p-0.5" />
             Abondhu
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            <InstallApp label={t.install} className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-3 py-1 text-sm font-semibold text-navy" />
-            <button type="button" onClick={onLang} className="rounded-full border border-gold px-3 py-1 text-sm text-gold">
+            <InstallApp label={t.install} text={<span className="hidden min-[380px]:inline">{t.install}</span>} className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-3 text-sm font-semibold text-navy" />
+            <button type="button" onClick={onLang} className="h-8 shrink-0 rounded-full border border-gold px-3 text-sm text-gold">
               {t.switchTo}
             </button>
           </div>
