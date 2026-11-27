@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useReducedSafe } from "@/lib/use-reduced";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { InstallApp } from "../InstallApp";
 import { SPRING_FAST } from "./motion";
 import { Brand } from "./ui";
 import { VendorLink } from "./VendorLink";
@@ -61,6 +62,7 @@ export function Nav({ vendorPage = false }: { vendorPage?: boolean }) {
           ))}
           <VendorLink aria-current={vendorPage ? "page" : undefined} className={`draw pb-1 text-forest ${vendorPage ? "bg-[length:100%_1px]" : ""}`} />
         </nav>
+        <InstallApp label={<>Install<span className="hidden sm:inline"> app</span></>} className="flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full border border-navy/15 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-navy sm:px-4 sm:tracking-[0.15em] transition-colors duration-200 hover:border-navy active:scale-[0.97]" />
         <Link href="/account" className={`${bookBtn} hidden sm:inline-flex`}>
           Book pickup
         </Link>

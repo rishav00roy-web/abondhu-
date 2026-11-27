@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { AREA_PINS, areaInLine, matchAreaPin, OTHER_AREA, pinForArea } from "./site-data.ts";
-import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, photoName, photoWhich, readItems, sortPhotos, slotsFor, totalKg, itemsLine } from "./booking.ts";
+import { dayLabel, estimatePrice, isJorhatPin, isMobile, parseKg, pickupDays, pickupNote, photoName, photoWhich, readItems, SCRAP_TYPES, scrapChoices, sortPhotos, slotsFor, totalKg, itemsLine } from "./booking.ts";
 
 const now = new Date(2026, 10, 10, 21, 0); // Tue 10 Nov 2026, 9 pm
 
@@ -78,8 +78,9 @@ test("each item row needs a kind, a name for Other, and a weight", () => {
 });
 
 test("the note fits six long items under the 500-character limit", () => {
-  const long = { scrap: "Old appliances (fridge, AC, cooler, washing machine)", other: "", kg: "1999.99" };
-  const r = readItems(Array(6).fill(long));
+  // each kind once, so the six longest names (a kind can't repeat; "Other" is capped at 50 letters)
+  const longest = [...SCRAP_TYPES].sort((a, b) => b.length - a.length).slice(0, 6);
+  const r = readItems(longest.map((scrap) => ({ scrap, other: "x".repeat(50), kg: "1999.99" })));
   assert.ok("items" in r);
   assert.ok(pickupNote("2026-11-12", "12 PM to 3 PM", itemsLine(r.items), now).length <= 500);
 });
@@ -107,4 +108,24 @@ test("area pincodes: the pincode follows the area, and saved addresses reopen on
   assert.deepEqual(matchAreaPin("Gar-Ali", ""), { area: "Gar-Ali", pin: "785001" });
   assert.deepEqual(matchAreaPin("Kenduguri", "785010"), { area: "Kenduguri", pin: "785010" });
   assert.deepEqual(matchAreaPin("Gar-Ali", "785014"), { area: OTHER_AREA, pin: "785014" });
+});
+
+test("scrapChoices hides kinds other rows picked, but Other stays", () => {
+  const rows = [
+    { scrap: "Plastic", other: "", kg: "5" },
+    { scrap: "Other", other: "cooler", kg: "20" },
+    { scrap: "", other: "", kg: "" },
+  ];
+  assert.ok(!scrapChoices(rows, 2).includes("Plastic"));
+  assert.ok(scrapChoices(rows, 2).includes("Other"));
+  assert.ok(scrapChoices(rows, 0).includes("Plastic")); // a row still sees its own pick
+});
+
+test("readItems refuses the same kind twice", () => {
+  const r = readItems([
+    { scrap: "Plastic", other: "", kg: "5" },
+    { scrap: "Plastic", other: "", kg: "3" },
+  ]);
+  assert.ok("error" in r && r.error.startsWith("Item 2:"));
+  assert.ok("items" in readItems([{ scrap: "Other", other: "cooler", kg: "5" }, { scrap: "Other", other: "fan", kg: "3" }]));
 });
