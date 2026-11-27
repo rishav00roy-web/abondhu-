@@ -18,7 +18,7 @@ export function Container({ className, children }: { className?: string; childre
 
 /** Buttons follow the Willchris site: square corners, small uppercase tracked labels. */
 export const btn = {
-  base: "inline-flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-sm px-9 text-xs font-bold uppercase tracking-[0.15em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] disabled:opacity-50 [&_svg]:transition-transform [&_svg]:duration-200 hover:[&_svg]:translate-x-0.5",
+  base: "inline-flex h-14 items-center justify-center gap-2 whitespace-nowrap rounded-sm px-5 sm:px-9 text-xs font-bold uppercase tracking-[0.15em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] disabled:opacity-50 [&_svg]:transition-transform [&_svg]:duration-200 hover:[&_svg]:translate-x-0.5",
   primary: "bg-navy text-white shadow-xl shadow-navy/10 hover:bg-forest hover:shadow-forest/20",
   quiet: "border border-navy/20 text-navy hover:border-navy hover:bg-navy/5",
   light: "border border-white text-white hover:bg-white hover:text-midnight",

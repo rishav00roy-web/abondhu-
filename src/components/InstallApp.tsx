@@ -15,8 +15,11 @@ declare global {
 /** Inline script for the layout: holds Chrome's install offer and says when it changes. */
 export const INSTALL_CATCHER = `addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__installOffer=e;dispatchEvent(new Event("abondhu-install"))});addEventListener("appinstalled",function(){window.__installOffer=null;dispatchEvent(new Event("abondhu-install"))});`;
 
-/** "Install app" button. Shows only when Chrome can install the site; opens Chrome's install prompt. */
-export function InstallApp({ className, label = "Install app" }: { className: string; label?: React.ReactNode }) {
+/**
+ * "Install app" button. Shows only when Chrome can install the site; opens Chrome's install prompt.
+ * `label` is what screen readers hear; `text` is the visible part (may hide words on small screens).
+ */
+export function InstallApp({ className, label = "Install app", text }: { className: string; label?: string; text?: React.ReactNode }) {
   const [can, setCan] = useState(false);
 
   useEffect(() => {
@@ -38,8 +41,8 @@ export function InstallApp({ className, label = "Install app" }: { className: st
   };
 
   return (
-    <button type="button" onClick={install} className={className}>
-      <Download className="size-4" aria-hidden /> {label}
+    <button type="button" onClick={install} aria-label={label} className={className}>
+      <Download className="size-4 shrink-0" aria-hidden /> {text ?? label}
     </button>
   );
 }
