@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CookieNote } from "@/components/CookieNote";
+import { INSTALL_CATCHER } from "@/components/InstallApp";
 
 // Fonts are bundled with the site (src/app/fonts), so builds never depend on Google Fonts being reachable.
 const montserrat = localFont({ src: "./fonts/montserrat-latin-wght-normal.woff2", weight: "100 900", variable: "--font-montserrat" });
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en-IN" className={`${montserrat.variable} ${playfair.variable} ${geistMono.variable}`}>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: INSTALL_CATCHER }} />
         <a
           href="#main"
           className="fixed left-4 top-3 z-[60] -translate-y-20 rounded-sm bg-gold px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-midnight transition-transform focus-visible:translate-y-0"

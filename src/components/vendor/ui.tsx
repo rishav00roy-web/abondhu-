@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { readyPhoto } from "@/lib/shrink-photo";
 import { cn } from "@/lib/utils";
 import type { Strings } from "@/lib/vendor-i18n";
+import { InstallApp } from "../InstallApp";
 
 export const input =
   "h-14 w-full rounded-xl border-2 border-line bg-white px-4 text-lg text-ink outline-none transition-colors focus:border-forest";
@@ -28,9 +29,12 @@ export function Shell({ t, onLang, step, onBack, onLogout, children }: {
             <Image src="/abondhu-mark.png" alt="" width={32} height={24} className="h-6 w-auto rounded bg-white p-0.5" />
             Abondhu
           </Link>
-          <button type="button" onClick={onLang} className="ml-auto rounded-full border border-gold px-3 py-1 text-sm text-gold">
-            {t.switchTo}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <InstallApp label={t.install} className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gold px-3 py-1 text-sm font-semibold text-navy" />
+            <button type="button" onClick={onLang} className="rounded-full border border-gold px-3 py-1 text-sm text-gold">
+              {t.switchTo}
+            </button>
+          </div>
         </div>
         {step && (
           <div className="mx-auto mt-4 max-w-md">

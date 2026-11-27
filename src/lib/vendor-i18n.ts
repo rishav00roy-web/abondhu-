@@ -48,6 +48,7 @@ export const T = {
     errAddress: "Please write your address.",
     errPincode: "We only work in Jorhat for now. Please check the pincode.",
     errVehicle: "Please choose your vehicle.",
+    install: "Install",
     licenceNo: "Trade licence number",
     errLicence: "Please write your trade licence number.",
 
@@ -131,6 +132,7 @@ export const T = {
     errAddress: "অনুগ্ৰহ কৰি ঠিকনা লিখক।",
     errPincode: "এতিয়া কেৱল যোৰহাটত কাম কৰোঁ। পিনকোড চাওক।",
     errVehicle: "আপোনাৰ গাড়ী বাছি লওক।",
+    install: "ইনষ্টল",
     licenceNo: "ট্ৰেড লাইচেন্স নম্বৰ",
     errLicence: "ট্ৰেড লাইচেন্স নম্বৰটো লিখক।",
 
