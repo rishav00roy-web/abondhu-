@@ -7,7 +7,7 @@ import { useReducedSafe } from "@/lib/use-reduced";
 import { ArrowRight, Camera, Check, Loader2, Package, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { btn } from "@/components/site/ui";
-import { dayLabel, isJorhatPin, isMobile, itemsLine, MAX_ITEMS, OTHER_MAX, OTHER_SCRAP, pickupDays, pickupNote, readItems, SCRAP_TYPES, type ScrapItem, slotsFor, takeDraft, totalKg } from "@/lib/booking";
+import { dayLabel, isJorhatPin, isMobile, itemsLine, MAX_ITEMS, OTHER_MAX, OTHER_SCRAP, pickupDays, pickupNote, readItems, scrapChoices, type ScrapItem, slotsFor, takeDraft, totalKg } from "@/lib/booking";
 import { readyPhoto } from "@/lib/shrink-photo";
 import { AREA_PINS, areaInLine, LOCALITIES, matchAreaPin, OTHER_AREA, pinForArea } from "@/lib/site-data";
 import { authedFetch, getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
@@ -357,7 +357,7 @@ function ScrapItems({ items, onChange, onAdd, onRemove }: { items: Row[]; onChan
           <div key={it.id} className="grid grid-cols-[1fr_1fr_3rem] gap-2 sm:grid-cols-[1fr_7rem_9rem_3rem]">
             <select aria-label={`Item${n}: what scrap`} className={cn(field, "col-span-3 sm:col-span-1")} value={it.scrap} onChange={(e) => onChange(it.id, { scrap: e.target.value })}>
               <option value="">Choose a kind</option>
-              {SCRAP_TYPES.map((t) => <option key={t}>{t}</option>)}
+              {scrapChoices(items, i).map((t) => <option key={t}>{t}</option>)}
             </select>
             <div className="relative">
               <input

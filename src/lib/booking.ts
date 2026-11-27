@@ -83,11 +83,22 @@ export function readItem(it: ScrapItem): ReadyItem | { error: string } {
   return { scrap: it.scrap, name, kg };
 }
 
+/**
+ * The kinds a row's dropdown offers: every kind except the ones other rows already picked,
+ * so the same scrap is never listed twice. "Other" can be picked on any number of rows.
+ */
+export function scrapChoices(items: ScrapItem[], row: number): string[] {
+  const taken = new Set(items.filter((_, i) => i !== row).map((it) => it.scrap));
+  return SCRAP_TYPES.filter((t) => t === OTHER_SCRAP || !taken.has(t));
+}
+
 /** Checks every row: the filled-in items, or the first problem ("Item 2: ..." when there are several rows). */
 export function readItems(items: ScrapItem[]): { items: ReadyItem[] } | { error: string } {
   const ready: ReadyItem[] = [];
   for (const [i, it] of items.entries()) {
     const r = readItem(it);
+    if (!("error" in r) && r.scrap !== OTHER_SCRAP && ready.some((x) => x.scrap === r.scrap))
+      return { error: `Item ${i + 1}: ${r.scrap} is already in the list. Add its kg to that item.` };
     if ("error" in r) return { error: items.length > 1 ? `Item ${i + 1}: ${r.error}.` : `Please ${r.error}.` };
     ready.push(r);
   }

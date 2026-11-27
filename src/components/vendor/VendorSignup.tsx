@@ -7,7 +7,7 @@ import { SMS_READY } from "@/lib/sms";
 import { getSupabase, isNetworkError, NETWORK_ERR, postJson } from "@/lib/supabase";
 import { useAction } from "@/lib/use-action";
 import { cn } from "@/lib/utils";
-import { cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
+import { cleanLicence, cleanMobile, isValid, type Vehicle, type VendorStatus, type VendorType } from "@/lib/vendor";
 import { inLang } from "@/lib/err-lang";
 import { strings, type Lang } from "@/lib/vendor-i18n";
 import { uploadPhoto } from "./photos";
@@ -24,18 +24,20 @@ interface Form {
   shopName: string;
   address: string;
   pincode: string;
+  licenceNo: string;
   vehicle: Vehicle | null;
   aadhaar: string;
   aadhaarPhoto: File | null;
   aadhaarBack: File | null;
+  licencePhoto: File | null;
   selfie: File | null;
   consent: boolean;
   shopPhoto: File | null;
 }
 
 const EMPTY: Form = {
-  name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", vehicle: null,
-  aadhaar: "", aadhaarPhoto: null, aadhaarBack: null, selfie: null, consent: false, shopPhoto: null,
+  name: "", phone: "", byEmail: true, email: "", vendorType: null, otp: "", shopName: "", address: "", pincode: "", licenceNo: "", vehicle: null,
+  aadhaar: "", aadhaarPhoto: null, aadhaarBack: null, licencePhoto: null, selfie: null, consent: false, shopPhoto: null,
 };
 
 // Screens: 1 about, 2 otp, 3 shop, 4 aadhaar, 5 work-place photo, 6 review, 7 status
@@ -78,7 +80,7 @@ export function VendorSignup() {
       sb.from("profiles").select("full_name, phone, email").eq("id", uid).single(),
       sb
         .from("vendors")
-        .select("status, onboarding_step, application_code, rejection_reason, vendor_type, business_name, vehicle_type, addresses(line1, pincode)")
+        .select("status, onboarding_step, application_code, rejection_reason, vendor_type, business_name, trade_licence_no, vehicle_type, addresses(line1, pincode)")
         .eq("id", uid)
         .maybeSingle(),
     ]);
@@ -95,6 +97,7 @@ export function VendorSignup() {
       shopName: prev.shopName || v?.business_name || "",
       address: prev.address || shop?.line1 || "",
       pincode: prev.pincode || shop?.pincode || "",
+      licenceNo: prev.licenceNo || v?.trade_licence_no || "",
       vehicle: prev.vehicle ?? (v?.vehicle_type as Vehicle | null) ?? null,
     }));
     if (!v) {
@@ -168,6 +171,7 @@ export function VendorSignup() {
     run(async () => {
       if (f.address.trim().length < 5) fail(t.errAddress);
       if (!f.vehicle) fail(t.errVehicle);
+      if (cleanLicence(f.licenceNo).length < 3) fail(t.errLicence);
       const { data: pin, error: pinErr } = await sb!.from("pincodes").select("pincode").eq("pincode", f.pincode).eq("is_active", true).maybeSingle();
       if (pinErr) fail(NETWORK_ERR);
       if (!pin) fail(t.errPincode);
@@ -183,7 +187,7 @@ export function VendorSignup() {
       await sb!.from("vendor_service_areas").upsert({ vendor_id: id, pincode: f.pincode });
       const { error: e2 } = await sb!
         .from("vendors")
-        .update({ address_id: addr!.id, vehicle_type: f.vehicle, business_name: f.shopName.trim() || null, onboarding_step: 4 })
+        .update({ address_id: addr!.id, vehicle_type: f.vehicle, business_name: f.shopName.trim() || null, trade_licence_no: cleanLicence(f.licenceNo), onboarding_step: 4 })
         .eq("id", id);
       if (e2) fail(e2.message);
       setScreen(4);
@@ -193,13 +197,14 @@ export function VendorSignup() {
     run(async () => {
       if (!digitsOnly(f.aadhaar)) fail(t.errAadhaarEmpty);
       if (!isValidAadhaar(f.aadhaar)) fail(t.errAadhaar);
-      if (!f.aadhaarPhoto || !f.aadhaarBack || !f.selfie) fail(t.errPhotos);
+      if (!f.aadhaarPhoto || !f.aadhaarBack || !f.licencePhoto || !f.selfie) fail(t.errPhotos);
       if (!f.consent) fail(t.errConsent);
       await postJson("/api/vendor/aadhaar", { aadhaar: digitsOnly(f.aadhaar), consent: true });
       // the photos are independent, so send them together
       await Promise.all([
         uploadPhoto(f.aadhaarPhoto!, "aadhaar_photo"),
         uploadPhoto(f.aadhaarBack!, "aadhaar_back"),
+        uploadPhoto(f.licencePhoto!, "trade_licence"),
         uploadPhoto(f.selfie!, "selfie"),
       ]);
       await sb!.from("vendors").update({ onboarding_step: 5 }).eq("id", await uid());
@@ -331,6 +336,9 @@ export function VendorSignup() {
           <Field label={t.pincode}>
             <input className={input} inputMode="numeric" value={f.pincode} onChange={(e) => set("pincode", digitsOnly(e.target.value).slice(0, 6))} autoComplete="postal-code" />
           </Field>
+          <Field label={t.licenceNo}>
+            <input className={input} value={f.licenceNo} onChange={(e) => set("licenceNo", e.target.value)} maxLength={40} autoComplete="off" autoCapitalize="characters" />
+          </Field>
           <Field label={t.vehicle} group>
             <div className="grid grid-cols-2 gap-3">
               <Tile row on={f.vehicle === "cycle"} onClick={() => set("vehicle", "cycle")} icon={<Bike />} label={t.cycle} />
@@ -359,6 +367,7 @@ export function VendorSignup() {
           </Field>
           <PhotoPick label={t.aadhaarPhoto} file={f.aadhaarPhoto} onPick={(x) => set("aadhaarPhoto", x)} t={t} />
           <PhotoPick label={t.aadhaarBack} file={f.aadhaarBack} onPick={(x) => set("aadhaarBack", x)} t={t} />
+          <PhotoPick label={t.licencePhoto} file={f.licencePhoto} onPick={(x) => set("licencePhoto", x)} t={t} />
           <PhotoPick label={t.selfie} file={f.selfie} onPick={(x) => set("selfie", x)} t={t} front />
           <label className="flex items-start gap-3 rounded-xl bg-[#E8F1EE] p-4 text-[15px] leading-relaxed text-forest">
             <input type="checkbox" className="mt-1 size-5 accent-[var(--forest)]" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} />
@@ -387,6 +396,7 @@ export function VendorSignup() {
             <Row k={t.mobile} v={"+91 " + f.phone} />
             {f.email && <Row k={t.email} v={f.email} />}
             {f.address && <Row k={t.address} v={`${f.address}, ${f.pincode}`} />}
+            {f.licenceNo && <Row k={t.licenceNo} v={cleanLicence(f.licenceNo)} />}
             {f.aadhaar && <Row k={t.aadhaarNo} v={maskAadhaar(f.aadhaar)} />}
           </dl>
           <Err msg={errMsg} />

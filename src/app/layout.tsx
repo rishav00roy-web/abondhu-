@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { CookieNote } from "@/components/CookieNote";
 
 // Fonts are bundled with the site (src/app/fonts), so builds never depend on Google Fonts being reachable.
 const montserrat = localFont({ src: "./fonts/montserrat-latin-wght-normal.woff2", weight: "100 900", variable: "--font-montserrat" });
@@ -24,7 +25,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://abondhu.com"),
   title,
   description,
-  icons: { icon: "/abondhu-mark.png" },
+  icons: { icon: "/abondhu-mark.png", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { title: "Abondhu", capable: true, statusBarStyle: "default" },
   openGraph: { type: "website", siteName: "Abondhu", locale: "en_IN", title, description },
   twitter: { card: "summary_large_image", title, description },
 };
@@ -45,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         {children}
+        <CookieNote />
       </body>
     </html>
   );
